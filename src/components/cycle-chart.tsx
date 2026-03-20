@@ -127,7 +127,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
               className={[
                 // Layout
                 "relative flex flex-col items-center justify-between gap-1",
-                "rounded-sm px-1 py-3 min-h-[96px] cursor-pointer",
+                "rounded-sm px-1 py-3 min-h-[96px] min-w-0 overflow-hidden cursor-pointer",
                 "transition-transform duration-150",
                 // Background
                 bgClass,
@@ -173,7 +173,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
               <span
                 aria-hidden="true"
                 className={[
-                  "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight",
+                  "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight truncate w-full",
                   isZero ? "text-parchment/70" : "text-ink-light",
                 ].join(" ")}
                 style={{ fontVariant: "small-caps" }}

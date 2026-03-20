@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
-import { CycleResult } from "@/components/cycle-result";
+import { CycleChart } from "@/components/cycle-chart";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 
 export default function Home() {
@@ -43,11 +43,12 @@ export default function Home() {
       {result && (
         <>
           <SectionDivider />
-          <div className="max-w-[600px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
-            <h2 className="text-center text-[22px] font-medium tracking-[0.02em]">
-              Your Life Cycle
-            </h2>
-            <CycleResult result={result} />
+          <div className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
+            <CycleChart
+              cycle={result.cycle}
+              totalScore={result.totalScore}
+              birthYear={result.birthYear}
+            />
           </div>
         </>
       )}
