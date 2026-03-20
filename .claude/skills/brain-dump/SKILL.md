@@ -102,6 +102,19 @@ Guidelines for writing good stories:
 - **Priority** should reflect value vs. effort: High = high value regardless of effort, or blocking other work. Medium = meaningful value at reasonable effort. Low = nice-to-have or high effort relative to value.
 - **Effort** should reflect implementation complexity: S = a few hours, well-understood work. M = 1-3 days, some unknowns. L = 3-5 days, significant complexity or coordination. XL = a week or more, consider splitting into smaller stories.
 
+#### Below-the-fold transition check
+
+If a story's output (result, chart, confirmation) renders below the user's action (form, button, trigger), include an AC for how the user reaches it. Ask: "Does the result appear below the fold? If so, should the page scroll to it, switch tabs, or navigate?" Do not leave transition UX implicit.
+
+#### Khmer numerology domain checklist
+
+When writing stories in this project that involve dates or cycle calculations, explicitly address these edge cases in the ACs:
+- **CNY boundary:** January/February births — does the zodiac derivation handle pre- vs. post-Chinese New Year correctly?
+- **Calendar edge dates:** Dec 31, Jan 1, Feb 29 (leap year) — are these tested?
+- **Cycle wrap:** When a cycle index crosses the 12-position boundary, does it wrap correctly?
+- **Year ranges:** Are min/max year boundaries (1900–2100) stated and enforced?
+- **"Nearest years" ambiguity:** If a feature shows "which years map to this position," define whether it means most recent past, current, or upcoming years relative to today.
+
 ### Step 5: Prioritize and Build the Product Roadmap
 
 After all stories are written, create a phased product roadmap that:

@@ -7,7 +7,7 @@
  * below the form card without a page reload.
  */
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
@@ -15,6 +15,15 @@ import type { CycleResultWithYear } from "@/lib/numerology/derive";
 
 export default function Home() {
   const [result, setResult] = useState<CycleResultWithYear | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const handleResult = useCallback((r: CycleResultWithYear) => {
+    setResult(r);
+    // Scroll to result card after React renders
+    requestAnimationFrame(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
 
   return (
     <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-8">
@@ -36,14 +45,17 @@ export default function Home() {
           Enter your birth date to reveal your 12-year cycle
         </p>
 
-        <BirthDataForm onResult={setResult} />
+        <BirthDataForm onResult={handleResult} />
       </div>
 
       {/* Result card — appears below form after submission */}
       {result && (
         <>
           <SectionDivider />
-          <div className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
+          <div
+            ref={resultRef}
+            className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]"
+          >
             <CycleChart
               cycle={result.cycle}
               totalScore={result.totalScore}

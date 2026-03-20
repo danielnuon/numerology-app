@@ -98,6 +98,7 @@ Every story is evaluated against seven criteria. Each criterion receives a verdi
 - Are performance concerns noted where relevant (large data sets, concurrent users)?
 - Are integration risks identified (third-party APIs, cross-service communication)?
 - Are there data migration or backward-compatibility concerns?
+- **Accessibility ACs requiring tooling:** If any AC references WCAG contrast ratios, color accessibility, or screen reader behavior, flag it as requiring explicit tooling during /real (e.g., axe DevTools, Chrome contrast checker) — visual judgment alone is insufficient. Note this in the finding so /real knows to use measurement tools, not screenshots.
 
 ## Process
 
