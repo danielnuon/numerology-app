@@ -1,7 +1,7 @@
 # Brain Dump: Khmer Numerology Web Application
 
 ## Overview
-18 user stories organized across 6 epics, covering the full scope of a portfolio-grade numerology web application — from core calculation engine to interactive visualization, compatibility features, and polish layers that demonstrate senior engineering sensibility.
+19 user stories organized across 6 epics, covering the full scope of a portfolio-grade numerology web application — from core calculation engine to interactive visualization, compatibility features, and polish layers that demonstrate senior engineering sensibility.
 
 ---
 
@@ -105,6 +105,31 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 - [ ] Test fallback behavior for malformed URLs
 
 **Notes:** Depends on Numerology Calculation Core. Blocks Shareable Results Card and Partner Comparison View (shareable links). Keep the encoding simple — a birth date is sufficient to recompute everything server-side.
+
+---
+
+### CI/CD Pipeline Setup
+
+**Story:** As a developer pushing code to the repository, I want automated test and build validation on every push and PR, so that broken code is caught before it reaches the main branch.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [ ] A GitHub Actions workflow runs `npm test` and `npm run build` on every push to `main`
+- [ ] The same workflow runs on pull requests targeting `main`
+- [ ] The workflow uses Node.js 20.x
+- [ ] Failed tests or build errors cause the workflow to fail with a clear error message
+- [ ] The workflow completes in under 5 minutes for the current test suite
+- [ ] A status badge is available (but not required to be added to README)
+
+**Tasks:**
+- [ ] Create `.github/workflows/ci.yml` with test and build steps
+- [ ] Configure Node.js 20.x with npm caching for faster runs
+- [ ] Add test and build steps that match local development commands
+- [ ] Verify the workflow passes on the current codebase by pushing it
+
+**Notes:** Depends on nothing. Does not block any feature stories but improves quality assurance across the entire pipeline. Identified as a gap in the Cycle 2 retrospective — two cycles of code shipped with zero automated CI validation.
 
 ---
 
