@@ -237,7 +237,7 @@ The entry point. Clean form design, solid validation, and smart defaults.
 
 **Tasks:**
 - [ ] Build date input component with day/month/year fields or a date picker
-- [ ] Implement weekday derivation from date (using JavaScript Date API)
+- [ ] Implement weekday derivation from date using `new Date(year, month - 1, day)` (local date constructor) — do NOT parse from a date string, which uses UTC and returns the wrong weekday in UTC+ timezones
 - [ ] Integrate Chinese Lunar New Year Lookup Table for zodiac derivation
 - [ ] Integrate Margasir Month Mapping Data for month position derivation
 - [ ] Add form validation with Zod schema
@@ -265,7 +265,7 @@ The centerpiece. This is what makes a recruiter stop scrolling.
 - [ ] Each pillar shows: the cycle number (Cormorant Garamond 32px), the tier symbol (●/◕/◑/◔/⊙), and the life area label in small caps
 - [ ] Each pillar's background is tinted by its luck tier color at 15–20% opacity: sage green (`#5B7744`/`#7A9B6B`), amber/gold (`#B8860B`), sienna (`#A0522D`), or charcoal (`#4A4039`)
 - [ ] Color is not the only indicator — each position also shows the numeric value and a tier symbol
-- [ ] Hovering or tapping a pillar reveals: the year(s) it maps to, the luck interpretation, the life area domain, and guidance text via a detail panel below the chart
+- [ ] Hovering or tapping a pillar reveals: the nearest calendar years it maps to (most recent past year and next 1–2 upcoming years from today), the luck interpretation, the life area domain, and guidance text via a detail panel below the chart
 - [ ] The current year's pillar has a gold border (`#B8860B`), subtle gold glow shadow, and is slightly elevated
 - [ ] Zero-value pillars have a charcoal (`#4A4039`) background, light text, and a subtle breathing pulse animation
 - [ ] The chart animates on first render: pillars rise from below with 80ms stagger, left to right
@@ -279,6 +279,8 @@ The centerpiece. This is what makes a recruiter stop scrolling.
 - [ ] Add tier symbols (●/◕/◑/◔/⊙) above each pillar
 - [ ] Add life area labels in small caps below each pillar
 - [ ] Build detail panel that slides down (300ms ease-out) on pillar selection
+- [ ] Compute current-year pillar position using `getCycleIndex(birthYear, new Date().getFullYear())` to identify which column to highlight
+- [ ] For each pillar, compute the list of nearest calendar years it maps to: `[birthYear + colIndex, birthYear + colIndex + 12, ...]` filtered to a readable range (most recent past + next 1–2 upcoming) for display in the detail panel
 - [ ] Implement gold border + glow for current year pillar
 - [ ] Implement zero-state pillar treatment: charcoal background, light text, breathing pulse
 - [ ] Apply paper texture background to chart section
@@ -287,7 +289,7 @@ The centerpiece. This is what makes a recruiter stop scrolling.
 - [ ] Test with screen reader: verify each pillar has aria-label (e.g., "Year 2024, cycle number 8, strong luck, Health domain")
 - [ ] Test with all possible cycle shapes (all high, all low, contains zero, alternating)
 
-**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup. Design decisions are resolved — see docs/design-spec.md for complete visual specification.
+**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup. Design decisions are resolved — see docs/design-spec.md for complete visual specification. The chart accepts `birthYear` as a required prop from the Birth Data Form — without it, the current-year pillar cannot be identified. Before cycle data is available, the chart renders an empty/skeleton state (no pillars, just the grid outline with life area labels).
 
 ---
 
