@@ -54,3 +54,13 @@ body {
   position: relative;
   z-index: 2;
 }
+
+/* Zero-tier pillar breathing pulse */
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
