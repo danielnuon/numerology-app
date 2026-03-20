@@ -19,8 +19,9 @@ This skill receives features that have passed both /test and /real, and deploys 
 
 ## Scope Boundaries
 
-This skill exists ONLY to manage deployments and delivery infrastructure. It does the following and nothing else:
+This skill exists ONLY to manage code delivery and deployments. It does the following and nothing else:
 
+- Push committed code to the remote repository
 - Deploy code to staging, production, or other environments
 - Check CI/CD pipeline status and deployment health
 - Execute rollbacks when deployments fail
@@ -49,7 +50,8 @@ If the user asks to fix a bug, direct them to `/cook fix`. If the user asks for 
 
 The user invokes /ship-it with a subcommand via $ARGUMENTS:
 
-- **`deploy [env]`** — Deploy the latest approved code to the specified environment (staging, production, etc.)
+- **`push`** — Push all committed code to the remote repository
+- **`deploy [env]`** — Push and deploy the latest approved code to the specified environment (staging, production, etc.)
 - **`status`** — Check the current state of all deployments and pipelines
 - **`rollback [env]`** — Roll back the specified environment to the previous version
 - **`logs`** — Show recent deployment logs and pipeline output
@@ -65,6 +67,7 @@ Before deploying, confirm:
 1. **Tests passed** — The code has a passing /test report
 2. **QA passed** — The code has a PASSED QA verdict from /real
 3. **No blockers** — No open blockers registered in /connect
+4. **Correct account/remote** — Run `gh auth status` and `git remote -v` to verify the active GitHub account and remote URL match the intended repository owner. If mismatched, alert the user before proceeding.
 
 If any of these are not met, refuse to deploy and state what needs to happen first.
 
@@ -83,13 +86,22 @@ If no deployment configuration exists, report this and recommend the user set up
 
 ### Step 3: Execute the Subcommand
 
+#### `push`
+
+1. Run `git status` to confirm there are committed changes ahead of the remote
+2. Run `gh auth status` and `git remote -v` to verify the correct account and remote
+3. Push to the remote: `git push -u origin <branch>`
+4. Confirm the push succeeded
+5. Report what was pushed (commits, files changed)
+
 #### `deploy [env]`
 
 1. Confirm the target environment with the user before proceeding
-2. Run the deployment process
-3. Wait for the deployment to complete
-4. Run smoke tests or health checks to verify the deployment
-5. Report the outcome
+2. Push any unpushed commits to the remote (same as `push` above)
+3. Run the deployment process
+4. Wait for the deployment to complete
+5. Run smoke tests or health checks to verify the deployment
+6. Report the outcome
 
 #### `status`
 

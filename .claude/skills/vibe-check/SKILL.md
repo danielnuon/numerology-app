@@ -69,6 +69,7 @@ Every story is evaluated against seven criteria. Each criterion receives a verdi
 - Are tasks scoped to concrete actions rather than vague directives ("handle the backend")?
 - Do the tasks, taken together, fully cover the acceptance criteria?
 - Are there missing tasks that would be discovered only during implementation?
+- **AC-task consistency:** Do the acceptance criteria and tasks agree on data types, formats, ranges, and terminology? If an AC specifies a data structure (e.g., "array"), the tasks must not contradict it (e.g., by specifying `Record<>`). If they disagree, flag it as NEEDS WORK — one of them must be corrected before the story is approved.
 
 ### 4. Feasibility
 

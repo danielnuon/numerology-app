@@ -104,7 +104,19 @@ For each acceptance criterion, write at least one unit test that verifies it:
 - Follow existing test patterns and conventions in the project
 - Ensure all tests pass before proceeding
 
-### Step 6: Commit
+### Step 6: Self-Verify Against Acceptance Criteria
+
+Before committing, re-read every acceptance criterion from the story and verify the implementation satisfies it **literally**, not just in spirit:
+
+- For each AC, identify the specific code or test that fulfills it
+- Check numeric ranges, data types, formats, and boundary values stated in the AC match exactly
+- If the AC specifies a range (e.g., "1900–2100"), confirm the implementation covers the full range — not a subset
+- If the AC specifies a data structure or export format, confirm the implementation matches
+- If any AC is not fully met, fix the implementation before proceeding
+
+This step exists to catch compliance gaps that passing tests alone may not reveal (e.g., tests pass for the implemented range but the AC specified a wider range).
+
+### Step 7: Commit
 
 Stage and commit the changes:
 
@@ -112,7 +124,7 @@ Stage and commit the changes:
 - Include only files related to the story implementation
 - Do not commit unrelated changes
 
-### Step 7: Report
+### Step 8: Report
 
 Produce the implementation summary (see Output Format).
 
