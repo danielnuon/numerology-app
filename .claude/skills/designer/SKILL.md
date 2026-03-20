@@ -1,6 +1,7 @@
 ---
 name: designer
 description: "Design front-end UI/UX by translating loose ideas into actionable design direction. Use when the user invokes /designer to get layout guidance, component design, color and typography choices, interaction patterns, responsive strategies, or visual direction for their interface."
+model: opus
 disable-model-invocation: true
 argument-hint: <design brief, feature name, or UI question>
 ---

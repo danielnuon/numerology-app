@@ -1,6 +1,7 @@
 ---
 name: yap
 description: "Collect metrics, analyze trends, and run retrospectives to improve the development pipeline. Use when the user invokes /yap to review sprint performance, identify bottlenecks, extract lessons learned, or recommend process improvements."
+model: sonnet
 disable-model-invocation: true
 argument-hint: <retro | metrics | trends | lessons>
 ---

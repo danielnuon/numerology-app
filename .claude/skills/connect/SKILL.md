@@ -1,6 +1,7 @@
 ---
 name: connect
 description: "Coordinate the planning pipeline across /brain-dump and /vibe-check. Use when the user invokes /connect to check pipeline status, assign or reassign stories, detect stalled work, enforce workflow rules, or get a recommendation on what to do next."
+model: sonnet
 disable-model-invocation: true
 argument-hint: <status | next | check [story] | retry [story] | blocker [description]>
 ---

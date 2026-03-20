@@ -1,6 +1,7 @@
 ---
 name: brain-dump
 description: "Convert raw, unstructured ideas into a product roadmap with organized user stories, effort estimates, and actionable tasks. Use when the user invokes /brain-dump with their ideas, feature concepts, or rough plans that need to be structured into testable, measurable user stories with acceptance criteria, task breakdowns, and value-based prioritization."
+model: opus
 disable-model-invocation: true
 argument-hint: <raw ideas or feature concepts>
 ---

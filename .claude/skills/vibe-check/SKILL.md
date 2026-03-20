@@ -1,6 +1,7 @@
 ---
 name: vibe-check
 description: "Validate user stories and plans for clarity, feasibility, and testability. Use when the user invokes /vibe-check with user stories, backlog items, or planning output (typically from /brain-dump) that needs critical review before development begins."
+model: sonnet
 disable-model-invocation: true
 argument-hint: <user stories, plan output, or backlog items to validate>
 ---

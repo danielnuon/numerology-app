@@ -1,6 +1,7 @@
 ---
 name: test
 description: "Run automated tests and validate feature correctness against acceptance criteria. Use when the user invokes /test to verify implementations from /cook, check edge cases, run test suites, or detect regressions."
+model: sonnet
 disable-model-invocation: true
 argument-hint: <story title | suite | regression>
 ---

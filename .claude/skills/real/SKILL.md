@@ -1,6 +1,7 @@
 ---
 name: real
 description: "Conduct exploratory testing and UX validation to verify features work for real users. Use when the user invokes /real to check workflows, usability, regressions, or anything automated tests might miss."
+model: sonnet
 disable-model-invocation: true
 argument-hint: <story title | flows | regression>
 ---

@@ -1,6 +1,7 @@
 ---
 name: cook
 description: "Implement approved user stories as working software. Use when the user invokes /cook to build features, write code, create unit tests, and commit changes for stories that have been approved by /vibe-check."
+model: opus
 disable-model-invocation: true
 argument-hint: <story title | fix [issue]>
 ---
@@ -93,6 +94,8 @@ For each acceptance criterion, write the code that satisfies it:
 - Write clean, readable code with meaningful names
 - Handle error cases specified in the acceptance criteria
 - Do not add features, refactoring, or "improvements" beyond the story scope
+- When implementing multiple stories in parallel, use `model: "sonnet"` on Agent tool calls for subagents. The orchestrating conversation (Opus) provides detailed specs; subagents execute against clear instructions.
+- After parallel agents complete, immediately commit their outputs in the same turn. Do not defer commits to a later step or session — uncommitted work across session boundaries risks data loss.
 
 ### Step 5: Write Unit Tests
 

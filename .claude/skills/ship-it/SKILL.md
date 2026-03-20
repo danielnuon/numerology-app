@@ -1,6 +1,7 @@
 ---
 name: ship-it
 description: "Manage CI/CD pipelines, deployments, and release processes. Use when the user invokes /ship-it to deploy features that have passed /test and /real, check deployment status, or handle rollbacks."
+model: haiku
 disable-model-invocation: true
 argument-hint: <deploy [env] | status | rollback [env] | logs>
 ---
@@ -68,6 +69,7 @@ Before deploying, confirm:
 2. **QA passed** — The code has a PASSED QA verdict from /real
 3. **No blockers** — No open blockers registered in /connect
 4. **Correct account/remote** — Run `gh auth status` and `git remote -v` to verify the active GitHub account and remote URL match the intended repository owner. If mismatched, alert the user before proceeding.
+5. **Lock file in sync** — Run `npm install` and check `git status` for `package-lock.json` changes. If the lock file is dirty, commit it before pushing. This prevents `npm ci` failures in CI caused by local/CI npm version divergence.
 
 If any of these are not met, refuse to deploy and state what needs to happen first.
 
