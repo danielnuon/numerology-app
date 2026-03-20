@@ -44,7 +44,7 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 - [ ] Births before Chinese New Year are assigned the previous year's zodiac animal
 - [ ] Births on or after Chinese New Year are assigned the current year's zodiac animal
 - [ ] The dataset is verified against at least 10 known dates from an authoritative source (e.g., Hong Kong Observatory)
-- [ ] The dataset is exported as a typed constant array
+- [ ] The dataset is exported as a typed constant (e.g., `Record<number, { month: number; day: number }>`)
 
 **Tasks:**
 - [ ] Source Chinese New Year dates for 1900–2100 from an authoritative reference

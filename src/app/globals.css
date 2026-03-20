@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* === Temple at Dusk — Color Palette === */
+  --color-parchment: #F5F0E8;
+  --color-manuscript: #FFFDF7;
+  --color-manuscript-alt: #EDE7DB;
+  --color-ink: #2C2417;
+  --color-ink-light: #7A6F5F;
+  --color-ink-faint: #A89F8F;
+  --color-gold: #B8860B;
+  --color-gold-light: #D4A843;
+  --color-border: #D5CBBA;
+  --color-border-light: #E8E0D2;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Luck tier colors */
+  --color-tier-very-strong: #5B7744;
+  --color-tier-strong: #7A9B6B;
+  --color-tier-moderate: #B8860B;
+  --color-tier-weak: #A0522D;
+  --color-tier-zero: #4A4039;
+
+  /* === Typography === */
+  --font-serif: var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+
+  /* === Spacing (temple proportions) === */
+  --spacing-4_5: 18px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-parchment);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+
+/* Paper texture — subtle noise overlay */
+.paper-texture {
+  position: relative;
+}
+.paper-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  z-index: 1;
+}
+.paper-texture > * {
+  position: relative;
+  z-index: 2;
 }
