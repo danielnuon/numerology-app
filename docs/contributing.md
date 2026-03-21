@@ -46,7 +46,44 @@ All numerology logic lives in `src/lib/numerology/` as pure functions with zero 
 
 ### Components
 
-All components live in `src/components/` and must use the `"use client"` directive. There are no server components.
+All components live in `src/components/` and must use the `"use client"` directive. The one exception is the share redirect route (`src/app/r/[date]/page.tsx`), which is a server component that awaits params and delegates rendering to a client component.
+
+### Next.js 16 conventions
+
+Next.js 16 introduced breaking changes that differ from earlier versions:
+
+**`useSearchParams()` requires a Suspense boundary.** Any page or component that calls `useSearchParams()` must be wrapped in `<Suspense>` in its parent server component. Failure to do this causes a build error. Pattern:
+
+```tsx
+// src/app/page.tsx (server component)
+import { Suspense } from "react";
+import { HomeClient } from "@/components/home-client";
+
+export default function Home() {
+  return <Suspense><HomeClient /></Suspense>;
+}
+
+// src/components/home-client.tsx ("use client")
+// calls useSearchParams() safely inside the Suspense boundary
+```
+
+**Route params are `Promise<{ param: string }>`** — not a plain object. Always `await params` in both `generateMetadata` and the default export:
+
+```tsx
+type Props = { params: Promise<{ date: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { date } = await params;
+  // ...
+}
+
+export default async function Page({ params }: Props) {
+  const { date } = await params;
+  // ...
+}
+```
+
+Omitting `await` results in a type error and a runtime failure accessing properties on the Promise object.
 
 ### Tests
 
@@ -62,6 +99,23 @@ Tailwind CSS 4 utility classes. Custom design tokens are defined in `globals.css
 - Spacing: `--spacing-4_5` (18px) for temple-proportion layouts
 
 Use these tokens via Tailwind classes (e.g., `text-ink`, `bg-parchment`). Do not hardcode hex values.
+
+#### WCAG contrast constraints on design tokens
+
+Not all tokens are safe for all contexts. The following rules apply (adopted Cycle 7 after /real caught contrast failures in form labels and focus ring):
+
+| Token | Contrast on manuscript | Safe for informational text? |
+|-------|----------------------|------------------------------|
+| `text-ink` (#2C2417) | 15.05:1 | ✓ Yes |
+| `text-ink-light` (#7A6F5F) | 4.84:1 | ✓ Yes |
+| `text-ink-faint` (#A89F8F) | 2.57:1 | ✗ No — decorative/placeholder only |
+| `text-gold` (#B8860B) | ~2.87:1 on parchment | ✗ No — decorative accent only |
+
+**Rules:**
+- `text-ink-faint` must only be used for placeholder text (`placeholder:text-ink-faint`) and purely decorative labels. Never use it for `<label>` elements or any text that conveys meaning.
+- For focus indicators, use `focus-visible:ring-ink-light` — not `ring-gold`. Gold (#B8860B) on parchment (#F5F0E8) is 2.87:1, below the WCAG 2.2 SC 2.4.11 Non-text Contrast minimum of 3:1.
+- Opacity-reduced parchment text on the zero-tier charcoal background (#4A4039) must use minimum `/75` opacity at 14px body text (~4.9:1 effective) and `/80` for all other text (~6.4:1 effective). Never go below `/75` for informational text on this background.
+- Tier symbols (●/◕/◑/◔/⊙) should always be `aria-hidden="true"` — they are decorative reinforcement. The aria-label on the parent element carries the tier meaning for screen readers.
 
 ### Fonts
 
