@@ -72,6 +72,7 @@ Every story is evaluated against seven criteria. Each criterion receives a verdi
 - Are edge cases addressed (empty states, error conditions, boundary values)?
 - Are criteria free of subjective language ("fast," "intuitive," "user-friendly") without measurable definitions?
 - Are there at least two acceptance criteria per story?
+- **Live-URL verification:** If an AC requires a deployed public URL, an external platform, or a third-party service to verify (e.g., "sharing on Discord produces a preview card"), the AC text must include an explicit verification note stating the method and when it can be tested (e.g., "verify via Twitter Card Validator after deployment"). ACs that require live deployment but omit this note → NEEDS WORK. This prevents the AC from being flagged as a surprise gap during /test.
 
 ### 3. Task Completeness
 

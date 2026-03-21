@@ -548,7 +548,7 @@ The details that signal professional-grade work.
 - [x] Create an `ErrorBoundary` component (class component or React 19 equivalent) — `src/components/error-boundary.tsx`
 - [x] Wrap `BirthDataForm` and `CycleChart` in the error boundary — in `page.tsx`
 - [x] Design a minimal error state UI consistent with the satra aesthetic (parchment background, ink text, gold "Try again" link)
-- [ ] Test by temporarily introducing a throw in the calculation pipeline — **deferred to /test**
+- [x] Test by temporarily introducing a throw in the calculation pipeline — verified via React fiber state trigger during /real QA (see `docs/contributing.md` "Testing Error States" section)
 - [x] Verify the error boundary does not interfere with normal operation — build passes, all 164 tests pass
 
 **Notes:** Depends on nothing. A defensive layer — the calculation engine is well-tested, but unexpected inputs (e.g., browser autofill injecting non-numeric values) could bypass form validation. This story is about resilience, not fixing known bugs.
