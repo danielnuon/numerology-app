@@ -202,6 +202,16 @@ Assemble the QA report (see Output Format).
 [1-3 sentences on whether the workflows are ready for real users]
 ```
 
+## Environment Safety
+
+During QA, do not run commands that modify the project's dependency tree or lock file. Specifically:
+
+- **Do NOT run `npm install`** — this regenerates `package-lock.json` against the local npm version, creating dirty state that requires an unplanned commit before deployment. This has caused extra pre-deploy commits in multiple cycles.
+- **Use `npm ls`** for read-only dependency inspection if needed.
+- **Use `npx`** to run one-off tools (e.g., `npx axe-core`, contrast checkers) without modifying the lock file.
+
+QA should be a read-only activity with respect to project dependencies.
+
 ## Handling Edge Cases
 
 - **Feature has not passed /test**: Do not QA untested code. Direct the user to run `/test` first.

@@ -102,6 +102,16 @@ Assign a verdict per criterion:
 - **FAIL** — The criterion is not met, or tests reveal a bug. Include reproduction steps.
 - **UNTESTED** — The criterion cannot be verified through automated tests alone (needs /real)
 
+#### Surfacing UNTESTED criteria for /real
+
+When marking a criterion UNTESTED, include a specific note about **what tooling or method /real should use** to verify it. Do not leave UNTESTED criteria as silent pass-throughs. Examples:
+
+- WCAG contrast ratio ACs → recommend axe DevTools, Chrome DevTools contrast checker, or programmatic ratio calculation. Visual judgment alone is insufficient.
+- Animation/transition ACs → recommend screen recording or manual observation at specific breakpoints.
+- Responsive layout ACs → recommend preview at specific viewport widths.
+
+This ensures /real knows exactly what to verify and how, rather than discovering the gap during exploratory testing.
+
 ### Step 5: Check Edge Cases
 
 Go beyond the acceptance criteria to check common failure modes:
