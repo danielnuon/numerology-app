@@ -17,9 +17,26 @@ const notoSerifKhmer = Noto_Serif_Khmer({
 });
 
 export const metadata: Metadata = {
-  title: "Khmer Numerology — Life Cycle Reading",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://khmer-numerology.vercel.app"
+  ),
+  title: "Khmer Numerology — Life Cycle Calculator",
   description:
     "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
+  openGraph: {
+    title: "Khmer Numerology — Life Cycle Calculator",
+    description:
+      "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
+    type: "website",
+    locale: "en_US",
+    siteName: "Khmer Numerology",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Khmer Numerology — Life Cycle Calculator",
+    description:
+      "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
+  },
 };
 
 export default function RootLayout({

@@ -118,18 +118,47 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 **Acceptance Criteria:**
 - [x] A GitHub Actions workflow runs `npm test` and `npm run build` on every push to `main`
 - [x] The same workflow runs on pull requests targeting `main`
-- [ ] The workflow uses Node.js 20.x — **NOTE: currently uses Node 22 (newer LTS); update AC or workflow to align**
+- [x] The workflow uses Node.js 22 (LTS)
 - [x] Failed tests or build errors cause the workflow to fail with a clear error message
 - [ ] The workflow completes in under 5 minutes for the current test suite
 - [x] A status badge is available (but not required to be added to README)
 
 **Tasks:**
 - [x] Create `.github/workflows/ci.yml` with test and build steps
-- [ ] Configure Node.js 20.x with npm caching for faster runs — **NOTE: workflow uses Node 22; update task or align with AC**
+- [x] Configure Node.js 22 with npm caching for faster runs
 - [x] Add test and build steps that match local development commands
 - [x] Verify the workflow passes on the current codebase by pushing it
 
 **Notes:** Depends on nothing. Does not block any feature stories but improves quality assurance across the entire pipeline. Identified as a gap in the Cycle 2 retrospective — two cycles of code shipped with zero automated CI validation.
+
+---
+
+### Page Metadata & SEO Basics
+
+**Story:** As a visitor arriving from a search engine or shared link, I want the page to have a proper title, description, and social preview, so that I understand what the app is before clicking and the link looks professional when shared.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] The page `<title>` is "Khmer Numerology — Life Cycle Calculator" (or similar project-specific title), not the Next.js default
+- [x] A `<meta name="description">` tag describes the app in under 160 characters
+- [x] A favicon is present (`.ico` or `.svg` in the app directory)
+- [x] Open Graph tags (`og:title`, `og:description`, `og:image`, `og:url`) are set for the landing page
+- [x] The OG image is a static asset (not dynamically generated) at 1200x630px containing the app name and a visual motif consistent with the satra design aesthetic — **NOTE: uses Next.js `opengraph-image.tsx` which generates at build time (statically optimized), not per-request**
+- [x] Twitter card meta tags (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`) are set
+- [ ] Sharing the root URL on Discord, iMessage, Twitter, and Facebook produces a readable preview card where the OG title appears as "Khmer Numerology — Life Cycle Calculator" and the OG image renders — **UNTESTED by automated means; requires live public URL, /real will verify manually once deployed**
+- [x] The `<html>` tag includes `lang="en"`
+
+**Tasks:**
+- [x] Add metadata export to the root layout or page using Next.js Metadata API
+- [x] Create or source a favicon that matches the satra aesthetic — SVG diamond motif at `src/app/icon.svg`
+- [x] Create a static OG image (1200x630px) with the app name and visual identity — `src/app/opengraph-image.tsx` (build-time generated)
+- [x] Place OG image in the `public/` directory — **NOTE: uses Next.js file convention (`opengraph-image.tsx`) instead of static file in `public/`; Next.js generates and serves the image at `/opengraph-image`**
+- [x] Set `lang="en"` on the `<html>` element in the root layout — already present in `layout.tsx`
+- [ ] Test OG preview on at least 2 platforms (e.g., Discord + Twitter) — **UNTESTED; requires deployment**
+
+**Notes:** Depends on nothing. Table stakes for any web app — without it, shared links show "Create Next App" as the title and a blank preview. Quick win for professional polish. Shareable Results Card builds on the OG tag infrastructure established here.
 
 ---
 
@@ -466,7 +495,7 @@ The details that signal professional-grade work.
 - [ ] Implement responsive layout for each page section
 - [ ] Test on iOS Safari, Android Chrome, and at least one small-screen device (320px)
 
-**Notes:** Depends on Design Token Setup. Reference docs/design-spec.md for responsive strategy per component.
+**Notes:** Depends on Design Token Setup. Reference docs/design-spec.md for responsive strategy per component. **Phase 1 coverage:** 12-column grid with 2-row (6+6) mobile layout, 44px touch targets on form, 18px body text, and single-page scroll are already implemented. Remaining work: testing at 320px, verifying all hover interactions have tap equivalents, cross-browser validation on iOS Safari and Android Chrome.
 
 ---
 
@@ -497,7 +526,32 @@ The details that signal professional-grade work.
 - [ ] Run axe-core audit and fix violations
 - [ ] Test with VoiceOver (macOS/iOS) and at minimum one other screen reader
 
-**Notes:** This should be addressed incrementally during development, not as a separate phase.
+**Notes:** This should be addressed incrementally during development, not as a separate phase. **Phase 1 coverage:** Keyboard nav on chart (ArrowLeft/ArrowRight), aria-labels on pillars, tier symbols as non-color indicators, inline form errors, and primary text contrast (~11:1) are already implemented. Remaining work: `prefers-reduced-motion`, axe-core audit, screen reader testing, zero-panel contrast verification, aria-live for form errors.
+
+---
+
+### Error Boundary & Graceful Degradation
+
+**Story:** As a visitor using the app, I want calculation errors to be handled gracefully instead of crashing the entire page, so that I can recover by retrying or adjusting my input.
+
+**Priority:** Medium
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] A React error boundary wraps the main content area (at minimum around `CycleChart` and `BirthDataForm`)
+- [x] If the calculation engine throws an unexpected error, the user sees a friendly error message — not a blank white screen or React stack trace
+- [x] The error message includes a "Try again" action that resets the form state
+- [x] The error boundary does not catch errors in the root layout (font loading, CSS) — only in the interactive content
+- [x] Console logs the actual error for debugging while showing the friendly message to the user
+
+**Tasks:**
+- [x] Create an `ErrorBoundary` component (class component or React 19 equivalent) — `src/components/error-boundary.tsx`
+- [x] Wrap `BirthDataForm` and `CycleChart` in the error boundary — in `page.tsx`
+- [x] Design a minimal error state UI consistent with the satra aesthetic (parchment background, ink text, gold "Try again" link)
+- [ ] Test by temporarily introducing a throw in the calculation pipeline — **deferred to /test**
+- [x] Verify the error boundary does not interfere with normal operation — build passes, all 164 tests pass
+
+**Notes:** Depends on nothing. A defensive layer — the calculation engine is well-tested, but unexpected inputs (e.g., browser autofill injecting non-numeric values) could bypass form validation. This story is about resilience, not fixing known bugs.
 
 ---
 
@@ -554,12 +608,14 @@ The details that signal professional-grade work.
 ### Phase 2: Depth + Relationships — "It's useful and engaging"
 | Story | Priority | Effort | Rationale |
 |-------|----------|--------|-----------|
+| Page Metadata & SEO Basics | High | S | Table stakes — quick win, no dependencies, immediate professional polish |
+| Error Boundary & Graceful Degradation | Medium | S | Production resilience — prevents white-screen crashes |
 | URL State Encoding | Medium | S | Shared infrastructure for sharing + compatibility |
 | Year Timeline Explorer | Medium | M | Adds exploratory depth to the core experience |
 | Partner Comparison View | Medium | L | Differentiating feature — most calculators don't do this |
 | Current Year Widget | Medium | S | Retention hook for returning visitors |
-| Responsive Layout System | High | M | Mobile is mandatory for a personal-use app |
-| Accessibility | High | M | Non-negotiable for professional quality |
+| Responsive Layout System | High | M | Partially complete from Phase 1 — remaining: 320px testing, tap equivalents, cross-browser |
+| Accessibility | High | M | Partially complete from Phase 1 — remaining: reduced-motion, axe audit, screen reader testing |
 
 ### Phase 3: Polish + Share — "It's impressive and shareable"
 | Story | Priority | Effort | Rationale |
@@ -581,6 +637,9 @@ The details that signal professional-grade work.
 - Shareable Results Card depends on Interactive Cycle Chart and URL State Encoding
 - Current Year Widget depends on Year Lookup and Interpretation Engine
 - Khmer Language Toggle is blocked by external translation dependency
+- Page Metadata & SEO Basics depends on nothing
+- Error Boundary & Graceful Degradation depends on nothing
+- Shareable Results Card depends on Page Metadata & SEO Basics (OG tag infrastructure)
 
 ### Quick Wins
 - Margasir Month Mapping Data — High value, S effort, unblocks the entire calculation pipeline
@@ -589,6 +648,7 @@ The details that signal professional-grade work.
 - Year Lookup — High value, S effort, unlocks timeline and current-year features
 - Interpretation Engine — High value, S effort, makes raw numbers meaningful
 - URL State Encoding — Medium value, S effort, unblocks sharing and compatibility sharing
+- Page Metadata & SEO Basics — High value, S effort, immediate polish with zero dependencies
 
 ### Needs Further Discovery
 - Khmer Language Toggle — blocked by native Khmer speaker for culturally accurate translation and cultural review of interpretation text

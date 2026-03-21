@@ -11,6 +11,7 @@ import { useState, useRef, useCallback } from "react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
+import { ErrorBoundary } from "@/components/error-boundary";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 
 export default function Home() {
@@ -36,34 +37,36 @@ export default function Home() {
 
       <SectionDivider />
 
-      {/* Form card */}
-      <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
-        <h2 className="text-center text-[22px] font-medium tracking-[0.02em]">
-          Discover Your Life Cycle
-        </h2>
-        <p className="mt-3 text-center text-ink-light text-sm tracking-[0.04em]">
-          Enter your birth date to reveal your 12-year cycle
-        </p>
+      <ErrorBoundary>
+        {/* Form card */}
+        <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
+          <h2 className="text-center text-[22px] font-medium tracking-[0.02em]">
+            Discover Your Life Cycle
+          </h2>
+          <p className="mt-3 text-center text-ink-light text-sm tracking-[0.04em]">
+            Enter your birth date to reveal your 12-year cycle
+          </p>
 
-        <BirthDataForm onResult={handleResult} />
-      </div>
+          <BirthDataForm onResult={handleResult} />
+        </div>
 
-      {/* Result card — appears below form after submission */}
-      {result && (
-        <>
-          <SectionDivider />
-          <div
-            ref={resultRef}
-            className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]"
-          >
-            <CycleChart
-              cycle={result.cycle}
-              totalScore={result.totalScore}
-              birthYear={result.birthYear}
-            />
-          </div>
-        </>
-      )}
+        {/* Result card — appears below form after submission */}
+        {result && (
+          <>
+            <SectionDivider />
+            <div
+              ref={resultRef}
+              className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]"
+            >
+              <CycleChart
+                cycle={result.cycle}
+                totalScore={result.totalScore}
+                birthYear={result.birthYear}
+              />
+            </div>
+          </>
+        )}
+      </ErrorBoundary>
     </main>
   );
 }

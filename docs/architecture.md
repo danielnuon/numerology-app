@@ -148,22 +148,24 @@ RootLayout (layout.tsx)
   +- Home (page.tsx) .............. "use client", manages CycleResultWithYear state
       |- <h1> "Khmer Numerology"
       |- SectionDivider
-      |- BirthDataForm ............ "use client", day/month/year inputs
-      |    |- deriveBirthData() via useMemo (zodiac + weekday preview)
-      |    |- validateBirthDate() on submit
-      |    +- computeCycleFromBirthDate() -> onResult callback
-      |
-      +- (conditional, after submit)
-          |- SectionDivider
-          +- CycleChart ........... "use client", 12-column pillar grid
-              |- 12x motion.button (pillars, Framer Motion staggered entry)
-              |- DetailPanel ...... "use client", AnimatePresence slide-down
-              +- Total score summary bar
+      +- ErrorBoundary ............ "use client", class component, catches render errors
+          |- BirthDataForm ........ "use client", day/month/year inputs
+          |    |- deriveBirthData() via useMemo (zodiac + weekday preview)
+          |    |- validateBirthDate() on submit
+          |    +- computeCycleFromBirthDate() -> onResult callback
+          |
+          +- (conditional, after submit)
+              |- SectionDivider
+              +- CycleChart ....... "use client", 12-column pillar grid
+                  |- 12x motion.button (pillars, Framer Motion staggered entry)
+                  |- DetailPanel .. "use client", AnimatePresence slide-down
+                  +- Total score summary bar
 ```
 
 ### Component responsibilities
 
-- **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`.
+- **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
+- **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
 - **Home**: Holds `CycleResultWithYear | null` state. On result, scrolls to the result card via `requestAnimationFrame` + `scrollIntoView`.
 - **BirthDataForm**: Three number inputs (day, month, year). Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders 12 pillars as a `grid-cols-6 md:grid-cols-12` grid. Each pillar is a `<motion.button>` with role="tab". Supports keyboard navigation (ArrowLeft/ArrowRight). Highlights the current year column with a gold border and dot. Renders `DetailPanel` when a pillar is selected. Shows total score summary with `interpretTotal()`.
