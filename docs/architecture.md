@@ -5,6 +5,8 @@ Technical architecture of the Khmer Numerology Next.js application.
 ## Module Structure & Data Flow
 
 ```
+--- Direct entry (home page) ---
+
 BirthDataForm (input)
   |
   |- On field change: deriveBirthData() [derive.ts]
@@ -16,7 +18,7 @@ BirthDataForm (input)
           |- getMonthRow() [months.ts]       -- Margasir-relative month position
           |- getZodiacRow() [zodiac.ts]      -- CNY-adjusted zodiac animal number
           +- buildDayRow() [calculate.ts]    -- weekday value for columns 1-7 only
-      -> CycleResultWithYear -> page.tsx state
+      -> CycleResultWithYear -> HomeClient state
           -> CycleChart (display)
               |- getTierSymbol/ColorClass() [chart-helpers.ts]
               |- interpretYear() [interpretation.ts]
@@ -27,6 +29,21 @@ BirthDataForm (input)
                   |- getTierSymbol() [chart-helpers.ts]
                   |- interpretYear() [interpretation.ts]
                   +- getLifeArea() [year-lookup.ts]
+
+--- Share URL entry (/r/[date]) ---
+
+/r/[date]/page.tsx (server component)
+  |- generateMetadata(): decodeBirthDate() [url-encoding.ts]
+  |    -> computeCycleFromBirthDate() [derive.ts]
+  |    -> interpretTotal() [interpretation.ts]
+  |    -> returns Metadata with OG title, description, opengraph-image
+  |
+  |- opengraph-image.tsx (server): decodeBirthDate() -> computeCycleFromBirthDate()
+  |    -> renders 1200x630 OG image with cycle pillars and total score
+  |
+  +- ShareRedirectClient (client): redirects to /?day=D&month=M&year=Y
+      -> HomeClient reads searchParams, passes initialValues to BirthDataForm
+      -> auto-computes cycle via useEffect
 ```
 
 `deriveBirthData()` and `computeCycleFromBirthDate()` are separate entry points from the form. The form calls `deriveBirthData()` reactively via `useMemo` whenever field values change (for the zodiac/weekday preview), and calls `computeCycleFromBirthDate()` imperatively on submit. They are not a linear chain -- `computeCycleFromBirthDate` internally calls `deriveBirthData` then feeds the result into `computeCycle`.
@@ -107,6 +124,18 @@ type ZodiacAnimal = "Rat" | "Ox" | "Tiger" | "Rabbit" | "Dragon" | "Snake"
 
 Derived from the `ZODIAC_ANIMALS` const array via indexed access type.
 
+### `DecodedBirthDate` (url-encoding.ts)
+
+```ts
+interface DecodedBirthDate {
+  year: number;   // 1900-2100
+  month: number;  // 1-12
+  day: number;    // 1-31 (calendar-validated)
+}
+```
+
+Returned by `decodeBirthDate()` when parsing a share URL date string. Returns `null` for invalid inputs. Calendar-validated: rejects Feb 29 on non-leap years, Apr 31, etc.
+
 ## Design Decisions
 
 ### Weekday indexing: 1-indexed, Sunday-start
@@ -129,9 +158,19 @@ Births before Chinese New Year in a given Gregorian year belong to the previous 
 
 All modules in `src/lib/numerology/` are pure functions with zero React or framework imports. They depend only on each other (e.g., `calculate.ts` imports from `months.ts` and `zodiac.ts`). This isolation enables direct unit testing under Node without any DOM or component rendering.
 
-### Client-only rendering
+### Client-only rendering (with share route exception)
 
-All page and component files use `"use client"`. There are no server components, API routes, or server actions. The root layout (`layout.tsx`) is the only file without the directive -- it serves as the server-rendered shell that loads fonts and CSS. All computation happens in the browser.
+The home page and all interactive components use `"use client"`. There are no API routes or server actions. The root layout (`layout.tsx`) serves as the server-rendered shell that loads fonts and CSS.
+
+**Exception:** The share route (`/r/[date]/page.tsx`) is a server component. It uses `generateMetadata()` to produce personalized OG tags and a dynamic OG image on the server, then immediately redirects to the client-rendered home page via `ShareRedirectClient`. This hybrid approach provides social media preview cards without duplicating the interactive UI at the share URL.
+
+### Share URL architecture: server metadata + client redirect
+
+Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the date, computes metadata (OG title, description, image), and renders a client component that redirects to `/?day=D&month=M&year=Y`. The home page reads these search params via `useSearchParams()` (wrapped in `<Suspense>`) and auto-computes the cycle. This avoids duplicating the form+chart rendering at the share route while still providing rich link previews.
+
+### URL encoding: plain ISO dates, no obfuscation
+
+Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
 
 ### Interpretation data is separated from logic
 
@@ -144,30 +183,41 @@ All page and component files use `"use client"`. There are no server components,
 ## Component Hierarchy
 
 ```
-RootLayout (layout.tsx)
-  +- Home (page.tsx) .............. "use client", manages CycleResultWithYear state
-      |- <h1> "Khmer Numerology"
-      |- SectionDivider
-      +- ErrorBoundary ............ "use client", class component, catches render errors
-          |- BirthDataForm ........ "use client", day/month/year inputs
-          |    |- deriveBirthData() via useMemo (zodiac + weekday preview)
-          |    |- validateBirthDate() on submit
-          |    +- computeCycleFromBirthDate() -> onResult callback
-          |
-          +- (conditional, after submit)
-              |- SectionDivider
-              +- CycleChart ....... "use client", 12-column pillar grid
-                  |- 12x motion.button (pillars, Framer Motion staggered entry)
-                  |- DetailPanel .. "use client", AnimatePresence slide-down
-                  +- Total score summary bar
+RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
+  |
+  |- Home (page.tsx) ................. server component, Suspense wrapper
+  |   +- <Suspense>
+  |       +- HomeClient .............. "use client", manages CycleResultWithYear state
+  |           |- reads searchParams for pre-fill (?day=&month=&year=)
+  |           |- <h1> "Khmer Numerology"
+  |           |- SectionDivider
+  |           +- ErrorBoundary ....... "use client", class component
+  |               |- BirthDataForm ... "use client", day/month/year inputs
+  |               |    |- deriveBirthData() via useMemo (zodiac + weekday preview)
+  |               |    |- validateBirthDate() on submit
+  |               |    +- computeCycleFromBirthDate() -> onResult callback
+  |               |
+  |               +- (conditional, after submit)
+  |                   |- SectionDivider
+  |                   +- CycleChart .. "use client", 12-column pillar grid
+  |                       |- 12x motion.button (pillars, respects reduced motion)
+  |                       |- DetailPanel "use client", AnimatePresence slide-down
+  |                       +- Total score summary bar
+  |
+  +- /r/[date]/page.tsx .............. server component, share route
+      |- generateMetadata() .......... dynamic OG tags from decoded date
+      |- opengraph-image.tsx ......... dynamic 1200x630 OG image
+      +- ShareRedirectClient ......... "use client", redirects to /?day=&month=&year=
 ```
 
 ### Component responsibilities
 
 - **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
 - **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
-- **Home**: Holds `CycleResultWithYear | null` state. On result, scrolls to the result card via `requestAnimationFrame` + `scrollIntoView`.
-- **BirthDataForm**: Three number inputs (day, month, year). Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Emits `CycleResultWithYear` via `onResult` prop.
+- **Home**: Server component wrapping `HomeClient` in `<Suspense>` (required for `useSearchParams()`).
+- **HomeClient**: Client component holding `CycleResultWithYear | null` state. Reads URL search params for pre-fill from share redirects. Auto-computes cycle on pre-fill via `useEffect`. On result, scrolls to the result card via `requestAnimationFrame` + `scrollIntoView`.
+- **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
+- **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders 12 pillars as a `grid-cols-6 md:grid-cols-12` grid. Each pillar is a `<motion.button>` with role="tab". Supports keyboard navigation (ArrowLeft/ArrowRight). Highlights the current year column with a gold border and dot. Renders `DetailPanel` when a pillar is selected. Shows total score summary with `interpretTotal()`.
 - **DetailPanel**: Displays years for the column, tier symbol, label, description, and italic guidance text. Animated via Framer Motion `AnimatePresence`.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
@@ -218,7 +268,13 @@ A CSS pseudo-element (`::before`) on `.paper-texture` applies an inline SVG frac
 
 ### Custom animation
 
-`animate-breathe`: A 3-second infinite ease-in-out animation that pulses opacity between 1.0 and 0.85, applied to zero-tier pillars.
+`animate-breathe`: A 3-second infinite ease-in-out animation that pulses opacity between 1.0 and 0.85, applied to zero-tier pillars. Disabled via `@media (prefers-reduced-motion: reduce)` for accessibility.
+
+### Reduced motion support
+
+The app respects `prefers-reduced-motion` at two levels:
+- **CSS**: `@media (prefers-reduced-motion: reduce)` in `globals.css` disables `.animate-breathe`.
+- **JavaScript**: `BirthDataForm` uses `window.matchMedia("(prefers-reduced-motion: reduce)")` to conditionally skip its fadeIn animation. `CycleChart` uses Framer Motion's `useReducedMotion()` hook to disable pillar stagger animations.
 
 ## Testing Conventions
 
@@ -246,6 +302,8 @@ All tests live in `src/lib/numerology/__tests__/`:
 | `interpretation.test.ts` | `interpretation.ts` -- `interpretYear`, `interpretTotal` |
 | `year-lookup.test.ts` | `year-lookup.ts` -- `getCycleIndex`, `getYearNumber`, `getLifeArea` |
 | `chart-helpers.test.ts` | `chart-helpers.ts` -- `getTierSymbol`, `getTierColorClass`, `getYearsForColumn`, `getCurrentYearColumn` |
+| `url-encoding.test.ts` | `url-encoding.ts` -- `encodeBirthDate`, `decodeBirthDate`, `buildSharePath`, roundtrip validation |
+| `reduced-motion.test.ts` | `globals.css` -- verifies `prefers-reduced-motion` media query disables `.animate-breathe` |
 
 ### Testing patterns
 

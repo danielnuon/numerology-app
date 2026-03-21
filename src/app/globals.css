@@ -34,6 +34,7 @@ body {
   font-size: 1.125rem;
   line-height: 1.7;
   letter-spacing: 0.01em;
+  overflow-x: hidden;
 }
 
 /* Paper texture — subtle noise overlay */
@@ -63,4 +64,10 @@ body {
 
 .animate-breathe {
   animation: breathe 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe {
+    animation: none;
+  }
 }

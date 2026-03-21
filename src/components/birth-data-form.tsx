@@ -9,7 +9,7 @@
  * `onResult` callback.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   deriveBirthData,
   validateBirthDate,
@@ -33,6 +33,8 @@ const WEEKDAY_NAMES = [
 interface Props {
   /** Called with the computed cycle result after successful form submission. */
   onResult: (result: CycleResultWithYear) => void;
+  /** Optional initial values for pre-filling the form (e.g., from share URL). */
+  initialValues?: { day: string; month: string; year: string };
 }
 
 interface FieldErrors {
@@ -42,12 +44,21 @@ interface FieldErrors {
   date?: string;
 }
 
-export function BirthDataForm({ onResult }: Props) {
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
+export function BirthDataForm({ onResult, initialValues }: Props) {
+  const [day, setDay] = useState(initialValues?.day ?? "");
+  const [month, setMonth] = useState(initialValues?.month ?? "");
+  const [year, setYear] = useState(initialValues?.year ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // Parse current field values as numbers (NaN if empty/invalid)
   const dayNum = parseInt(day, 10);
@@ -255,10 +266,13 @@ export function BirthDataForm({ onResult }: Props) {
       {derived && (
         <div
           aria-live="polite"
-          className="mt-6 flex flex-wrap gap-6 animate-[fadeIn_0.3s_ease-in]"
-          style={{ animation: "fadeIn 0.3s ease-in" }}
+          className={[
+            "mt-6 flex flex-wrap gap-6",
+            prefersReducedMotion ? "" : "animate-[fadeIn_0.3s_ease-in]",
+          ].join(" ")}
+          style={prefersReducedMotion ? undefined : { animation: "fadeIn 0.3s ease-in" }}
         >
-          <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          {!prefersReducedMotion && <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>}
           <div className="flex flex-col">
             <span className="text-xs uppercase tracking-[0.08em] text-ink-faint">
               Zodiac

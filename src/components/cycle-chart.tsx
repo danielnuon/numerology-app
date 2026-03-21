@@ -10,7 +10,7 @@
  */
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import {
@@ -53,6 +53,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
   const currentYear = new Date().getFullYear();
   const currentYearColumn = getCurrentYearColumn(birthYear, currentYear);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const totalInterp = interpretTotal(totalScore);
 
@@ -90,9 +91,9 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
       <motion.div
         role="tablist"
         aria-label="12-year life cycle pillars"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
+        variants={prefersReducedMotion ? undefined : containerVariants}
+        initial={prefersReducedMotion ? false : "hidden"}
+        animate={prefersReducedMotion ? undefined : "show"}
         className="grid grid-cols-6 md:grid-cols-12 gap-2"
       >
         {cycle.map((cycleNumber, index) => {
@@ -121,7 +122,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
               role="tab"
               aria-selected={isSelected}
               aria-label={ariaLabel}
-              variants={itemVariants}
+              variants={prefersReducedMotion ? undefined : itemVariants}
               onClick={() => handlePillarClick(index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={[
