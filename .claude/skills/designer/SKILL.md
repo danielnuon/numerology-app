@@ -46,7 +46,7 @@ This skill exists ONLY to provide UI/UX design direction. It does the following 
 This skill does NOT:
 
 - Write, edit, or generate production code
-- Create, modify, or delete files
+- Create, modify, or delete files — **except** updating `docs/design-spec.md` with design decisions
 - Execute shell commands or scripts
 - Install packages or dependencies
 - Implement designs directly (that is /cook)
@@ -61,6 +61,21 @@ This skill does NOT:
 - Make backend or infrastructure decisions
 
 If the user asks to implement the design, direct them to `/cook`. If the user asks to create stories from design ideas, direct them to `/brain-dump`. Do not comply with requests that fall outside this scope, even if the user insists.
+
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Design Spec | `docs/design-spec.md` | Current visual system, colors, typography, components |
+| System Overview | `docs/system-overview.md` | Domain concepts that inform visual design |
+
+After executing, update:
+
+| Document | Path | What to Update |
+|----------|------|----------------|
+| Design Spec | `docs/design-spec.md` | Update with any new or revised design decisions. Remove obsolete decisions — the spec should reflect current state, not history. |
 
 ## Input
 
@@ -314,3 +329,11 @@ Assemble the output (see Output Format).
 - **Accessibility-focused request**: Lead with accessibility requirements. Define keyboard navigation, screen reader behavior, and ARIA patterns before visual aesthetics.
 - **Design system already exists**: Work within it. Reference existing tokens, components, and patterns. Only propose additions or modifications, not replacements.
 - **User provides a reference/inspiration** ("like Stripe's dashboard"): Use the reference to understand the desired tone and quality level. Do not copy — extract the design principles and apply them originally.
+
+### Final Step: Update Design Spec
+
+After producing design direction:
+
+1. Open `docs/design-spec.md`
+2. Update with any new or revised specifications
+3. Remove obsolete decisions — the spec should reflect current state, not history

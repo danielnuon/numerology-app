@@ -29,12 +29,27 @@ This skill does NOT:
 - Execute shell commands or scripts
 - Read, explore, or analyze codebases
 - Make architectural or technical decisions
-- Create, modify, or delete files
+- Create, modify, or delete files — **except** appending new stories to `docs/product-roadmap.md`
 - Implement any feature or fix
 - Suggest specific technologies, libraries, or frameworks
 - Design system architecture or database schemas
 
 If the user asks for implementation, direct them to use a different skill or workflow after planning is complete. Do not comply with requests that fall outside this scope, even if the user insists.
+
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | Existing stories, epics, and phase structure |
+| System Overview | `docs/system-overview.md` | Domain rules, algorithm, and worked examples |
+
+After executing, update:
+
+| Document | Path | What to Update |
+|----------|------|----------------|
+| Product Roadmap | `docs/product-roadmap.md` | Append new stories under the correct epic heading using the same markdown format (heading levels, checkbox syntax, field order). If a new epic is needed, add it before the Product Roadmap section. Update the phase tables and dependency list accordingly. |
 
 ## Input
 
@@ -124,6 +139,17 @@ After all stories are written, create a phased product roadmap that:
 3. Highlights quick wins (high value + low effort) — these should land in Phase 1
 4. Flags stories that need further research or design before development
 5. Ensures XL stories are called out as candidates for splitting into smaller stories
+
+### Step 5.5: Append Stories to Roadmap
+
+After producing the stories and roadmap:
+
+1. Open `docs/product-roadmap.md`
+2. Append each new story under its epic heading (create new epic section if needed)
+3. Use the same markdown format as existing stories (heading levels, checkbox syntax, field order)
+4. Update the Product Roadmap phase tables with new stories
+5. Update the Dependencies section if new dependencies exist
+6. Update Quick Wins and Needs Further Discovery sections
 
 ## Output Format
 

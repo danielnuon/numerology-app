@@ -46,6 +46,25 @@ This skill does NOT:
 
 If the user asks to create stories, direct them to /brain-dump. If the user asks to validate stories, direct them to /vibe-check. If the user asks to run tests, direct them to /test. Do not comply with requests that fall outside this scope, even if the user insists.
 
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | ACs and tasks for the story being implemented |
+| System Overview | `docs/system-overview.md` | Domain rules, algorithm, and worked examples |
+| Design Spec | `docs/design-spec.md` | Visual specifications and component designs |
+| Architecture | `docs/architecture.md` | Module contracts, data flow, and design decisions |
+| Contributing | `docs/contributing.md` | Dev patterns, conventions, and extension guides |
+
+After executing, update:
+
+| Document | Path | What to Update |
+|----------|------|----------------|
+| Product Roadmap | `docs/product-roadmap.md` | Check off (`[x]`) each AC verified and task completed. Add `**NOTE:**` annotation if a task deviated from spec. Include in the same commit as implementation. |
+| Architecture | `docs/architecture.md` | When creating new modules, types, components, or data flow paths, add them to the relevant section. When changing existing contracts (e.g., adding a field to CycleResult), update the type contract description. |
+
 ## Input
 
 The user invokes /cook with a subcommand via $ARGUMENTS:
@@ -118,6 +137,17 @@ Before committing, re-read every acceptance criterion from the story and verify 
 - If any AC is not fully met, fix the implementation before proceeding
 
 This step exists to catch compliance gaps that passing tests alone may not reveal (e.g., tests pass for the implemented range but the AC specified a wider range).
+
+### Step 6.5: Update Documentation
+
+Before committing, update project documentation to reflect the implementation:
+
+1. Open `docs/product-roadmap.md`, find the story by heading
+2. Check off (`[x]`) each AC verified in Step 6
+3. Check off each task completed during implementation
+4. Add `**NOTE:**` annotation if a task deviated from spec
+5. If new modules, types, or components were created, update `docs/architecture.md`
+6. Include doc updates in the same commit as the implementation
 
 ### Step 7: Commit
 

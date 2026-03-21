@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Khmer Numerology
 
-## Getting Started
+A fortune calculation app rooted in Khmer tradition. Combines birth month (Margasir lunar calendar), Chinese zodiac year, and birth weekday into a 12-number repeating life cycle that maps luck strength across years and life domains.
 
-First, run the development server:
+The visual design draws from Khmer satra (palm-leaf manuscripts) — parchment textures, sepia ink, gold accents for sacred elements, and generous whitespace evoking temple proportions.
+
+## Tech Stack
+
+- **Next.js 16** with App Router and React 19
+- **Tailwind CSS v4** for utility-first styling with custom design tokens
+- **Framer Motion** for staggered cycle reveal and pillar selection animations
+- **TypeScript** throughout
+- **Jest 30** + ts-jest for pure-logic unit tests
+- **GitHub Actions** for CI
+
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Requires Node >= 22.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/            # Next.js App Router pages and layout
+  components/     # UI components (birth form, cycle chart, detail panel)
+  lib/numerology/ # Core calculation engine, interpretation data, calendar mappings
+docs/             # Domain knowledge, design spec, roadmap
+```
 
-## Learn More
+## Documentation
 
-To learn more about Next.js, take a look at the following resources:
+| Doc | Contents |
+|-----|----------|
+| [`docs/system-overview.md`](docs/system-overview.md) | Domain rules, three-row algorithm, worked examples, interpretation tiers |
+| [`docs/design-spec.md`](docs/design-spec.md) | Visual design, color palette, typography, component specs, interaction patterns |
+| [`docs/product-roadmap.md`](docs/product-roadmap.md) | Stories, acceptance criteria, phase tracking |
+| [`docs/architecture.md`](docs/architecture.md) | Module structure, data flow, type contracts, design decisions |
+| [`docs/contributing.md`](docs/contributing.md) | Dev setup, project conventions, commit/CI guidelines |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Agent Pipeline
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project uses a multi-skill agent pipeline for development. See [`AGENTS.md`](AGENTS.md) for model assignments and pipeline structure.

@@ -56,6 +56,14 @@ This skill does NOT:
 
 If the user asks to create stories, direct them to /brain-dump. If the user asks to review story quality, direct them to /vibe-check. If the user asks for implementation, direct them to the appropriate development workflow. Do not comply with requests that fall outside this scope, even if the user insists.
 
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | Derive implementation status from checkbox states |
+
 ## Input
 
 The user invokes /connect with a subcommand via $ARGUMENTS:
@@ -72,11 +80,32 @@ If $ARGUMENTS is empty or does not match a subcommand, default to **`status`** a
 
 ### Step 1: Build the Pipeline State
 
-Scan the current conversation context for:
+#### 1a. Read Roadmap
 
-- Output from /brain-dump sessions (stories created)
-- Output from /vibe-check sessions (verdicts issued)
-- Any user statements about story progress ("I finished the login story," "OAuth is blocked on API access")
+Open `docs/product-roadmap.md` and parse checkbox states to derive implementation status:
+
+- All `[x]` ACs and tasks = **Done**
+- Some `[x]` = **In Progress**
+- All `[ ]` = **Not Started**
+- `**NOTE:**` annotations = **Needs Attention**
+
+#### 1b. Read Conversation
+
+Scan conversation context for pipeline-stage information that the roadmap doesn't track:
+
+- /vibe-check verdicts (APPROVED, NEEDS WORK, REJECTED)
+- /test and /real results
+- Blocker registrations
+- User statements about progress
+
+#### 1c. Merge Sources
+
+Combine both sources with clear authority rules:
+
+- **Roadmap** = authority on *what is implemented* (checkbox state)
+- **Conversation** = authority on *what is approved* (verdicts, QA results)
+
+**Cross-session limitation:** /vibe-check verdicts exist in conversation context only and are lost across sessions. In a new session, /connect can determine what is Done (from roadmap checkboxes) but cannot distinguish "Not Started + never reviewed" from "Not Started + previously APPROVED." Workaround: if a story's ACs are all unchecked but the story exists in the roadmap with full ACs and tasks defined, assume it has been through /brain-dump at minimum. The user can confirm approval status if needed.
 
 For each story found, determine its current stage:
 

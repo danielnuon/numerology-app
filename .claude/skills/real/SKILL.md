@@ -46,6 +46,16 @@ This skill does NOT:
 
 If the user asks to fix an issue, direct them to `/cook fix`. If the user asks for automated test results, direct them to /test. Do not comply with requests that fall outside this scope, even if the user insists.
 
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | ACs for the story being QA'd |
+| Design Spec | `docs/design-spec.md` | Visual and UX specifications to validate against |
+| System Overview | `docs/system-overview.md` | Domain rules for correctness validation |
+
 ## Input
 
 The user invokes /real with a subcommand via $ARGUMENTS:

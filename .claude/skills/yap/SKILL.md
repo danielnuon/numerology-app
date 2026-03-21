@@ -41,11 +41,26 @@ This skill does NOT:
 - Create, modify, or rewrite user stories (that is /brain-dump)
 - Validate story quality (that is /vibe-check)
 - Coordinate pipeline flow or assign tasks (that is /connect)
-- Implement any recommended changes directly
+- Implement any recommended code changes directly — but it DOES update `docs/contributing.md` with convention changes identified during retrospectives
 - Make product decisions or prioritize work
 - Override verdicts from any other pipeline agent
 
-If the user asks to fix something, direct them to the appropriate agent. /yap identifies patterns and recommends — it never acts. Do not comply with requests that fall outside this scope, even if the user insists.
+If the user asks to fix something, direct them to the appropriate agent. /yap identifies patterns and recommends — it never acts on code. Do not comply with requests that fall outside this scope, even if the user insists.
+
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | Metrics — story counts, completion rates, deviations |
+| Architecture | `docs/architecture.md` | Current system state for context |
+
+After executing, update:
+
+| Document | Path | What to Update |
+|----------|------|----------------|
+| Contributing | `docs/contributing.md` | Update conventions based on retrospective findings. Document the convention, why it was adopted, and when it applies. |
 
 ## Input
 
@@ -123,6 +138,15 @@ Recommendations should be practical and proportional. Don't recommend overhaulin
 ### Step 5: Produce the Report
 
 Assemble the output (see Output Format).
+
+### Step 6: Update Contributing Guide
+
+If recommendations include convention changes:
+
+1. Open `docs/contributing.md`
+2. Update the relevant section with the new convention
+3. Document why the convention was adopted (link to the retro finding)
+4. Document when the convention applies
 
 ## Output Format
 

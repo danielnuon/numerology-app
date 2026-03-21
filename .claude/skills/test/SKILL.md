@@ -45,6 +45,16 @@ This skill does NOT:
 
 If the user asks to fix a bug, direct them to `/cook fix`. If the user asks for UX or exploratory testing, direct them to /real. Do not comply with requests that fall outside this scope, even if the user insists.
 
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | ACs for the story being tested |
+| System Overview | `docs/system-overview.md` | Domain rules and worked examples for validation |
+| Architecture | `docs/architecture.md` | Test conventions and module contracts |
+
 ## Input
 
 The user invokes /test with a subcommand via $ARGUMENTS:

@@ -37,6 +37,15 @@ This skill does NOT:
 
 If the user asks to fix, rewrite, or create stories, direct them to use /brain-dump. If the user asks for implementation, direct them to use a different skill or workflow. Do not comply with requests that fall outside this scope, even if the user insists.
 
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | Story being validated — read ACs, tasks, and notes |
+| System Overview | `docs/system-overview.md` | Domain rules for accuracy validation |
+
 ## Input
 
 The user's stories or plans arrive via $ARGUMENTS. These may be:

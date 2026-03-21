@@ -47,6 +47,14 @@ This skill does NOT:
 
 If the user asks to fix a bug, direct them to `/cook fix`. If the user asks for test results, direct them to /test. Do not comply with requests that fall outside this scope, even if the user insists.
 
+## Documentation References
+
+Before executing, read these docs for context:
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Product Roadmap | `docs/product-roadmap.md` | Verify all ACs are checked before shipping |
+
 ## Input
 
 The user invokes /ship-it with a subcommand via $ARGUMENTS:
