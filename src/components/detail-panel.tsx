@@ -60,7 +60,7 @@ export function DetailPanel({
           <span
             className={[
               "text-xs font-semibold uppercase tracking-widest",
-              isZero ? "text-parchment/70" : "text-ink-light",
+              isZero ? "text-parchment/80" : "text-ink-light",
             ].join(" ")}
             style={{ fontVariant: "small-caps" }}
           >
@@ -69,7 +69,7 @@ export function DetailPanel({
           <span
             className={[
               "text-sm",
-              isZero ? "text-parchment/60" : "text-ink-faint",
+              isZero ? "text-parchment/75" : "text-ink-faint",
             ].join(" ")}
           >
             {years.join(" · ")}
@@ -99,7 +99,7 @@ export function DetailPanel({
             <p
               className={[
                 "text-sm",
-                isZero ? "text-parchment/70" : "text-ink-light",
+                isZero ? "text-parchment/80" : "text-ink-light",
               ].join(" ")}
             >
               Cycle number {cycleNumber}
@@ -122,7 +122,7 @@ export function DetailPanel({
           className={[
             "text-sm italic border-l-2 pl-3",
             isZero
-              ? "border-parchment/30 text-parchment/70"
+              ? "border-parchment/40 text-parchment/80"
               : "border-gold/40 text-ink-light",
           ].join(" ")}
         >

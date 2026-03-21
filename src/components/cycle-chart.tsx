@@ -145,7 +145,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
                   ? "ring-2 ring-gold/60 ring-offset-1"
                   : "",
                 // Hover / focus
-                "hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-1",
+                "hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-light focus-visible:ring-offset-1",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -175,7 +175,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
                 aria-hidden="true"
                 className={[
                   "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight truncate w-full",
-                  isZero ? "text-parchment/70" : "text-ink-light",
+                  isZero ? "text-parchment/80" : "text-ink-light",
                 ].join(" ")}
                 style={{ fontVariant: "small-caps" }}
               >

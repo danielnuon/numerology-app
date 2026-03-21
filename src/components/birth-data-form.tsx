@@ -144,7 +144,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         <div className="flex flex-col flex-1 min-w-0">
           <label
             htmlFor="birth-day"
-            className="text-xs uppercase tracking-[0.08em] text-ink-faint mb-2"
+            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
           >
             Day
           </label>
@@ -182,7 +182,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         <div className="flex flex-col flex-1 min-w-0">
           <label
             htmlFor="birth-month"
-            className="text-xs uppercase tracking-[0.08em] text-ink-faint mb-2"
+            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
           >
             Month
           </label>
@@ -220,7 +220,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         <div className="flex flex-col flex-[2] min-w-0">
           <label
             htmlFor="birth-year"
-            className="text-xs uppercase tracking-[0.08em] text-ink-faint mb-2"
+            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
           >
             Year
           </label>
