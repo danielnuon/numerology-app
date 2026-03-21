@@ -120,7 +120,7 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 - [x] The same workflow runs on pull requests targeting `main`
 - [x] The workflow uses Node.js 22 (LTS)
 - [x] Failed tests or build errors cause the workflow to fail with a clear error message
-- [ ] The workflow completes in under 5 minutes for the current test suite
+- [x] The workflow completes in under 5 minutes for the current test suite — consistently 36–54s across 5 recent runs
 - [x] A status badge is available (but not required to be added to README)
 
 **Tasks:**
