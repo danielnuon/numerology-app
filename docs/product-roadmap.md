@@ -91,20 +91,23 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 **Effort:** S
 
 **Acceptance Criteria:**
-- [ ] Cycle data (birth date or computed cycle array + birth year) is encoded in the URL path or query params
-- [ ] The encoding is compact (URL stays under 200 characters)
-- [ ] The server can decode the URL and generate correct OG meta tags without client-side JavaScript
-- [ ] Invalid or tampered URLs produce a graceful fallback (generic OG image, not an error)
-- [ ] The URL is human-readable enough that it doesn't look suspicious when shared (no long base64 blobs)
+- [ ] The birth date (YYYY-MM-DD) is encoded in the URL path (e.g., `/r/1997-07-24`); the computed cycle is never stored in the URL — it is always recomputed server-side from the birth date
+- [ ] The encoding is compact (URL stays under 200 characters for any valid birth date)
+- [ ] The server can decode the URL and generate correct OG meta tags without client-side JavaScript, using `generateMetadata` in a dynamic route segment
+- [ ] Invalid or tampered URLs return HTTP 200 with the generic OG image and redirect the user to the home form — not a 404 or error page
+- [ ] The URL contains no base64 or percent-encoded segments over 20 characters; a sample URL for a 1997-07-24 birth date is under 200 characters total
+- [ ] When a user navigates to a share URL, the birth data form is pre-filled with the decoded date and the cycle result renders automatically — recipients see the reading without re-entering data
 
 **Tasks:**
-- [ ] Design the URL encoding scheme (e.g., `/r/1997-07-24` or `/r?d=1997-07-24`)
+- [ ] Design the URL encoding scheme using `/r/[date]` dynamic route segment (e.g., `/r/1997-07-24`)
 - [ ] Implement encode/decode utility functions with TypeScript types
-- [ ] Implement server-side route that decodes the URL and returns correct OG tags
-- [ ] Write unit tests for encoding, decoding, invalid inputs, and edge cases
-- [ ] Test fallback behavior for malformed URLs
+- [ ] Implement `generateMetadata` in the `/r/[date]` route that decodes the birth date and returns correct OG tags (title, description, image with personalized cycle data)
+- [ ] Pre-fill the birth data form when navigating to a share URL so recipients see the result without re-entering data
+- [ ] Implement graceful fallback for invalid dates: show generic OG image, redirect user to home form
+- [ ] Write unit tests for encoding, decoding, invalid inputs (malformed dates, out-of-range years), and edge cases (Jan 1, Dec 31, Feb 29)
+- [ ] Test fallback behavior for malformed URLs (missing date, invalid format, year outside 1900–2100)
 
-**Notes:** Depends on Numerology Calculation Core. Blocks Shareable Results Card and Partner Comparison View (shareable links). Keep the encoding simple — a birth date is sufficient to recompute everything server-side.
+**Notes:** Depends on Numerology Calculation Core. Blocks Shareable Results Card and Partner Comparison View (shareable links). The encoding is intentionally simple — a birth date is sufficient to recompute everything server-side. No cycle data is stored in the URL.
 
 ---
 
@@ -324,35 +327,36 @@ The centerpiece. This is what makes a recruiter stop scrolling.
 
 ### Year Timeline Explorer
 
-**Story:** As a visitor, I want to scrub through a timeline of years and see my cycle number for each year, so that I can explore specific past or future years without counting manually.
+**Story:** As a visitor who has received their cycle reading, I want to scrub through a timeline of years and see my cycle number for each year, so that I can explore specific past or future years without counting manually.
 
 **Priority:** Medium
 **Effort:** M
 
 **Acceptance Criteria:**
-- [ ] A horizontal "thread of fate" timeline displays years from birth year to 30 years in the future (~60 years total)
-- [ ] The timeline is horizontally scrollable with a viewport showing ~15–20 years at a time
-- [ ] Each year is represented by a dot on a connecting line, with dot size varying by luck tier: large (●) for strong/very strong, medium (○) for moderate, small (◔) for weak, open (◌) for zero
-- [ ] The current year's dot is gold-filled
-- [ ] Selecting a year dot updates the cycle chart's selected pillar and the detail panel
+- [ ] A horizontal "thread of fate" timeline displays years from birth year through `currentYear + 30`
+- [ ] The timeline is horizontally scrollable with a viewport showing at least 15 years at 1280px width
+- [ ] Each year is represented by a dot on a connecting line, using the same 5-tier symbols as the cycle chart: ● (very strong, 10–11), ◕ (strong, 7–9), ◑ (moderate, 4–6), ◔ (weak, 1–3), ⊙ (zero, 0)
+- [ ] The current year's dot is gold-filled (#B8860B)
+- [ ] Selecting a year dot updates the cycle chart's selected pillar and the detail panel (shared state via parent component)
 - [ ] The current year is pre-selected and centered on load
 - [ ] The 12-year repeat pattern is visually indicated with subtle vertical tick marks at cycle boundaries
-- [ ] Zero years are visually distinct on the timeline (open dot marker)
+- [ ] Zero years are visually distinct on the timeline (⊙ open marker, same as cycle chart)
 - [ ] Timeline is keyboard navigable (arrow keys move selection)
 - [ ] Gradient fade indicators appear on left/right edges when more content is scrollable
+- [ ] Before cycle data is available, the timeline is not rendered (no empty skeleton)
 
 **Tasks:**
 - [ ] Build horizontal timeline component with year labels and connecting line
-- [ ] Implement dot-size variation by luck tier (large/medium/small/open per design spec)
+- [ ] Implement 5-tier dot symbols matching the cycle chart (●, ◕, ◑, ◔, ⊙) — do NOT use a different symbol set
 - [ ] Implement gold-filled dot for current year
-- [ ] Build connection between timeline selection and cycle chart pillar selection
+- [ ] Lift selected-year state to `page.tsx` (or shared context) so `YearTimeline` and `CycleChart` stay in sync when either component changes the selection
 - [ ] Add current-year auto-centering with scroll-snap behavior
 - [ ] Add 12-year cycle boundary tick marks
 - [ ] Add gradient fade overflow indicators on left/right edges
 - [ ] Implement keyboard navigation (arrow keys)
-- [ ] Test across breakpoints (scrollable on all sizes)
+- [ ] Test at 320px, 768px, and 1280px viewports
 
-**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup.
+**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup. The 5-tier symbol set (●, ◕, ◑, ◔, ⊙) must match the cycle chart — using different symbols for the same tiers would confuse users switching between the two views.
 
 ---
 
@@ -367,26 +371,28 @@ The relationship layer — this differentiates the project from a simple calcula
 **Effort:** L
 
 **Acceptance Criteria:**
-- [ ] A second birth data form allows entering a partner's birth date (reusing the existing form component)
+- [ ] A "Compare with partner" button below the user's cycle chart reveals a second birth data form (reusing the existing form component)
+- [ ] Before partner data is entered, the comparison section shows a prompt: "Enter your partner's birth date to see compatibility"
 - [ ] Both cycles are computed independently and displayed side by side (per design spec)
-- [ ] Each shared year is annotated with the interaction result: stabilized, amplified, risk, or unstable
-- [ ] Compatibility uses the tier system for threshold classification: "low" = weak (0–3) or moderate (4–6), "high" = strong (7–9) or very strong (10–11)
-- [ ] Interaction rules: low+high = stabilized, high+high = amplified, low+low = risk, any+0 = unstable
-- [ ] When both values are moderate (4–6), the result is "neutral" (a fifth interaction type distinct from the others)
+- [ ] Each shared year is annotated with the interaction result: stabilized, amplified, risk, unstable, or neutral
+- [ ] Compatibility uses the tier system: 1–3 = low, 4–6 = moderate, 7–9 = high, 10–11 = very high. **Zero (value = 0) is a dedicated override: any pair containing a 0 is always "unstable", regardless of the other person's tier — this takes precedence over all tier-based rules**
+- [ ] Non-zero interaction rules: low+high = stabilized, high+high = amplified, low+low = risk, moderate+moderate = neutral
 - [ ] Total scores for both people are displayed with a relationship stability assessment
-- [ ] The comparison view is shareable via URL state encoding
+- [ ] The comparison view is shareable via URL state encoding (blocked on URL State Encoding story)
 
 **Tasks:**
+- [ ] Add "Compare with partner" button below the user's cycle chart that reveals the partner form section
 - [ ] Add partner birth data form (reuse existing form component)
-- [ ] Define compatibility threshold mapping: 0 = zero, 1–3 = low, 4–6 = moderate, 7–9 = high, 10–11 = very high
-- [ ] Implement `computeCompatibility(cycleA, cycleB): CompatibilityResult[]` with all 5 interaction types (stabilized, amplified, risk, unstable, neutral)
+- [ ] Define compatibility threshold mapping: 0 = zero (override), 1–3 = low, 4–6 = moderate, 7–9 = high, 10–11 = very high
+- [ ] Implement `computeCompatibility(cycleA, cycleB): CompatibilityResult[]` with zero-override rule applied first, then the 4 tier-based interaction types (stabilized, amplified, risk, neutral)
 - [ ] Build side-by-side chart showing both cycles aligned to calendar years
 - [ ] Design and implement visual annotations for each interaction type (color, icon, or label per year)
 - [ ] Implement total-score relationship assessment
-- [ ] Integrate URL state encoding for shareable comparisons
+- [ ] Integrate URL state encoding for shareable comparisons (blocked on URL State Encoding story)
+- [ ] Write unit tests specifically for zero-override precedence: 0+high → unstable, 0+low → unstable, 0+moderate → unstable, 0+0 → unstable
 - [ ] Test with edge cases: same birthday, opposite cycles, both contain zero in same year, both moderate (5+5), low+high (2+9), high+high (8+10)
 
-**Notes:** Depends on Numerology Calculation Core, Interactive Cycle Chart, and URL State Encoding. The "neutral" interaction type (moderate+moderate) resolves the ambiguity flagged during validation — it is neither risk nor stabilized, but a distinct middle ground.
+**Notes:** Depends on Numerology Calculation Core, Interactive Cycle Chart, and URL State Encoding. Zero (value = 0) is always "unstable" regardless of the partner's value — this override rule prevents the ambiguity of 0 being grouped into the "low" tier. The "neutral" interaction type (moderate+moderate) resolves the ambiguity flagged during validation — it is neither risk nor stabilized, but a distinct middle ground.
 
 ---
 
@@ -426,18 +432,23 @@ Make the output memorable and shareable.
 
 **Acceptance Criteria:**
 - [ ] If the user has previously entered birth data (stored in localStorage), the current year's number, interpretation, and guidance display immediately on page load
+- [ ] localStorage stores `{ day: number, month: number, year: number }` under a namespaced key (`khmer-numerology:birth`); the computed cycle is never persisted — always recomputed on load
+- [ ] If localStorage data is missing, malformed, or contains an invalid date (e.g., corrupted JSON, year outside 1900–2100), the app silently falls back to showing the birth data form — no error shown to the user
 - [ ] The widget shows: current year, cycle number, luck tier, life area, and 1-sentence guidance
-- [ ] A "View full cycle" link navigates to the detailed chart
-- [ ] A "Not you?" link clears saved data and shows the birth data form
-- [ ] Widget loads in under 200ms (no server round-trip for returning users)
+- [ ] A "View full cycle" link smooth-scrolls to the detailed chart section (single-page scroll, not a route change)
+- [ ] A "Not you?" link clears the `khmer-numerology:birth` key from localStorage and shows the birth data form
+- [ ] The widget reads from localStorage synchronously and is visible within 200ms of `DOMContentLoaded`; no server request is required to render it
+- [ ] Data persists indefinitely (no expiry) — birth dates do not change and are not sensitive PII
 
 **Tasks:**
-- [ ] Implement localStorage persistence for birth data
+- [ ] Implement localStorage persistence: save `{ day, month, year }` under `khmer-numerology:birth` after successful form submission
+- [ ] Implement localStorage reader with validation: parse JSON, verify all three fields are present and numeric, verify date is valid (year 1900–2100, month 1–12, day valid for month/year); treat any failure as "no saved data"
 - [ ] Build current-year widget component
-- [ ] Add "View full cycle" and "Not you?" actions
-- [ ] Test with cleared storage, expired data, and year rollover (Dec 31 → Jan 1)
+- [ ] Add "View full cycle" smooth-scroll and "Not you?" clear actions
+- [ ] Write unit tests for: widget rendering with valid data, widget hidden with no data, "Not you?" clears localStorage, malformed-data fallback (corrupted JSON, missing fields, out-of-range values)
+- [ ] Test year rollover behavior: Dec 31 → Jan 1 shows the correct new year's cycle number
 
-**Notes:** This is the "hook" for returning visitors. Keep it minimal and fast. Birth date in localStorage is low-risk data (not sensitive PII).
+**Notes:** This is the "hook" for returning visitors. Keep it minimal and fast. Birth date in localStorage is low-risk data (not sensitive PII). Data never expires — birth dates don't change. Depends on Year Lookup and Interpretation Engine.
 
 ---
 
@@ -480,22 +491,23 @@ The details that signal professional-grade work.
 **Effort:** M
 
 **Acceptance Criteria:**
-- [ ] All pages are usable from 320px to 1440px+ without horizontal scrolling
-- [ ] The 12-column cycle grid adapts meaningfully to mobile: 2 rows of 6 pillars or horizontally scrollable with snap points
-- [ ] Touch targets are minimum 44x44px
-- [ ] Text remains readable without zooming (minimum 16px body text on mobile, 18px on desktop per design spec)
-- [ ] Navigation uses single-page scroll (no hamburger menu — the app is one page)
-- [ ] All interactive elements (tooltips, hovers) have touch-equivalent interactions (tap to expand)
+- [ ] No horizontal scroll, no content overflow, and all text legible at 16px+ from 320px to 1440px+ viewports
+- [x] The 12-column cycle grid adapts to mobile: 2 rows of 6 pillars — already implemented in Phase 1
+- [x] Touch targets are minimum 44x44px — already implemented in Phase 1
+- [x] Text is minimum 16px body on mobile, 18px on desktop per design spec — already implemented in Phase 1
+- [x] Navigation uses single-page scroll (no hamburger menu — the app is one page) — already implemented in Phase 1
+- [ ] All interactive elements have touch-equivalent interactions: pillar hover → tap-to-select/deselect, detail panel → tap outside or tap selected pillar again to dismiss, form inputs → all standard touch-compatible
 
 **Tasks:**
-- [ ] Define breakpoint system (mobile < 768px, tablet 768–1279px, desktop 1280px+)
-- [ ] Implement 2-row (6+6) cycle chart layout for mobile
+- [x] Define breakpoint system (mobile < 768px, tablet 768–1279px, desktop 1280px+) — already in Tailwind config
+- [x] Implement 2-row (6+6) cycle chart layout for mobile — already implemented
 - [ ] Add gradient fade overflow indicators on horizontally scrollable elements
-- [ ] Convert hover-dependent interactions to tap-compatible equivalents
-- [ ] Implement responsive layout for each page section
-- [ ] Test on iOS Safari, Android Chrome, and at least one small-screen device (320px)
+- [ ] Convert pillar hover interactions to tap-compatible equivalents (tap to select, tap again to deselect)
+- [ ] Verify no horizontal scroll at 320px, 768px, 1280px, and 1440px viewports
+- [ ] Verify the error boundary fallback UI is readable and properly laid out at 320px
+- [ ] Cross-browser testing on iOS Safari and Android Chrome — route to /real (requires real devices or BrowserStack)
 
-**Notes:** Depends on Design Token Setup. Reference docs/design-spec.md for responsive strategy per component. **Phase 1 coverage:** 12-column grid with 2-row (6+6) mobile layout, 44px touch targets on form, 18px body text, and single-page scroll are already implemented. Remaining work: testing at 320px, verifying all hover interactions have tap equivalents, cross-browser validation on iOS Safari and Android Chrome.
+**Notes:** Depends on Design Token Setup. Reference docs/design-spec.md for responsive strategy per component. **Phase 1 coverage:** 12-column grid with 2-row (6+6) mobile layout, 44px touch targets on form, 18px body text, and single-page scroll are already implemented. Remaining /cook work: gradient fade indicators, hover-to-tap conversions. Remaining /real work: cross-browser validation on iOS Safari and Android Chrome, 320px device testing.
 
 ---
 
@@ -512,21 +524,24 @@ The details that signal professional-grade work.
 - [ ] Color is never the sole indicator of meaning — all color-coded elements also have text labels, patterns, or icons (tier symbols: ●/◕/◑/◔/⊙)
 - [ ] All images and icons have alt text
 - [ ] Form errors are announced by screen readers via aria-live regions
-- [ ] The app passes axe-core automated accessibility audit with zero critical violations
-- [ ] Color contrast meets WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text)
+- [ ] The app passes axe-core automated accessibility audit with zero critical **or serious** violations (axe-core defines 4 levels: critical, serious, moderate, minor — only critical and serious block this AC)
+- [ ] Color contrast meets WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text) — verify using axe DevTools or Chrome DevTools contrast checker, not visual judgment from screenshots
 - [ ] Motion respects `prefers-reduced-motion` — animations are disabled or reduced
-- [ ] The zero-state detail panel (charcoal `#4A4039` background) maintains WCAG AA contrast for all text elements including gold accents
+- [ ] The zero-state detail panel (charcoal `#4A4039` background) maintains WCAG AA contrast for all text elements including gold accents — verify using axe DevTools or a dedicated contrast-ratio tool, not visual judgment from screenshots
 
 **Tasks:**
 - [ ] Audit all components for keyboard accessibility
-- [ ] Add aria-labels to chart positions, timeline years, and interactive elements
+- [ ] Add aria-labels to chart pillars and interactive elements (current components only)
+- [ ] Add aria-labels to Year Timeline Explorer year dots — **deferred until Year Timeline Explorer story is implemented**
 - [ ] Add non-color indicators alongside all color-coded elements (tier symbols)
 - [ ] Implement `prefers-reduced-motion` media query for all animations
-- [ ] Verify contrast ratios on the zero-state (charcoal) detail panel for all text colors
-- [ ] Run axe-core audit and fix violations
-- [ ] Test with VoiceOver (macOS/iOS) and at minimum one other screen reader
+- [ ] Add `aria-live="polite"` region to form error messages so screen readers announce validation errors
+- [ ] Verify contrast ratios on the zero-state (charcoal) detail panel using axe DevTools or Chrome DevTools contrast checker
+- [ ] Run axe-core audit (`npx axe-core` or axe DevTools) and fix all critical + serious violations
+- [ ] Test with VoiceOver (macOS/iOS) and at minimum one other screen reader — route to /real (requires manual testing)
+- [ ] Write automated test for `prefers-reduced-motion` using `matchMedia` mock
 
-**Notes:** This should be addressed incrementally during development, not as a separate phase. **Phase 1 coverage:** Keyboard nav on chart (ArrowLeft/ArrowRight), aria-labels on pillars, tier symbols as non-color indicators, inline form errors, and primary text contrast (~11:1) are already implemented. Remaining work: `prefers-reduced-motion`, axe-core audit, screen reader testing, zero-panel contrast verification, aria-live for form errors.
+**Notes:** This should be addressed incrementally during development, not as a separate phase. Depends on Design Token Setup. **Partial dependency on Year Timeline Explorer** — the timeline aria-labels task is deferred until that story ships; all other tasks are independent. **Phase 1 coverage:** Keyboard nav on chart (ArrowLeft/ArrowRight), aria-labels on pillars, tier symbols as non-color indicators, inline form errors, and primary text contrast (~11:1) are already implemented. Remaining /cook work: `prefers-reduced-motion`, aria-live for form errors, axe-core audit fixes. Remaining /real work: screen reader testing, zero-panel contrast verification with tooling.
 
 ---
 
