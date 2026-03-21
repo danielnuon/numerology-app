@@ -111,6 +111,37 @@ Both are applied to the `<html>` element as CSS variable classes and composed in
 
 ---
 
+## Testing Error States in the Browser
+
+When QA needs to verify an error boundary's fallback UI without modifying source code, use React fiber traversal via `preview_eval` to directly set `hasError: true` on the class instance:
+
+```js
+(() => {
+  function walkFiber(fiber, cb) {
+    if (!fiber) return;
+    cb(fiber);
+    walkFiber(fiber.child, cb);
+    walkFiber(fiber.sibling, cb);
+  }
+  const root = document.querySelector('main') || document.body;
+  const fiberKey = Object.keys(root).find(k => k.startsWith('__reactFiber'));
+  if (!fiberKey) return 'no fiber';
+  let eb = null;
+  walkFiber(root[fiberKey], (f) => {
+    if (f.stateNode?.constructor?.name === 'ErrorBoundary') eb = f.stateNode;
+  });
+  if (!eb) return 'not found';
+  eb.setState({ hasError: true });
+  return 'setState called';
+})()
+```
+
+**Why:** The Jest test suite runs in Node without jsdom — React class components cannot be unit tested in this project. The fiber traversal approach triggers the visual fallback without modifying production code, and without needing `throw` to propagate through the component tree.
+
+**Note:** `componentDidCatch` will NOT fire when using this approach (it only fires during real React render exceptions). Verify console logging by code inspection, not by checking browser console output after a simulated trigger.
+
+---
+
 ## CI Pipeline
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on pushes and pull requests to `main`:
