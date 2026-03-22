@@ -77,7 +77,7 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 - [x] Configure font loading via next/font for Cormorant Garamond and Noto Serif Khmer
 - [x] Create paper texture CSS utility (inline SVG noise at 3–5% opacity)
 - [x] Create section divider component
-- [ ] Verify fonts render correctly on macOS, Windows, iOS, and Android
+- [ ] Verify fonts render correctly on macOS, Windows, iOS, and Android — **BLOCKED: requires manual testing on physical devices or BrowserStack**
 
 **Notes:** Depends on nothing. Blocks all UI stories (Interactive Cycle Chart, Birth Data Form, Year Timeline Explorer, etc.). Reference: docs/design-spec.md for all token values.
 
@@ -505,7 +505,7 @@ The details that signal professional-grade work.
 - [x] Convert pillar hover interactions to tap-compatible equivalents (tap to select, tap again to deselect) — already implemented via `handlePillarClick` toggle
 - [x] Verify no horizontal scroll at 320px, 768px, 1280px, and 1440px viewports — verified layout CSS, added `overflow-x: hidden` safety net
 - [x] Verify the error boundary fallback UI is readable and properly laid out at 320px — `max-w-[480px] w-full` with `p-8` yields 224px text area, readable
-- [ ] Cross-browser testing on iOS Safari and Android Chrome — route to /real (requires real devices or BrowserStack)
+- [ ] Cross-browser testing on iOS Safari and Android Chrome — **BLOCKED: requires real devices or BrowserStack; cannot be verified in CI or headless Chrome**
 
 **Notes:** Depends on Design Token Setup. Reference docs/design-spec.md for responsive strategy per component. **Phase 1 coverage:** 12-column grid with 2-row (6+6) mobile layout, 44px touch targets on form, 18px body text, and single-page scroll are already implemented. Remaining /cook work: gradient fade indicators, hover-to-tap conversions. Remaining /real work: cross-browser validation on iOS Safari and Android Chrome, 320px device testing.
 
@@ -524,10 +524,10 @@ The details that signal professional-grade work.
 - [x] Color is never the sole indicator of meaning — all color-coded elements also have text labels, patterns, or icons (tier symbols: ●/◕/◑/◔/⊙) — implemented in Phase 1
 - [x] All images and icons have alt text — favicon has implicit alt, OG images have explicit alt text
 - [x] Form errors are announced by screen readers via aria-live regions — field errors use `role="alert"`, auto-derived display uses `aria-live="polite"`
-- [ ] The app passes axe-core automated accessibility audit with zero critical **or serious** violations — route to /real for verification with tooling
-- [ ] Color contrast meets WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text) — route to /real for verification with axe DevTools or Chrome contrast checker
+- [x] The app passes axe-core automated accessibility audit with zero critical **or serious** violations — verified Cycle 7: `npx @axe-core/cli` on empty form, chart rendered, and error states — 0 violations
+- [x] Color contrast meets WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text) — verified Cycle 7: computed contrast ratios for all token pairs; fixed `text-ink-faint` → `text-ink-light` on labels, `ring-gold` → `ring-ink-light` on focus
 - [x] Motion respects `prefers-reduced-motion` — Framer Motion `useReducedMotion()` disables stagger/rise animations; CSS `@media (prefers-reduced-motion: reduce)` disables `.animate-breathe`; form fadeIn conditionally skipped
-- [ ] The zero-state detail panel (charcoal `#4A4039` background) maintains WCAG AA contrast for all text elements including gold accents — route to /real for verification with tooling
+- [x] The zero-state detail panel (charcoal `#4A4039` background) maintains WCAG AA contrast for all text elements including gold accents — verified Cycle 7: raised opacity to `/75` min (years, ~4.9:1) and `/80` (all other text, ~6.4:1); gold tier symbol is `aria-hidden` (decorative, exempt from SC 1.4.11)
 
 **Tasks:**
 - [x] Audit all components for keyboard accessibility — all interactive elements have keyboard handlers, focus-visible styles
@@ -536,9 +536,9 @@ The details that signal professional-grade work.
 - [x] Add non-color indicators alongside all color-coded elements (tier symbols) — implemented in Phase 1
 - [x] Implement `prefers-reduced-motion` media query for all animations — Framer Motion `useReducedMotion()`, CSS media query for breathe, conditional fadeIn in form
 - [x] Add `aria-live="polite"` region to form error messages so screen readers announce validation errors — field errors use `role="alert"`, auto-derived display uses `aria-live="polite"`
-- [ ] Verify contrast ratios on the zero-state (charcoal) detail panel using axe DevTools or Chrome DevTools contrast checker — route to /real
-- [ ] Run axe-core audit (`npx axe-core` or axe DevTools) and fix all critical + serious violations — route to /real
-- [ ] Test with VoiceOver (macOS/iOS) and at minimum one other screen reader — route to /real (requires manual testing)
+- [x] Verify contrast ratios on the zero-state (charcoal) detail panel using axe DevTools or Chrome DevTools contrast checker — verified Cycle 7 via computed luminance math + DOM inspection
+- [x] Run axe-core audit (`npx axe-core` or axe DevTools) and fix all critical + serious violations — verified Cycle 7: 0 violations across 3 page states
+- [ ] Test with VoiceOver (macOS/iOS) and at minimum one other screen reader — **BLOCKED: requires manual screen reader interaction; cannot be automated**
 - [x] Write automated test for `prefers-reduced-motion` using `matchMedia` mock — 2 tests in `reduced-motion.test.ts`
 
 **Notes:** This should be addressed incrementally during development, not as a separate phase. Depends on Design Token Setup. **Partial dependency on Year Timeline Explorer** — the timeline aria-labels task is deferred until that story ships; all other tasks are independent. **Phase 1 coverage:** Keyboard nav on chart (ArrowLeft/ArrowRight), aria-labels on pillars, tier symbols as non-color indicators, inline form errors, and primary text contrast (~11:1) are already implemented. Remaining /cook work: `prefers-reduced-motion`, aria-live for form errors, axe-core audit fixes. Remaining /real work: screen reader testing, zero-panel contrast verification with tooling.
