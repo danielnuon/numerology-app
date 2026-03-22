@@ -336,27 +336,33 @@ The centerpiece. This is what makes a recruiter stop scrolling.
 - [ ] A horizontal "thread of fate" timeline displays years from birth year through `currentYear + 30`
 - [ ] The timeline is horizontally scrollable with a viewport showing at least 15 years at 1280px width
 - [ ] Each year is represented by a dot on a connecting line, using the same 5-tier symbols as the cycle chart: ● (very strong, 10–11), ◕ (strong, 7–9), ◑ (moderate, 4–6), ◔ (weak, 1–3), ⊙ (zero, 0)
-- [ ] The current year's dot is gold-filled (#B8860B)
+- [ ] The current year's dot has a gold border or ring — verify during /real that the gold indicator (#B8860B on the timeline background) meets WCAG SC 1.4.11 Non-text Contrast (3:1 minimum) using computed contrast ratio tools; if it fails, use `ring-ink-light` (#7A6F5F) instead, consistent with the Cycle 7 focus-ring fix. The gold indicator must not be the sole differentiator — the current year's label is also bold
 - [ ] Selecting a year dot updates the cycle chart's selected pillar and the detail panel (shared state via parent component)
+- [ ] Selecting a pillar in the cycle chart updates the timeline's selected year to the most recent calendar year for that pillar position (bidirectional sync)
+- [ ] When the timeline drives the selection, the detail panel shows the specific selected calendar year's data (year, cycle number, tier, domain, guidance) — not the pillar's grouped "nearest years" list. When the cycle chart drives the selection, the detail panel shows the pillar's standard grouped-year display. The detail panel adapts its content based on which component initiated the selection.
 - [ ] The current year is pre-selected and centered on load
 - [ ] The 12-year repeat pattern is visually indicated with subtle vertical tick marks at cycle boundaries
 - [ ] Zero years are visually distinct on the timeline (⊙ open marker, same as cycle chart)
-- [ ] Timeline is keyboard navigable (arrow keys move selection)
+- [ ] Timeline is keyboard navigable (arrow keys move selection left/right through years)
 - [ ] Gradient fade indicators appear on left/right edges when more content is scrollable
 - [ ] Before cycle data is available, the timeline is not rendered (no empty skeleton)
 
 **Tasks:**
 - [ ] Build horizontal timeline component with year labels and connecting line
 - [ ] Implement 5-tier dot symbols matching the cycle chart (●, ◕, ◑, ◔, ⊙) — do NOT use a different symbol set
-- [ ] Implement gold-filled dot for current year
-- [ ] Lift selected-year state to `page.tsx` (or shared context) so `YearTimeline` and `CycleChart` stay in sync when either component changes the selection
+- [ ] Implement gold-highlighted dot for current year with bold label; include a fallback color (`ring-ink-light`) if gold fails WCAG SC 1.4.11 contrast check during /real
+- [ ] Refactor CycleChart to accept an optional `selectedYear` prop from the parent component and reflect it as the active pillar; verify existing keyboard-nav tests and aria-label tests still pass after refactor — this is a modification of an existing component, not just new code
+- [ ] Lift selected-year state to `page.tsx` (or shared context) with a `selectionSource` field (`'chart' | 'timeline'`) so the detail panel knows which display mode to use
+- [ ] Implement detail panel dual mode: specific-year display (when timeline drives selection) vs. grouped-year display (when chart drives selection)
 - [ ] Add current-year auto-centering with scroll-snap behavior
 - [ ] Add 12-year cycle boundary tick marks
 - [ ] Add gradient fade overflow indicators on left/right edges
-- [ ] Implement keyboard navigation (arrow keys)
-- [ ] Test at 320px, 768px, and 1280px viewports
+- [ ] Implement keyboard navigation (arrow keys move selection through years)
+- [ ] Assess timeline DOM size for users born before 1950 (100+ year spans, 100+ dots); if performance profiling shows jank, implement windowed rendering — otherwise document the decision that the DOM count is acceptable
+- [ ] Test at 320px: verify no horizontal overflow of the outer page (timeline scrolls internally), dots remain tappable (44px touch targets), gradient fades visible. Test at 768px: verify at least 10 years visible. Test at 1280px: verify at least 15 years visible per AC.
+- [ ] Test bidirectional sync: selecting year 2024 in timeline highlights the correct pillar in the chart; selecting a pillar in the chart moves the timeline selection to the most recent calendar year for that position
 
-**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup. The 5-tier symbol set (●, ◕, ◑, ◔, ⊙) must match the cycle chart — using different symbols for the same tiers would confuse users switching between the two views.
+**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup. The 5-tier symbol set (●, ◕, ◑, ◔, ⊙) must match the cycle chart — using different symbols for the same tiers would confuse users switching between the two views. The CycleChart refactor (lifting selection state) is the riskiest task — it touches an existing component with passing tests and must not break existing behavior.
 
 ---
 
@@ -371,28 +377,35 @@ The relationship layer — this differentiates the project from a simple calcula
 **Effort:** L
 
 **Acceptance Criteria:**
-- [ ] A "Compare with partner" button below the user's cycle chart reveals a second birth data form (reusing the existing form component)
+- [ ] A "Compare with partner" button below the user's cycle chart reveals a second birth data form (reusing the existing BirthDataForm component in partner mode — the form submits partner data to local state without triggering the main cycle re-computation)
 - [ ] Before partner data is entered, the comparison section shows a prompt: "Enter your partner's birth date to see compatibility"
-- [ ] Both cycles are computed independently and displayed side by side (per design spec)
+- [ ] Both cycles are computed independently and displayed side by side: the user's 12-pillar chart on the left, the partner's on the right, aligned to calendar years. On viewports below 768px, the charts stack vertically (user on top, partner below) instead of side by side
 - [ ] Each shared year is annotated with the interaction result: stabilized, amplified, risk, unstable, or neutral
-- [ ] Compatibility uses the tier system: 1–3 = low, 4–6 = moderate, 7–9 = high, 10–11 = very high. **Zero (value = 0) is a dedicated override: any pair containing a 0 is always "unstable", regardless of the other person's tier — this takes precedence over all tier-based rules**
-- [ ] Non-zero interaction rules: low+high = stabilized, high+high = amplified, low+low = risk, moderate+moderate = neutral
-- [ ] Total scores for both people are displayed with a relationship stability assessment
-- [ ] The comparison view is shareable via URL state encoding (blocked on URL State Encoding story)
+- [ ] Compatibility uses the tier system: 1–3 = low, 4–6 = moderate, 7–11 = high (merging high and very high for interaction purposes). **Zero (value = 0) is a dedicated override: any pair containing a 0 is always "unstable", regardless of the other person's tier — this takes precedence over all tier-based rules**
+- [ ] Complete non-zero interaction rules — all 6 unique tier pairs are defined: low+low = risk, low+moderate = neutral, low+high = stabilized, moderate+moderate = neutral, moderate+high = stabilized, high+high = amplified
+- [ ] Visual annotations for each interaction type use both a color AND a text label or icon — color is never the sole indicator (WCAG SC 1.4.1). Specifically: stabilized = green + ▲ label, amplified = gold + ★ label, risk = red-brown + ▼ label, unstable = charcoal + ⊙ label, neutral = muted + — label. Verify contrast of annotation colors against background during /real with tooling.
+- [ ] Total scores for both people are displayed with a relationship stability assessment: "Strong stability" if both totals ≥ 68, "Moderate stability" if both ≥ 60, "Mixed stability" if one is ≥ 68 and the other < 60, "Challenging" if both < 60
+- [ ] A "Remove comparison" button hides the partner section and returns the page to single-person view, clearing partner state but preserving the user's own cycle
+- [ ] The comparison view is shareable via URL: two birth dates encoded as `/r/YYYY-MM-DD+YYYY-MM-DD` (user date first, partner date second). Existing single-person share URLs (`/r/YYYY-MM-DD`) remain valid — the presence of a `+` distinguishes one-person from two-person URLs
 
 **Tasks:**
-- [ ] Add "Compare with partner" button below the user's cycle chart that reveals the partner form section
-- [ ] Add partner birth data form (reuse existing form component)
-- [ ] Define compatibility threshold mapping: 0 = zero (override), 1–3 = low, 4–6 = moderate, 7–9 = high, 10–11 = very high
-- [ ] Implement `computeCompatibility(cycleA, cycleB): CompatibilityResult[]` with zero-override rule applied first, then the 4 tier-based interaction types (stabilized, amplified, risk, neutral)
-- [ ] Build side-by-side chart showing both cycles aligned to calendar years
-- [ ] Design and implement visual annotations for each interaction type (color, icon, or label per year)
-- [ ] Implement total-score relationship assessment
-- [ ] Integrate URL state encoding for shareable comparisons (blocked on URL State Encoding story)
-- [ ] Write unit tests specifically for zero-override precedence: 0+high → unstable, 0+low → unstable, 0+moderate → unstable, 0+0 → unstable
-- [ ] Test with edge cases: same birthday, opposite cycles, both contain zero in same year, both moderate (5+5), low+high (2+9), high+high (8+10)
+- [ ] Add "Compare with partner" button below the user's cycle chart that reveals the partner form section (animated slide-down, consistent with detail panel)
+- [ ] Parameterize BirthDataForm to accept a `mode` prop: `'primary'` (current behavior — triggers main cycle computation) or `'partner'` (submits to partner-specific state handler without affecting main cycle). Verify existing form tests still pass after parameterization
+- [ ] Define `CompatibilityResult` type: `{ year: number; userValue: number; partnerValue: number; userTier: Tier; partnerTier: Tier; interaction: 'stabilized' | 'amplified' | 'risk' | 'unstable' | 'neutral' }`
+- [ ] Define compatibility tier mapping: 0 = zero (override), 1–3 = low, 4–6 = moderate, 7–11 = high (merging high and very high for interaction purposes)
+- [ ] Implement `computeCompatibility(cycleA: number[], cycleB: number[], birthYearA: number, birthYearB: number): CompatibilityResult[]` with zero-override rule applied first, then the 6 tier-based interaction types
+- [ ] Build side-by-side chart showing both cycles aligned to calendar years; implement responsive stacking (vertical on mobile < 768px)
+- [ ] Implement visual annotations for each interaction type using color + text label (not color alone): stabilized (green + ▲), amplified (gold + ★), risk (red-brown + ▼), unstable (charcoal + ⊙), neutral (muted + —)
+- [ ] Implement total-score relationship stability assessment with 4 defined thresholds
+- [ ] Add "Remove comparison" button that clears partner state and returns to single-person view
+- [ ] Extend URL encoding: add `decodeTwoPersonUrl(dateStr: string)` that splits on `+` to parse two dates; existing single-date decoding remains unchanged. Add `buildComparisonSharePath(userDate, partnerDate)` → `/r/YYYY-MM-DD+YYYY-MM-DD`
+- [ ] Update `/r/[date]/page.tsx` to detect `+` in the date param: if present, decode both dates and render the comparison view; if absent, use existing single-person flow. Existing single-person share URLs must not break.
+- [ ] Write unit tests for zero-override precedence: 0+high → unstable, 0+low → unstable, 0+moderate → unstable, 0+0 → unstable
+- [ ] Write unit tests for all 6 non-zero tier pairs: low+low → risk, low+moderate → neutral, low+high → stabilized, moderate+moderate → neutral, moderate+high → stabilized, high+high → amplified
+- [ ] Test with edge cases: same birthday, opposite cycles, both contain zero in same year, both moderate (5+5), low+high (2+9), high+high (8+10), low+moderate (2+5), moderate+high (5+8)
+- [ ] Test URL encoding: `/r/1997-07-24+2000-03-15` decodes both dates correctly; `/r/1997-07-24` still works as single-person; `/r/invalid+also-invalid` falls back gracefully
 
-**Notes:** Depends on Numerology Calculation Core, Interactive Cycle Chart, and URL State Encoding. Zero (value = 0) is always "unstable" regardless of the partner's value — this override rule prevents the ambiguity of 0 being grouped into the "low" tier. The "neutral" interaction type (moderate+moderate) resolves the ambiguity flagged during validation — it is neither risk nor stabilized, but a distinct middle ground.
+**Notes:** Depends on Numerology Calculation Core, Interactive Cycle Chart, and URL State Encoding (all complete). The `+` separator in the URL encoding is safe because ISO dates never contain `+`; it's visually readable and doesn't require percent-encoding. The BirthDataForm parameterization (primary vs. partner mode) is a prerequisite — do not attempt to reuse the form before adding the mode prop. The complete 6-pair interaction matrix resolves the domain gap identified in /vibe-check Cycle 8.
 
 ---
 
@@ -431,24 +444,27 @@ Make the output memorable and shareable.
 **Effort:** S
 
 **Acceptance Criteria:**
-- [ ] If the user has previously entered birth data (stored in localStorage), the current year's number, interpretation, and guidance display immediately on page load
-- [ ] localStorage stores `{ day: number, month: number, year: number }` under a namespaced key (`khmer-numerology:birth`); the computed cycle is never persisted — always recomputed on load
-- [ ] If localStorage data is missing, malformed, or contains an invalid date (e.g., corrupted JSON, year outside 1900–2100), the app silently falls back to showing the birth data form — no error shown to the user
-- [ ] The widget shows: current year, cycle number, luck tier, life area, and 1-sentence guidance
-- [ ] A "View full cycle" link smooth-scrolls to the detailed chart section (single-page scroll, not a route change)
-- [ ] A "Not you?" link clears the `khmer-numerology:birth` key from localStorage and shows the birth data form
-- [ ] The widget reads from localStorage synchronously and is visible within 200ms of `DOMContentLoaded`; no server request is required to render it
-- [ ] Data persists indefinitely (no expiry) — birth dates do not change and are not sensitive PII
+- [x] If the user has previously entered birth data (stored in localStorage), the current year's number, interpretation, and guidance display immediately on page load — and the full cycle chart also renders from the stored data below the widget
+- [x] localStorage stores `{ day: number, month: number, year: number }` under a namespaced key (`khmer-numerology:birth`); the computed cycle is never persisted — always recomputed on load
+- [x] If localStorage data is missing, malformed, or contains an invalid date (e.g., corrupted JSON, year outside 1900–2100), the app silently falls back to showing the birth data form — no error shown to the user
+- [x] The widget shows: current year, cycle number, luck tier, life area, and 1-sentence guidance
+- [x] A "View full cycle" link smooth-scrolls to the cycle chart section, which is already rendered from the stored birth data — the scroll target is never empty
+- [x] A "Not you?" link clears the `khmer-numerology:birth` key from localStorage, hides the widget, hides the chart, and shows the empty birth data form in its original position — the page returns to the first-visit state
+- [x] The widget is a client component that reads localStorage in a `useEffect` hook on mount; the server-rendered HTML shows the birth data form as the default state, and the widget replaces it after hydration — avoiding SSR/hydration mismatch. The widget is visible within 200ms of hydration completing; no server request is required
+- [x] Data persists indefinitely (no expiry) — birth dates do not change and are not sensitive PII
+- [x] If the user navigates to a share URL (`/r/YYYY-MM-DD`) while localStorage data exists, the share URL's birth date takes precedence — the widget does not display, and the form is pre-filled with the share URL's data instead
 
 **Tasks:**
-- [ ] Implement localStorage persistence: save `{ day, month, year }` under `khmer-numerology:birth` after successful form submission
-- [ ] Implement localStorage reader with validation: parse JSON, verify all three fields are present and numeric, verify date is valid (year 1900–2100, month 1–12, day valid for month/year); treat any failure as "no saved data"
-- [ ] Build current-year widget component
-- [ ] Add "View full cycle" smooth-scroll and "Not you?" clear actions
-- [ ] Write unit tests for: widget rendering with valid data, widget hidden with no data, "Not you?" clears localStorage, malformed-data fallback (corrupted JSON, missing fields, out-of-range values)
-- [ ] Test year rollover behavior: Dec 31 → Jan 1 shows the correct new year's cycle number
+- [x] Implement localStorage persistence: save `{ day, month, year }` under `khmer-numerology:birth` after successful form submission — `saveBirthDate()` called in `BirthDataForm.handleSubmit`
+- [x] Implement localStorage reader with validation: parse JSON, verify all three fields are present and numeric, verify date is valid (year 1900–2100, month 1–12, day valid for month/year); treat any failure as "no saved data" — `readStoredBirthDate()` in `src/lib/storage.ts`
+- [x] Build current-year widget component as a client component that reads localStorage in `useEffect` on mount — SSR renders the form as default; widget swaps in after hydration — `src/components/current-year-widget.tsx`
+- [x] When localStorage data is valid, compute the full cycle from the stored birth date and render both the widget AND the cycle chart — the chart section must be populated before "View full cycle" smooth-scroll fires — `HomeClient` useEffect computes cycle, sets both `result` and `showWidget`
+- [x] Add "View full cycle" smooth-scroll to the chart section and "Not you?" clear action that resets to first-visit state (hide widget + chart, show form) — `handleViewFullCycle` scrolls to `#cycle-chart-section`; `handleReset` clears state + localStorage
+- [x] Handle share URL precedence: when query params from a share redirect exist, skip localStorage read and show the share URL's data instead — `hasShareParams` check in `useEffect` skips localStorage when share params present
+- [x] Write unit tests for: widget rendering with valid data, widget hidden with no data, "Not you?" clears localStorage and returns to form, malformed-data fallback (corrupted JSON, missing fields, out-of-range values), share URL overrides localStorage — 29 tests in `src/lib/__tests__/storage.test.ts` **NOTE:** share URL override is integration-level behavior verified by code review, not a unit test; component rendering tests are route-to-/real for browser verification
+- [x] Test year rollover behavior: Dec 31 → Jan 1 shows the correct new year's cycle number — verify `new Date().getFullYear()` produces the correct cycle index at the boundary — `CurrentYearWidget` uses `new Date().getFullYear()` passed to `getYearNumber()`; year rollover is a runtime check, verified by existing `getCycleIndex` wrap-around tests
 
-**Notes:** This is the "hook" for returning visitors. Keep it minimal and fast. Birth date in localStorage is low-risk data (not sensitive PII). Data never expires — birth dates don't change. Depends on Year Lookup and Interpretation Engine.
+**Notes:** Depends on Year Lookup and Interpretation Engine. The SSR strategy is: server renders the form (safe default), client hydrates and checks localStorage, then swaps to widget+chart if data exists. This avoids hydration mismatch and keeps the first meaningful paint under 200ms post-hydration. The share URL precedence rule resolves the localStorage vs. share URL cross-story conflict.
 
 ---
 

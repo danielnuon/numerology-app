@@ -157,21 +157,41 @@ Each column position can also map to a life domain, allowing year-by-domain inte
 
 Luck is not isolated — it is influenced by close relationships (partners, family members sharing a household).
 
+### Tier Mapping
+
+For compatibility purposes, each person's year number maps to a tier:
+
+| Number | Tier |
+|--------|------|
+| 0 | Zero (override) |
+| 1–3 | Low |
+| 4–6 | Moderate |
+| 7–11 | High (includes "very high" 10–11) |
+
 ### Year-Level Interaction
 
-| Your Year | Partner's Year | Result |
-|-----------|---------------|--------|
-| Low + High | Stabilized |
-| High + High | Amplified |
-| Low + Low | Risk / compounded difficulty |
-| Any + 0 | Unstable / transitional |
+The interaction between two people's tiers for a shared year follows this complete matrix. Zero always overrides; all other combinations are symmetric (order doesn't matter).
+
+| Person A | Person B | Result | Rationale |
+|----------|----------|--------|-----------|
+| 0 | Any | Unstable | Zero override — always takes precedence |
+| Low | Low | Risk | Compounded weakness |
+| Low | Moderate | Neutral | Moderate tempers low; net wash |
+| Low | High | Stabilized | Strong compensates for weak |
+| Moderate | Moderate | Neutral | Balanced, no strong pull |
+| Moderate | High | Stabilized | Strong reinforces moderate |
+| High | High | Amplified | Both strong, energy amplifies |
 
 ### Total-Level Interaction
 
 Each person's total score also influences the relationship:
 
-- High total partner stabilizes the relationship
-- Low total partner introduces more volatility
+| Person A Total | Person B Total | Assessment |
+|---------------|---------------|------------|
+| Both ≥ 68 | | Strong stability |
+| Both ≥ 60 | | Moderate stability |
+| One ≥ 68, other < 60 | | Mixed stability |
+| Both < 60 | | Challenging |
 
 Partner influence is strongest in shared living, finances, and emotional state.
 

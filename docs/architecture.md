@@ -30,6 +30,28 @@ BirthDataForm (input)
                   |- interpretYear() [interpretation.ts]
                   +- getLifeArea() [year-lookup.ts]
 
+--- Returning visitor entry (localStorage) ---
+
+HomeClient (useEffect on mount)
+  |- hasShareParams? → skip localStorage, use share URL path
+  +- readStoredBirthDate() [storage.ts]
+      |- validates JSON, field types, ranges, calendar validity
+      +- returns StoredBirthDate | null
+          |- null → show BirthDataForm (first-visit state)
+          +- valid → computeCycleFromBirthDate() [derive.ts]
+              -> setResult() + setShowWidget(true)
+                 |- CurrentYearWidget (display)
+                 |    |- getYearNumber() [year-lookup.ts]
+                 |    |- interpretYear() [interpretation.ts]
+                 |    |- getLifeArea() [year-lookup.ts]
+                 |    |- "View full cycle" → smooth-scroll to #cycle-chart-section
+                 |    +- "Not you?" → clearStoredBirthDate(), reset to first-visit
+                 +- CycleChart (display) — same as form-submission path
+
+BirthDataForm (on successful submit)
+  +- saveBirthDate(day, month, year) [storage.ts]
+      -> localStorage.setItem("khmer-numerology:birth", JSON.stringify({day, month, year}))
+
 --- Share URL entry (/r/[date]) ---
 
 /r/[date]/page.tsx (server component)
@@ -136,6 +158,18 @@ interface DecodedBirthDate {
 
 Returned by `decodeBirthDate()` when parsing a share URL date string. Returns `null` for invalid inputs. Calendar-validated: rejects Feb 29 on non-leap years, Apr 31, etc.
 
+### `StoredBirthDate` (storage.ts)
+
+```ts
+interface StoredBirthDate {
+  day: number;    // 1-31 (calendar-validated)
+  month: number;  // 1-12
+  year: number;   // 1900-2100
+}
+```
+
+The shape persisted to localStorage under the `khmer-numerology:birth` key. `readStoredBirthDate()` validates all fields on read: type checks, integer checks, range checks, and calendar validity. Returns `null` for any failure — never throws.
+
 ## Design Decisions
 
 ### Weekday indexing: 1-indexed, Sunday-start
@@ -191,13 +225,20 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |           |- reads searchParams for pre-fill (?day=&month=&year=)
   |           |- <h1> "Khmer Numerology"
   |           |- SectionDivider
+  |           |- (returning visitor, localStorage valid)
+  |           |   +- CurrentYearWidget "use client", year/tier/area/guidance
+  |           |       |- "View full cycle" → scrollIntoView #cycle-chart-section
+  |           |       +- "Not you?" → clearStoredBirthDate, reset to form
+  |           |
   |           +- ErrorBoundary ....... "use client", class component
-  |               |- BirthDataForm ... "use client", day/month/year inputs
-  |               |    |- deriveBirthData() via useMemo (zodiac + weekday preview)
-  |               |    |- validateBirthDate() on submit
-  |               |    +- computeCycleFromBirthDate() -> onResult callback
+  |               |- (first visit or "Not you?")
+  |               |   +- BirthDataForm "use client", day/month/year inputs
+  |               |       |- deriveBirthData() via useMemo (zodiac + weekday preview)
+  |               |       |- validateBirthDate() on submit
+  |               |       |- saveBirthDate() on successful submit [storage.ts]
+  |               |       +- computeCycleFromBirthDate() -> onResult callback
   |               |
-  |               +- (conditional, after submit)
+  |               +- (conditional, after submit OR localStorage load)
   |                   |- SectionDivider
   |                   +- CycleChart .. "use client", 12-column pillar grid
   |                       |- 12x motion.button (pillars, respects reduced motion)
@@ -215,7 +256,8 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
 - **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
 - **Home**: Server component wrapping `HomeClient` in `<Suspense>` (required for `useSearchParams()`).
-- **HomeClient**: Client component holding `CycleResultWithYear | null` state. Reads URL search params for pre-fill from share redirects. Auto-computes cycle on pre-fill via `useEffect`. On result, scrolls to the result card via `requestAnimationFrame` + `scrollIntoView`.
+- **HomeClient**: Client component holding `CycleResultWithYear | null` state and `showWidget` boolean. On mount, checks share URL params first (precedence), then reads localStorage via `readStoredBirthDate()`. If valid stored data exists, computes cycle and renders both `CurrentYearWidget` and `CycleChart`. Also reads URL search params for pre-fill from share redirects. On form submission, scrolls to the result card via `requestAnimationFrame` + `scrollIntoView`.
+- **CurrentYearWidget**: Client component displaying the current year's cycle number, luck tier, life area domain, and one-sentence guidance. Renders "View full cycle" (smooth-scroll to chart) and "Not you?" (clear localStorage, reset to form) actions. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders 12 pillars as a `grid-cols-6 md:grid-cols-12` grid. Each pillar is a `<motion.button>` with role="tab". Supports keyboard navigation (ArrowLeft/ArrowRight). Highlights the current year column with a gold border and dot. Renders `DetailPanel` when a pillar is selected. Shows total score summary with `interpretTotal()`.
@@ -303,6 +345,7 @@ All tests live in `src/lib/numerology/__tests__/`:
 | `year-lookup.test.ts` | `year-lookup.ts` -- `getCycleIndex`, `getYearNumber`, `getLifeArea` |
 | `chart-helpers.test.ts` | `chart-helpers.ts` -- `getTierSymbol`, `getTierColorClass`, `getYearsForColumn`, `getCurrentYearColumn` |
 | `url-encoding.test.ts` | `url-encoding.ts` -- `encodeBirthDate`, `decodeBirthDate`, `buildSharePath`, roundtrip validation |
+| `storage.test.ts` | `storage.ts` -- `saveBirthDate`, `readStoredBirthDate`, `clearStoredBirthDate`, roundtrip, malformed-data rejection (29 tests) |
 | `reduced-motion.test.ts` | `globals.css` -- verifies `prefers-reduced-motion` media query disables `.animate-breathe` |
 
 ### Testing patterns

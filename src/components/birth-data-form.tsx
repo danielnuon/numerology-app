@@ -18,6 +18,7 @@ import {
   BIRTH_YEAR_MIN,
   BIRTH_YEAR_MAX,
 } from "@/lib/numerology/derive";
+import { saveBirthDate } from "@/lib/storage";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -111,6 +112,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
 
     setErrors({});
     const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum);
+    saveBirthDate(dayNum, monthNum, yearNum);
     onResult(result);
   }
 
