@@ -97,7 +97,7 @@ export function CurrentYearWidget({ cycle, birthYear, onReset, chartSectionId }:
         <a
           href={`#${chartSectionId}`}
           onClick={handleViewFullCycle}
-          className="text-gold hover:text-ink underline underline-offset-4 transition-colors"
+          className="text-ink-light hover:text-gold underline underline-offset-4 transition-colors"
         >
           View full cycle
         </a>
