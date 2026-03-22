@@ -622,6 +622,71 @@ The details that signal professional-grade work.
 
 ---
 
+## Epic: Brand Migration to Solini
+This epic covers the visual and metadata shifts required to establish Solini as the primary brand while retaining "Khmer Numerology" as a descriptive subtitle.
+
+### Visual Rebranding: Title & Subtitle
+
+**Story:** As a brand owner, I want the application title to be "Solini" with "Khmer Numerology" as a subtitle, so that the app has a unique brand identity while still clearly explaining its purpose to new users.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] The main heading (`<h1>`) on the landing page is changed to "Solini"
+- [x] "Khmer Numerology" appears as a secondary subtitle immediately following the main title
+- [x] The branding hierarchy (Solini > Khmer Numerology) is consistent across Header, Hero, and Footer components
+- [x] Typography for "Solini" utilizes the brand's primary serif font (Cormorant Garamond) to maintain the "satra" aesthetic
+
+**Tasks:**
+- [x] Update landing page title hierarchy
+- [x] Adjust CSS/Tailwind classes for branding dominance
+- [x] Audit and update global components (Header/Footer)
+
+**Notes:** This is a purely visual change. Internal variable names should remain untouched to prevent regression.
+
+### External Reference Migration
+
+**Story:** As a developer, I want all external-facing references (metadata, social tags, and labels) to use "Solini", so that the brand is consistent across search engines, browser tabs, and social media platforms.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [ ] Browser `<title>` tag is updated to "Solini — Life Cycle Calculator"
+- [ ] Meta descriptions in `layout.tsx` refer to the application as "Solini"
+- [ ] Open Graph (OG) and Twitter card tags use "Solini" in the title and description fields — **NOTE: verify via Twitter Card Validator or Facebook Sharing Debugger after deployment to a public URL**
+- [ ] Build-time generated OG images (`opengraph-image.tsx`) are updated to feature the "Solini" name prominently — **NOTE: verify rendering locally via dev server and via social debuggers after deployment**
+- [ ] The web app manifest uses "Solini" as the `name`
+
+**Tasks:**
+- [ ] Update Metadata API object in `layout.tsx`
+- [ ] Update hardcoded strings in `opengraph-image.tsx`
+- [ ] Update favicon/icon text elements
+
+**Notes:** Depends on Visual Rebranding.
+
+### Internal Reference Preservation
+
+**Story:** As a maintainer, I want to preserve the string `numerology-app` for internal paths, folder names, and technical identifiers, so that the project's development and deployment pipelines remain stable and unchanged.
+
+**Priority:** Medium
+**Effort:** S
+
+**Acceptance Criteria:**
+- [ ] `package.json` "name" remains `numerology-app`
+- [ ] Directory structure (root folder, subfolders) is not renamed
+- [ ] Internal variable names or logic constants remain unchanged to preserve technical stability
+- [ ] Documentation for developers acknowledges the internal/external naming split
+
+**Tasks:**
+- [ ] Audit `package.json` and build scripts to ensure no breakage
+- [ ] Update `contributing.md` with branding conventions
+
+**Notes:** Critical for technical stability.
+
+---
+
 ## Product Roadmap
 
 ### Phase 1: Core Engine + First Render — "It works and it's correct" ✅ COMPLETE

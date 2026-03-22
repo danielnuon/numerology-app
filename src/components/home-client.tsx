@@ -110,10 +110,10 @@ export function HomeClient() {
   return (
     <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-8">
       <h1 className="text-4xl font-light tracking-[0.08em] text-ink text-center">
-        Khmer Numerology
+        Solini
       </h1>
-      <p className="mt-4 text-lg text-ink-light italic text-center">
-        Uncover the rhythm of your years
+      <p className="mt-2 text-lg text-ink-light italic text-center">
+        Khmer Numerology
       </p>
 
       <SectionDivider />
