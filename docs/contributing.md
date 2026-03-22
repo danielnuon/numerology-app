@@ -196,6 +196,18 @@ When QA needs to verify an error boundary's fallback UI without modifying source
 
 ---
 
+## QA: Verify URL Formats Before Filing Bugs
+
+When QA-testing any URL-based feature (share links, deep links, encoded routes), always verify the URL format against the encoding spec or existing unit tests **before** filing a bug.
+
+**Convention:** Before testing a URL-encoded route in `/real`, check `src/lib/numerology/__tests__/` or the relevant encoding module to confirm the expected format.
+
+**Why this matters:** During the Current Year Widget cycle, `/real` navigated to `/r/24-07-1997` (DD-MM-YYYY). The share URL spec (`decodeBirthDate`) requires `YYYY-MM-DD`. The mismatch caused `decodeBirthDate` to return null — which correctly triggered `redirect("/")` — but was misread as a share redirect bug. This spawned a false `/cook fix` cycle before investigation revealed the QA test input was wrong.
+
+**When it applies:** Any feature involving URL encoding, route params, or encoded identifiers. Check the format spec first; test with a valid example URL before concluding the feature is broken.
+
+---
+
 ## CI Pipeline
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on pushes and pull requests to `main`:
