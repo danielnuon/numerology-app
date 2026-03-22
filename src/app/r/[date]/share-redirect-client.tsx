@@ -6,10 +6,13 @@
  * Client component rendered on the share route (/r/[date]).
  * Redirects to the home page with pre-fill query params so the
  * birth data form auto-populates and computes the cycle result.
+ *
+ * Uses native `window.location.replace()` instead of Next.js's
+ * `router.replace()` for reliable query param preservation
+ * across Next.js versions.
  */
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 interface Props {
   day: number;
@@ -18,12 +21,10 @@ interface Props {
 }
 
 export function ShareRedirectClient({ day, month, year }: Props) {
-  const router = useRouter();
-
   useEffect(() => {
-    // Redirect to home with pre-fill params
-    router.replace(`/?day=${day}&month=${month}&year=${year}`);
-  }, [router, day, month, year]);
+    // Native browser redirect preserves query params reliably
+    window.location.replace(`/?day=${day}&month=${month}&year=${year}`);
+  }, [day, month, year]);
 
   // Brief loading state while redirecting
   return (

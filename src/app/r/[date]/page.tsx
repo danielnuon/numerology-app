@@ -66,7 +66,9 @@ export default async function SharePage({ params }: Props) {
     redirect("/");
   }
 
-  // Render a client component that pre-fills the form on the home page
+  // Render a client component that redirects via native browser API.
+  // window.location.replace() is used instead of router.replace() for
+  // reliable query param preservation across Next.js versions.
   return (
     <ShareRedirectClient
       day={decoded.day}
