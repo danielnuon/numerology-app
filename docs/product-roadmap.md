@@ -653,16 +653,16 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 **Effort:** S
 
 **Acceptance Criteria:**
-- [ ] Browser `<title>` tag is updated to "Solini — Life Cycle Calculator"
-- [ ] Meta descriptions in `layout.tsx` refer to the application as "Solini"
-- [ ] Open Graph (OG) and Twitter card tags use "Solini" in the title and description fields — **NOTE: verify via Twitter Card Validator or Facebook Sharing Debugger after deployment to a public URL**
-- [ ] Build-time generated OG images (`opengraph-image.tsx`) are updated to feature the "Solini" name prominently — **NOTE: verify rendering locally via dev server and via social debuggers after deployment**
-- [ ] The web app manifest uses "Solini" as the `name`
+- [x] Browser `<title>` tag is updated to "Solini — Life Cycle Calculator"
+- [x] Meta descriptions in `layout.tsx` refer to the application as "Solini"
+- [x] Open Graph (OG) and Twitter card tags use "Solini" in the title and description fields — **NOTE: verify via Twitter Card Validator or Facebook Sharing Debugger after deployment to a public URL**
+- [x] Build-time generated OG images (`opengraph-image.tsx`) are updated to feature the "Solini" name prominently — **NOTE: verify rendering locally via dev server and via social debuggers after deployment**
+- [x] The web app manifest uses "Solini" as the `name`
 
 **Tasks:**
-- [ ] Update Metadata API object in `layout.tsx`
-- [ ] Update hardcoded strings in `opengraph-image.tsx`
-- [ ] Update favicon/icon text elements
+- [x] Update Metadata API object in `layout.tsx`
+- [x] Update hardcoded strings in `opengraph-image.tsx`
+- [x] Update favicon/icon text elements — **N/A: icon.svg is text-free (purely geometric diamond motif); no changes needed**
 
 **Notes:** Depends on Visual Rebranding.
 
@@ -674,14 +674,14 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 **Effort:** S
 
 **Acceptance Criteria:**
-- [ ] `package.json` "name" remains `numerology-app`
-- [ ] Directory structure (root folder, subfolders) is not renamed
-- [ ] Internal variable names or logic constants remain unchanged to preserve technical stability
-- [ ] Documentation for developers acknowledges the internal/external naming split
+- [x] `package.json` "name" remains `numerology-app`
+- [x] Directory structure (root folder, subfolders) is not renamed
+- [x] Internal variable names or logic constants remain unchanged to preserve technical stability
+- [x] Documentation for developers acknowledges the internal/external naming split
 
 **Tasks:**
-- [ ] Audit `package.json` and build scripts to ensure no breakage
-- [ ] Update `contributing.md` with branding conventions
+- [x] Audit `package.json` and build scripts to ensure no breakage
+- [x] Update `contributing.md` with branding conventions
 
 **Notes:** Critical for technical stability.
 
@@ -719,6 +719,13 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 | Compatibility Summary Card | Low | S | Quick-read layer on top of comparison |
 | Shareable Results Card | Low | M | Growth mechanism + portfolio demo value |
 | Khmer Language Toggle | Low | M | Cultural authenticity + i18n skill demo (blocked by translation dependency) |
+
+### Phase 6: Polish & Branding — "Establishing the Solini Identity"
+| Story | Priority | Effort | Rationale |
+|-------|----------|--------|-----------|
+| Visual Rebranding: Title & Subtitle | High | S | Immediate user-facing brand alignment |
+| External Reference Migration | High | S | Ensures SEO and social sharing reflect the new brand |
+| Internal Reference Preservation | Medium | S | Maintains technical stability during rebranding |
 
 ### Dependencies
 - Numerology Calculation Core depends on Margasir Month Mapping Data

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Khmer Numerology — Life Cycle Calculator";
+export const alt = "Solini — Life Cycle Calculator";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -37,10 +37,10 @@ export default function OgImage() {
             fontWeight: 300,
             color: "#2C2417",
             letterSpacing: "0.08em",
-            marginBottom: 16,
+            marginBottom: 8,
           }}
         >
-          Khmer Numerology
+          Solini
         </div>
 
         <div
@@ -51,7 +51,7 @@ export default function OgImage() {
             marginBottom: 32,
           }}
         >
-          Uncover the rhythm of your years
+          Khmer Numerology
         </div>
 
         {/* Decorative line */}

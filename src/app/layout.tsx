@@ -20,20 +20,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://khmer-numerology.vercel.app"
   ),
-  title: "Khmer Numerology — Life Cycle Calculator",
+  title: "Solini — Life Cycle Calculator",
   description:
     "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
   openGraph: {
-    title: "Khmer Numerology — Life Cycle Calculator",
+    title: "Solini — Life Cycle Calculator",
     description:
       "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
     type: "website",
     locale: "en_US",
-    siteName: "Khmer Numerology",
+    siteName: "Solini",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Khmer Numerology — Life Cycle Calculator",
+    title: "Solini — Life Cycle Calculator",
     description:
       "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
   },
