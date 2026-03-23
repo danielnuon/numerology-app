@@ -115,6 +115,9 @@ export function HomeClient() {
       <p className="mt-2 text-lg text-ink-light italic text-center">
         Khmer Numerology
       </p>
+      <p className="mt-2 text-sm text-ink-light text-center tracking-[0.04em]">
+        Discover Your Life Cycle
+      </p>
 
       <SectionDivider />
 
@@ -132,10 +135,7 @@ export function HomeClient() {
         {/* Form card — shown for first-visit, after "Not you?", or when share URL params present */}
         {showForm && (
           <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
-            <h2 className="text-center text-[22px] font-medium tracking-[0.02em]">
-              Discover Your Life Cycle
-            </h2>
-            <p className="mt-3 text-center text-ink-light text-sm tracking-[0.04em]">
+            <p className="text-center text-ink-light text-sm tracking-[0.04em]">
               Enter your birth date to reveal your 12-year cycle
             </p>
 

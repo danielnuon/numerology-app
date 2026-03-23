@@ -688,6 +688,29 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 
 ---
 
+### Restore Hero Tagline
+
+**Story:** As a first-time visitor, I want to see "Discover Your Life Cycle" as a tagline below the brand subtitle, so that I immediately understand what the app does before scrolling to the form.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] The landing page hero displays three stacked text lines in order: "Solini" (h1), "Khmer Numerology" (subtitle), "Discover Your Life Cycle" (tagline)
+- [x] The tagline uses a smaller, lighter style than the subtitle — visually distinct as a tertiary line (e.g., `text-sm text-ink-light tracking-[0.04em]`)
+- [x] The tagline appears between the subtitle and the section divider — not inside the form card
+- [x] The form card's existing `<h2>` "Discover Your Life Cycle" is removed or replaced to avoid duplication — if removed, the form card should still have a clear call-to-action heading (e.g., keep "Enter your birth date to reveal your 12-year cycle" as the form's prompt)
+- [x] The three-line heading hierarchy is visually balanced and centered on viewports from 320px to 1440px+
+
+**Tasks:**
+- [x] Add the tagline `<p>` element between the subtitle and `<SectionDivider />` in `home-client.tsx`
+- [x] Remove or update the form card's `<h2>` to avoid duplicating "Discover Your Life Cycle" — removed `<h2>`, kept instruction `<p>` as the form's prompt
+- [x] Verify visual balance across 320px, 768px, and 1280px viewports — all lines use `text-center` with no fixed widths; responsive by inheritance. /real to confirm visually.
+
+**Notes:** Cosmetic fix to the Visual Rebranding story. The tagline was inside the form card and was not migrated to the hero area during the rebrand. Depends on Visual Rebranding (complete).
+
+---
+
 ## Product Roadmap
 
 ### Phase 1: Core Engine + First Render — "It works and it's correct" ✅ COMPLETE
@@ -727,6 +750,7 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 | Visual Rebranding: Title & Subtitle | High | S | Immediate user-facing brand alignment |
 | External Reference Migration | High | S | Ensures SEO and social sharing reflect the new brand |
 | Internal Reference Preservation | Medium | S | Maintains technical stability during rebranding |
+| Restore Hero Tagline | High | S | Quick fix — restores missing tagline from rebrand |
 
 ### Dependencies
 - Numerology Calculation Core depends on Margasir Month Mapping Data
