@@ -109,13 +109,13 @@ export function HomeClient() {
 
   return (
     <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-8">
-      <h1 className="text-4xl font-light tracking-[0.08em] text-ink text-center">
+      <h1 className="text-5xl sm:text-6xl font-light tracking-[0.08em] text-ink text-center">
         Solini
       </h1>
-      <p className="mt-2 text-lg text-ink-light italic text-center">
+      <p className="mt-3 text-lg text-ink-light italic text-center">
         Khmer Numerology
       </p>
-      <p className="mt-2 text-sm text-ink-light text-center tracking-[0.04em]">
+      <p className="mt-1 text-sm text-ink-light font-light text-center tracking-[0.08em]">
         Discover Your Life Cycle
       </p>
 

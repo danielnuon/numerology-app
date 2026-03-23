@@ -711,6 +711,30 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 
 ---
 
+### Hero Typography Refinement
+
+**Story:** As a first-time visitor, I want the Solini hero text to feel like a polished brand masthead rather than three uniform lines, so that the site immediately conveys quality and intentional design.
+
+**Priority:** Medium
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] The title "Solini" renders at `text-5xl` (48px) on mobile and `text-6xl` (60px) on `sm:` breakpoint and above
+- [x] The subtitle "Khmer Numerology" has a 12px gap (`mt-3`) below the title, creating visible breathing room between the brand mark and the descriptive text
+- [x] The tagline "Discover Your Life Cycle" has a 4px gap (`mt-1`) below the subtitle, coupling it as a descriptive pair with the subtitle
+- [x] The tagline uses `font-light` (weight 300) and `tracking-[0.08em]`, echoing the title's typographic voice
+- [ ] The three-line hierarchy remains visually balanced and single-line (no wrapping) on viewports from 320px to 1440px+
+
+**Tasks:**
+- [x] Update `h1` classes in `home-client.tsx`: `text-4xl` → `text-5xl sm:text-6xl`
+- [x] Update subtitle `<p>` margin: `mt-2` → `mt-3`
+- [x] Update tagline `<p>` classes: `mt-2` → `mt-1`, add `font-light`, change `tracking-[0.04em]` → `tracking-[0.08em]`
+- [ ] Verify at 320px, 768px, and 1280px — title must not wrap
+
+**Notes:** Pure CSS class changes — three lines in one file. Based on /designer analysis: the current uniform 8px gaps and undifferentiated tagline style flatten the typographic hierarchy. These changes create scale contrast (larger title), spatial grouping (tight subtitle+tagline pair), and a weight/tracking echo between title and tagline. Depends on Restore Hero Tagline (complete).
+
+---
+
 ## Product Roadmap
 
 ### Phase 1: Core Engine + First Render — "It works and it's correct" ✅ COMPLETE
@@ -751,6 +775,7 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 | External Reference Migration | High | S | Ensures SEO and social sharing reflect the new brand |
 | Internal Reference Preservation | Medium | S | Maintains technical stability during rebranding |
 | Restore Hero Tagline | High | S | Quick fix — restores missing tagline from rebrand |
+| Hero Typography Refinement | Medium | S | Elevates hero from uniform stack to polished masthead |
 
 ### Dependencies
 - Numerology Calculation Core depends on Margasir Month Mapping Data
