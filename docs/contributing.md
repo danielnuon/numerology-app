@@ -32,6 +32,16 @@ npm run lint
 
 Uses ESLint 9 with `eslint-config-next`.
 
+### Branding
+
+The application is publicly branded as **Solini**, with "Khmer Numerology" used as a descriptive subtitle. However, for technical stability, the project retains its original internal name for the following:
+
+- **Directory Name:** `numerology-app`
+- **Package Name:** `numerology-app` (in `package.json`)
+- **Internal Variables:** Any logic or constants referring to "numerology" or "cycle" should remain unchanged.
+
+Always use "Solini" in user-facing strings (headings, metadata, help text) and "numerology-app" for system-level references.
+
 ---
 
 ## Project Conventions
