@@ -1,1 +1,1 @@
-Khmer Numerology — Life Cycle Calculator. A 12-number cycle grid showing luck values from the worked example.
+Solini — Life Cycle Calculator. A 12-number cycle grid showing luck values from the worked example.

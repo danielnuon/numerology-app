@@ -3,7 +3,7 @@ import { decodeBirthDate } from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 
-export const alt = "Life Cycle Reading — Khmer Numerology";
+export const alt = "Life Cycle Reading — Solini";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -57,7 +57,7 @@ export default async function OgImage({ params }: Props) {
               letterSpacing: "0.08em",
             }}
           >
-            Khmer Numerology
+            Solini
           </div>
           <div
             style={{
@@ -67,7 +67,7 @@ export default async function OgImage({ params }: Props) {
               marginTop: 16,
             }}
           >
-            Discover your 12-year life cycle
+            Khmer Numerology
           </div>
         </div>
       ),
@@ -106,7 +106,7 @@ export default async function OgImage({ params }: Props) {
             marginBottom: 8,
           }}
         >
-          Khmer Numerology
+          Solini
         </div>
 
         <div
@@ -117,7 +117,7 @@ export default async function OgImage({ params }: Props) {
             marginBottom: 24,
           }}
         >
-          Life Cycle Reading
+          Khmer Numerology — Life Cycle Reading
         </div>
 
         {/* Divider */}

@@ -661,7 +661,8 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 
 **Tasks:**
 - [x] Update Metadata API object in `layout.tsx`
-- [x] Update hardcoded strings in `opengraph-image.tsx`
+- [x] Update hardcoded strings in `opengraph-image.tsx` — **NOTE: also updated share route OG image at `r/[date]/opengraph-image.tsx` and share route metadata in `r/[date]/page.tsx`; these were missed in the initial pass**
+- [x] Update `opengraph-image.alt.txt` to reference Solini
 - [x] Update favicon/icon text elements — **N/A: icon.svg is text-free (purely geometric diamond motif); no changes needed**
 
 **Notes:** Depends on Visual Rebranding.

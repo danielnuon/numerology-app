@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!decoded) {
     // Invalid date — return generic metadata (graceful fallback)
     return {
-      title: "Khmer Numerology — Life Cycle Calculator",
+      title: "Solini — Life Cycle Calculator",
       description:
         "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
     };
@@ -35,18 +35,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cycleStr = result.cycle.join(", ");
 
   return {
-    title: `Life Cycle Reading — Khmer Numerology`,
+    title: `Life Cycle Reading — Solini`,
     description: `Born ${date}: cycle [${cycleStr}], total score ${result.totalScore} (${totalInterp.label}). Discover your 12-year life cycle.`,
     openGraph: {
-      title: "Life Cycle Reading — Khmer Numerology",
+      title: "Life Cycle Reading — Solini",
       description: `Born ${date}: total score ${result.totalScore} (${totalInterp.label}). Discover your 12-year life cycle through Khmer numerology.`,
       type: "website",
       locale: "en_US",
-      siteName: "Khmer Numerology",
+      siteName: "Solini",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Life Cycle Reading — Khmer Numerology",
+      title: "Life Cycle Reading — Solini",
       description: `Born ${date}: total score ${result.totalScore} (${totalInterp.label}). Discover your 12-year life cycle.`,
     },
   };
