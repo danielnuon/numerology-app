@@ -10,8 +10,8 @@ Each pipeline skill specifies its model via frontmatter. The assignment balances
 
 | Model | Skills | Why |
 |-------|--------|-----|
-| **Opus** | `/brain-dump`, `/cook`, `/designer` | Story quality and code correctness cascade through the entire pipeline. These skills need the strongest reasoning. |
-| **Sonnet** | `/vibe-check`, `/connect`, `/test`, `/real`, `/yap` | Structured evaluation, coordination, and reporting. Pattern matching against criteria, not open-ended reasoning. |
-| **Haiku** | `/ship-it` | Mechanical: git commands, CI checks, status reports. Lowest cognitive load. |
+| **Haiku** | `/brain-dump`, `/vibe-check`, `/connect`, `/yap`, `/ship-it` | Lightweight: parsing, coordination, reporting |
+| **Sonnet** | `/cook`, `/designer`, `/test`, `/real` | Standard coding, testing, and design work |
+| **Opus** | — | Reserved for rare complex tasks |
 
-**Subagents:** When `/cook` spawns parallel implementation agents (e.g., 3 stories at once), use `model: "sonnet"` on the Agent tool calls. The orchestrating Opus conversation provides detailed specs, so subagents execute against clear instructions rather than reasoning from scratch.
+**Subagents:** When `/cook` spawns parallel implementation agents (e.g., 3 stories at once), use `model: "sonnet"` on the Agent tool calls. The orchestrating conversation provides detailed specs, so subagents execute against clear instructions rather than reasoning from scratch.

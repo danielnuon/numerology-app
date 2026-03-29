@@ -15,6 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
+import { YearTimeline } from "@/components/year-timeline";
 import { CurrentYearWidget } from "@/components/current-year-widget";
 import { ErrorBoundary } from "@/components/error-boundary";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
@@ -33,8 +34,15 @@ const CHART_SECTION_ID = "cycle-chart-section";
 export function HomeClient() {
   const [result, setResult] = useState<CycleResultWithYear | null>(null);
   const [showWidget, setShowWidget] = useState(false);
+  
+  // Selection state for bidirectional sync between timeline and chart
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectionSource, setSelectionSource] = useState<"chart" | "timeline" | null>(null);
+  
   const resultRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+  
+  const currentYear = new Date().getFullYear();
 
   // Pre-fill initial values from URL search params (set by /r/[date] redirect)
   const prefillDay = searchParams.get("day");
@@ -102,7 +110,28 @@ export function HomeClient() {
     clearStoredBirthDate();
     setResult(null);
     setShowWidget(false);
+    setSelectedYear(null);
+    setSelectionSource(null);
   }, []);
+
+  // Timeline year selection
+  const handleTimelineSelectYear = useCallback((year: number | null) => {
+    setSelectedYear(year);
+    setSelectionSource(year !== null ? "timeline" : null);
+  }, []);
+
+  // Chart pillar selection - sync with timeline
+  const handleChartSelectPillar = useCallback((columnIndex: number | null) => {
+    if (columnIndex === null) {
+      setSelectedYear(null);
+      setSelectionSource(null);
+    } else {
+      // Find the most recent year at or before current year for this column
+      const year = currentYear - ((currentYear - result!.birthYear) % 12 - columnIndex + 12) % 12;
+      setSelectedYear(year);
+      setSelectionSource("chart");
+    }
+  }, [currentYear, result]);
 
   // SSR default: show form. After hydration, widget may replace it if localStorage data exists.
   const showForm = !showWidget;
@@ -156,6 +185,19 @@ export function HomeClient() {
                 cycle={result.cycle}
                 totalScore={result.totalScore}
                 birthYear={result.birthYear}
+                selectedYear={selectionSource === "timeline" ? selectedYear : undefined}
+                onSelectPillar={handleChartSelectPillar}
+              />
+            </div>
+
+            {/* Year Timeline Explorer */}
+            <div className="w-full max-w-[900px] mt-6">
+              <YearTimeline
+                cycle={result.cycle}
+                birthYear={result.birthYear}
+                currentYear={currentYear}
+                selectedYear={selectionSource === "chart" ? selectedYear : null}
+                onSelectYear={handleTimelineSelectYear}
               />
             </div>
           </>

@@ -24,6 +24,8 @@ export interface DetailPanelProps {
   birthYear: number;
   /** The year considered "now". */
   currentYear: number;
+  /** When set, shows specific year data instead of grouped years. */
+  selectedYear?: number | null;
 }
 
 export function DetailPanel({
@@ -31,10 +33,17 @@ export function DetailPanel({
   columnIndex,
   birthYear,
   currentYear,
+  selectedYear,
 }: DetailPanelProps) {
   const interp = interpretYear(cycleNumber);
   const domain = getLifeArea(columnIndex + 1);
-  const years = getYearsForColumn(birthYear, columnIndex, currentYear);
+  
+  // If a specific year is selected (from timeline), show just that year
+  // Otherwise show the grouped years from the pillar
+  const years = selectedYear !== undefined && selectedYear !== null
+    ? [selectedYear]
+    : getYearsForColumn(birthYear, columnIndex, currentYear);
+    
   const symbol = getTierSymbol(interp.tier);
   const isZero = interp.tier === "zero";
 
@@ -64,16 +73,30 @@ export function DetailPanel({
             ].join(" ")}
             style={{ fontVariant: "small-caps" }}
           >
-            {domain}
+            {selectedYear !== undefined && selectedYear !== null 
+              ? `Year ${selectedYear}` 
+              : domain}
           </span>
-          <span
-            className={[
-              "text-sm",
-              isZero ? "text-parchment/75" : "text-ink-faint",
-            ].join(" ")}
-          >
-            {years.join(" · ")}
-          </span>
+          {selectedYear === undefined || selectedYear === null ? (
+            <span
+              className={[
+                "text-sm",
+                isZero ? "text-parchment/75" : "text-ink-faint",
+              ].join(" ")}
+            >
+              {years.join(" · ")}
+            </span>
+          ) : (
+            <span
+              className={[
+                "text-sm",
+                isZero ? "text-parchment/75" : "text-ink-faint",
+              ].join(" ")}
+              style={{ fontVariant: "small-caps" }}
+            >
+              {domain}
+            </span>
+          )}
         </div>
 
         {/* Tier symbol + label + cycle number */}

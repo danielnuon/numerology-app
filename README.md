@@ -1,47 +1,45 @@
-# Khmer Numerology
+# Solini — Khmer Numerology
 
-A fortune calculation app rooted in Khmer tradition. Combines birth month (Margasir lunar calendar), Chinese zodiac year, and birth weekday into a 12-number repeating life cycle that maps luck strength across years and life domains.
+A fortune calculation app rooted in Khmer tradition. Enter your birth date to discover your 12-year life cycle and luck strength.
 
-The visual design draws from Khmer satra (palm-leaf manuscripts) — parchment textures, sepia ink, gold accents for sacred elements, and generous whitespace evoking temple proportions.
+## What It Does
 
-## Tech Stack
+Solini calculates a personal life cycle based on three inputs:
+- **Birth month** (Margasir lunar calendar)
+- **Birth year** (Chinese zodiac)
+- **Birth weekday**
 
-- **Next.js 16** with App Router and React 19
-- **Tailwind CSS v4** for utility-first styling with custom design tokens
-- **Framer Motion** for staggered cycle reveal and pillar selection animations
-- **TypeScript** throughout
-- **Jest 30** + ts-jest for pure-logic unit tests
-- **GitHub Actions** for CI
+The result is a 12-number cycle representing luck strength for each year of your life, starting from birth and repeating every 12 years.
 
-## Quick Start
+## Understanding Your Cycle
 
-```bash
-npm install
-npm run dev
-```
+Each number in your cycle maps to a luck tier:
 
-Open [http://localhost:3000](http://localhost:3000). Requires Node >= 22.
+| Number | Luck Tier |
+|--------|-----------|
+| 10–11 | Very strong |
+| 7–9 | Strong |
+| 4–6 | Moderate |
+| 1–3 | Weak |
+| 0 | Reset / Transition |
 
-## Project Structure
+Your cycle also shows:
+- **Year-level luck** — strength for any given year
+- **Total cycle strength** — overall trajectory (weak ~56, balanced ~64, strong ~72)
+- **Life areas** — each position maps to a domain (self, family, money, health, etc.)
 
-```
-src/
-  app/            # Next.js App Router pages and layout
-  components/     # UI components (birth form, cycle chart, detail panel)
-  lib/numerology/ # Core calculation engine, interpretation data, calendar mappings
-docs/             # Domain knowledge, design spec, roadmap
-```
+## Compatibility
 
-## Documentation
+Compare cycles with partners or family members to understand how your luck interacts.
 
-| Doc | Contents |
-|-----|----------|
-| [`docs/system-overview.md`](docs/system-overview.md) | Domain rules, three-row algorithm, worked examples, interpretation tiers |
-| [`docs/design-spec.md`](docs/design-spec.md) | Visual design, color palette, typography, component specs, interaction patterns |
-| [`docs/product-roadmap.md`](docs/product-roadmap.md) | Stories, acceptance criteria, phase tracking |
-| [`docs/architecture.md`](docs/architecture.md) | Module structure, data flow, type contracts, design decisions |
-| [`docs/contributing.md`](docs/contributing.md) | Dev setup, project conventions, commit/CI guidelines |
+## Usage
 
-## Agent Pipeline
+1. Enter your birth date (month, year, weekday)
+2. View your 12-year life cycle
+3. See your current year's luck strength
+4. Explore individual year details and life areas
+5. Share your results via link
 
-This project uses a multi-skill agent pipeline for development. See [`AGENTS.md`](AGENTS.md) for model assignments and pipeline structure.
+---
+
+For development details, see [docs/dev/README.md](docs/dev/README.md).

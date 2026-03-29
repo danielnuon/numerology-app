@@ -12,7 +12,7 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
-import { getLifeArea } from "@/lib/numerology/year-lookup";
+import { getLifeArea, getCycleIndex } from "@/lib/numerology/year-lookup";
 import {
   getTierSymbol,
   getTierColorClass,
@@ -27,6 +27,10 @@ export interface CycleChartProps {
   totalScore: number;
   /** Birth year of the person (cycle anchor). */
   birthYear: number;
+  /** When set from timeline, highlight this specific year instead of current year column. */
+  selectedYear?: number | null;
+  /** Callback when a pillar is selected. */
+  onSelectPillar?: (columnIndex: number | null) => void;
 }
 
 /** Framer Motion container variant — staggers children by 80 ms. */
@@ -49,16 +53,29 @@ const itemVariants = {
   },
 };
 
-export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
+export function CycleChart({ 
+  cycle, 
+  totalScore, 
+  birthYear,
+  selectedYear,
+  onSelectPillar,
+}: CycleChartProps) {
   const currentYear = new Date().getFullYear();
-  const currentYearColumn = getCurrentYearColumn(birthYear, currentYear);
+  
+  // If selectedYear is provided (from timeline), use that; otherwise use current year
+  const highlightedColumn = selectedYear !== undefined && selectedYear !== null
+    ? getCycleIndex(birthYear, selectedYear)
+    : getCurrentYearColumn(birthYear, currentYear);
+    
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
   const totalInterp = interpretTotal(totalScore);
 
   function handlePillarClick(index: number) {
-    setSelectedIndex((prev) => (prev === index ? null : index));
+    const newIndex = selectedIndex === index ? null : index;
+    setSelectedIndex(newIndex);
+    onSelectPillar?.(newIndex);
   }
 
   function handleKeyDown(
@@ -102,7 +119,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
           const symbol = getTierSymbol(interp.tier);
           const bgClass = getTierColorClass(interp.tier);
           const isZero = interp.tier === "zero";
-          const isCurrent = index === currentYearColumn;
+          const isCurrent = index === highlightedColumn;
           const isSelected = selectedIndex === index;
 
           const ariaLabel = [
@@ -201,6 +218,7 @@ export function CycleChart({ cycle, totalScore, birthYear }: CycleChartProps) {
           columnIndex={selectedIndex}
           birthYear={birthYear}
           currentYear={currentYear}
+          selectedYear={selectedYear}
         />
       )}
 
