@@ -109,11 +109,17 @@ export function YearTimeline({
       {/* Timeline container */}
       <div
         ref={containerRef}
-        className="flex gap-1 overflow-x-auto scrollbar-hide py-4 px-6 snap-x snap-mandatory"
+        className="relative flex gap-1 overflow-x-auto scrollbar-hide py-4 px-6 snap-x snap-mandatory"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         role="listbox"
         aria-label="Select a year"
       >
+        {/* Thread of fate connecting line */}
+        <div
+          className="absolute top-1/2 left-6 right-6 h-px bg-border/60 -translate-y-1/2 pointer-events-none"
+          aria-hidden="true"
+        />
+
         {years.map((year) => {
           const cycleIndex = getCycleIndex(birthYear, year);
           const cycleNumber = cycle[cycleIndex];
