@@ -157,7 +157,7 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 - [x] Confirm no environment variables are required for the production build; if any are needed, set them in Vercel project settings before deploying — **Confirmed: no env vars needed**
 - [x] Push a commit (or trigger manual deploy) and confirm the deployment succeeds
 - [x] Verify the production URL serves the app correctly
-- [ ] Verify dynamic OG images render at the production URL (root + share route) — **Root OG verified; share route OG fix (`a2652a7`) pending push**
+- [x] Verify dynamic OG images render at the production URL (root + share route) — **Root OG: `200 image/png 28872`; Share route OG: `200 image/png 37825`**
 - [x] Disable GitHub Pages in repo settings (`Settings → Pages → Source → None`) — **Disabled via GitHub API**
 - [x] Confirm `ci.yml` still runs independently on push
 
@@ -778,15 +778,15 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 - [x] Vercel Production Deployment story: Task "Verify dynamic OG images render at production URL (root + share route)" is checked `[x]` — Root OG verified (28872 bytes), Share route OG verified (37825 bytes)
 - [x] Hero Typography Refinement story: AC5 (three-line hierarchy visually balanced and single-line on 320px–1440px+) is checked `[x]`
 - [x] Hero Typography Refinement story: Task "Verify at 320px, 768px, 1280px — title must not wrap" is checked `[x]`
-- [ ] All roadmap changes are committed to `main`
+- [x] All roadmap changes are committed to `main` — **Committed as `f01964b`, pushed to main**
 
 **Tasks:**
-- [ ] Push commit `a2652a7` (OG fix) to `origin/main` — **requires user action** due to GitHub auth mismatch (`daniel-nuon-tps` lacks push access to `danielnuon/numerology-app`)
+- [x] Push commit `a2652a7` (OG fix) to `origin/main` — **Done: pushed to main**
 - [x] Check off Hero Typography Refinement AC5 and Task 4 — confirmed passing in `/real` QA, no push dependency
 - [x] Check off Vercel Production Deployment ACs 1, 2, 3, 5, 6 and Tasks "Connect repo," "Verify framework," "Confirm no env vars," "Push commit," "Verify production URL," "Disable GitHub Pages," "Confirm ci.yml" — all verified in prior session, no push dependency
 - [x] After Vercel deploys commit `a2652a7`, verify share route OG image at `https://solini.vercel.app/r/1997-07-24/opengraph-image` returns `200 image/png` — **Verified post-deploy**
 - [x] After AC4 is verified on production, check off AC4 and Task "Verify dynamic OG images"
-- [ ] Commit updated `docs/product-roadmap.md` to `main`
+- [x] Commit updated `docs/product-roadmap.md` to `main`
 
 **Notes:** The push is the only blocker. Tasks 2–3 (Hero Typography + Vercel already-verified items) can execute immediately. Tasks 4–5 (AC4 verification) depend on the push landing and Vercel redeploying. Task 6 (commit) depends on all prior tasks completing. No code changes — pure markdown checkbox updates.
 
