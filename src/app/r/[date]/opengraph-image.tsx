@@ -51,6 +51,7 @@ export default async function OgImage({ params }: Props) {
         >
           <div
             style={{
+              display: "flex",
               fontSize: 56,
               fontWeight: 300,
               color: "#2C2417",
@@ -61,6 +62,7 @@ export default async function OgImage({ params }: Props) {
           </div>
           <div
             style={{
+              display: "flex",
               fontSize: 24,
               color: "#7A6F5F",
               fontStyle: "italic",
@@ -99,6 +101,7 @@ export default async function OgImage({ params }: Props) {
         {/* Title */}
         <div
           style={{
+            display: "flex",
             fontSize: 40,
             fontWeight: 300,
             color: "#2C2417",
@@ -111,6 +114,7 @@ export default async function OgImage({ params }: Props) {
 
         <div
           style={{
+            display: "flex",
             fontSize: 20,
             color: "#7A6F5F",
             fontStyle: "italic",
@@ -162,7 +166,7 @@ export default async function OgImage({ params }: Props) {
                   fontWeight: 500,
                 }}
               >
-                {n}
+                {String(n)}
               </div>
             );
           })}
@@ -179,6 +183,7 @@ export default async function OgImage({ params }: Props) {
         >
           <div
             style={{
+              display: "flex",
               fontSize: 16,
               color: "#7A6F5F",
               textTransform: "uppercase",
@@ -187,11 +192,12 @@ export default async function OgImage({ params }: Props) {
           >
             Total Score
           </div>
-          <div style={{ fontSize: 28, color: "#2C2417", fontWeight: 500 }}>
-            {result.totalScore}
+          <div style={{ display: "flex", fontSize: 28, color: "#2C2417", fontWeight: 500 }}>
+            {String(result.totalScore)}
           </div>
           <div
             style={{
+              display: "flex",
               fontSize: 16,
               color: "#7A6F5F",
               fontStyle: "italic",
@@ -202,7 +208,7 @@ export default async function OgImage({ params }: Props) {
         </div>
 
         {/* Birth date */}
-        <div style={{ fontSize: 14, color: "#A89F8F" }}>Born {date}</div>
+        <div style={{ display: "flex", fontSize: 14, color: "#A89F8F" }}>{`Born ${date}`}</div>
       </div>
     ),
     { ...size }
