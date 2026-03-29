@@ -136,6 +136,35 @@ Shared data, configuration, and tooling that multiple stories depend on. Must be
 
 ---
 
+### Vercel Production Deployment
+
+**Story:** As a site visitor, I want the Solini app deployed on a platform that supports all Next.js features, so that dynamic OG images, SSR, and future API routes work correctly in production.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] The Vercel project is connected to `danielnuon/numerology-app` on GitHub and auto-deploys on push to `main`
+- [x] The production URL serves the app with the full hero hierarchy (Solini → Khmer Numerology → Discover Your Life Cycle). Verify by visiting `<production-url>/` in a browser after successful Vercel deployment. — **Verified: `https://solini.vercel.app/` returns 200 with full hero hierarchy**
+- [x] The root OG image (`/opengraph-image`) returns a valid PNG (1200×630) with "Solini" as the primary heading — not a 404 or static fallback. Verify by fetching `<production-url>/opengraph-image` with curl or browser after deployment. — **Verified: `200 image/png 28872` (1200×630)**
+- [x] The share route OG image (`/r/1997-07-24/opengraph-image`) returns a valid PNG with personalized content — verifying `ImageResponse` works server-side. Verify by fetching `<production-url>/r/1997-07-24/opengraph-image` after deployment. — **Verified: `https://solini.vercel.app/r/1997-07-24/opengraph-image` = `200 image/png 37825 bytes`**
+- [x] The GitHub Pages configuration is removed to avoid confusion (disable Pages in repo settings or remove the source) — **Disabled via `gh api -X DELETE repos/danielnuon/numerology-app/pages`**
+- [x] CI workflow (`ci.yml`) continues to run on push — Vercel deployment does not replace CI checks — **Verified: CI runs independently on GitHub Actions**
+
+**Tasks:**
+- [x] Connect the repo to Vercel via `vercel` CLI or Vercel dashboard (import project, select framework preset: Next.js)
+- [x] Verify Vercel auto-detected the Next.js framework and no custom build settings are needed
+- [x] Confirm no environment variables are required for the production build; if any are needed, set them in Vercel project settings before deploying — **Confirmed: no env vars needed**
+- [x] Push a commit (or trigger manual deploy) and confirm the deployment succeeds
+- [x] Verify the production URL serves the app correctly
+- [ ] Verify dynamic OG images render at the production URL (root + share route) — **Root OG verified; share route OG fix (`a2652a7`) pending push**
+- [x] Disable GitHub Pages in repo settings (`Settings → Pages → Source → None`) — **Disabled via GitHub API**
+- [x] Confirm `ci.yml` still runs independently on push
+
+**Notes:** Vercel's free Hobby tier supports all Next.js features including `ImageResponse`, edge functions, and ISR. No `next.config.ts` changes needed — Vercel handles Next.js natively. The existing `ci.yml` workflow (test + build) should remain as a gate; Vercel deployment is a separate pipeline triggered by GitHub integration. No environment variables are currently required — the app has no external API dependencies.
+
+---
+
 ### Page Metadata & SEO Basics
 
 **Story:** As a visitor arriving from a search engine or shared link, I want the page to have a proper title, description, and social preview, so that I understand what the app is before clicking and the link looks professional when shared.
@@ -723,15 +752,43 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 - [x] The subtitle "Khmer Numerology" has a 12px gap (`mt-3`) below the title, creating visible breathing room between the brand mark and the descriptive text
 - [x] The tagline "Discover Your Life Cycle" has a 4px gap (`mt-1`) below the subtitle, coupling it as a descriptive pair with the subtitle
 - [x] The tagline uses `font-light` (weight 300) and `tracking-[0.08em]`, echoing the title's typographic voice
-- [ ] The three-line hierarchy remains visually balanced and single-line (no wrapping) on viewports from 320px to 1440px+
+- [x] The three-line hierarchy remains visually balanced and single-line (no wrapping) on viewports from 320px to 1440px+
 
 **Tasks:**
 - [x] Update `h1` classes in `home-client.tsx`: `text-4xl` → `text-5xl sm:text-6xl`
 - [x] Update subtitle `<p>` margin: `mt-2` → `mt-3`
 - [x] Update tagline `<p>` classes: `mt-2` → `mt-1`, add `font-light`, change `tracking-[0.04em]` → `tracking-[0.08em]`
-- [ ] Verify at 320px, 768px, and 1280px — title must not wrap
+- [x] Verify at 320px, 768px, and 1280px — title must not wrap
 
 **Notes:** Pure CSS class changes — three lines in one file. Based on /designer analysis: the current uniform 8px gaps and undifferentiated tagline style flatten the typographic hierarchy. These changes create scale contrast (larger title), spatial grouping (tight subtitle+tagline pair), and a weight/tracking echo between title and tagline. Depends on Restore Hero Tagline (complete).
+
+---
+
+### Roadmap Hygiene: Check Off Completed Stories
+
+**Story:** As a developer reviewing the product roadmap, I want all completed acceptance criteria and tasks marked as done, so that the roadmap accurately reflects current project state and I can identify actual remaining work.
+
+**Priority:** High
+**Effort:** S
+
+**Acceptance Criteria:**
+- [x] Vercel Production Deployment story: ACs 1 (Vercel connected + auto-deploys), 2 (production URL serves app), 3 (root OG image returns valid PNG), 5 (GitHub Pages disabled), and 6 (CI continues independently) are checked `[x]`
+- [x] Vercel Production Deployment story: Tasks "Connect repo to Vercel," "Verify framework auto-detection," "Confirm no env vars needed," "Push commit and confirm deploy succeeds," "Verify production URL serves app," "Disable GitHub Pages," and "Confirm ci.yml runs independently" are checked `[x]`
+- [x] Vercel Production Deployment story: AC4 (share route OG image returns valid PNG with personalized content) is checked `[x]` — **Verified: `https://solini.vercel.app/r/1997-07-24/opengraph-image` returns `200 image/png 37825 bytes`**
+- [x] Vercel Production Deployment story: Task "Verify dynamic OG images render at production URL (root + share route)" is checked `[x]` — Root OG verified (28872 bytes), Share route OG verified (37825 bytes)
+- [x] Hero Typography Refinement story: AC5 (three-line hierarchy visually balanced and single-line on 320px–1440px+) is checked `[x]`
+- [x] Hero Typography Refinement story: Task "Verify at 320px, 768px, 1280px — title must not wrap" is checked `[x]`
+- [ ] All roadmap changes are committed to `main`
+
+**Tasks:**
+- [ ] Push commit `a2652a7` (OG fix) to `origin/main` — **requires user action** due to GitHub auth mismatch (`daniel-nuon-tps` lacks push access to `danielnuon/numerology-app`)
+- [x] Check off Hero Typography Refinement AC5 and Task 4 — confirmed passing in `/real` QA, no push dependency
+- [x] Check off Vercel Production Deployment ACs 1, 2, 3, 5, 6 and Tasks "Connect repo," "Verify framework," "Confirm no env vars," "Push commit," "Verify production URL," "Disable GitHub Pages," "Confirm ci.yml" — all verified in prior session, no push dependency
+- [x] After Vercel deploys commit `a2652a7`, verify share route OG image at `https://solini.vercel.app/r/1997-07-24/opengraph-image` returns `200 image/png` — **Verified post-deploy**
+- [x] After AC4 is verified on production, check off AC4 and Task "Verify dynamic OG images"
+- [ ] Commit updated `docs/product-roadmap.md` to `main`
+
+**Notes:** The push is the only blocker. Tasks 2–3 (Hero Typography + Vercel already-verified items) can execute immediately. Tasks 4–5 (AC4 verification) depend on the push landing and Vercel redeploying. Task 6 (commit) depends on all prior tasks completing. No code changes — pure markdown checkbox updates.
 
 ---
 
@@ -767,6 +824,12 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 | Compatibility Summary Card | Low | S | Quick-read layer on top of comparison |
 | Shareable Results Card | Low | M | Growth mechanism + portfolio demo value |
 | Khmer Language Toggle | Low | M | Cultural authenticity + i18n skill demo (blocked by translation dependency) |
+
+### Phase 4: Production — "It's live and accessible"
+| Story | Priority | Effort | Rationale |
+|-------|----------|--------|-----------|
+| Vercel Production Deployment | High | S | Blocks all production verification — nothing is live without this |
+| Roadmap Hygiene: Check Off Completed Stories | High | S | Roadmap is out of sync — 2 stories show `[ ]` for done work |
 
 ### Phase 6: Polish & Branding — "Establishing the Solini Identity"
 | Story | Priority | Effort | Rationale |
