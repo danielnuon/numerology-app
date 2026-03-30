@@ -20,14 +20,12 @@ See [.claude/memory/vision.md](./.claude/memory/vision.md) for domain details.
 
 | Purpose | Location |
 |---------|----------|
-| Agent pipeline | [.claude/agents/](./.claude/agents/) |
 | Skills (subagents) | [.claude/skills/](./.claude/skills/) |
 | Project memory | [.claude/memory/](./.claude/memory/) |
 | Architecture decisions | [.claude/decisions/](./.claude/decisions/) |
-| Task templates | [.claude/tasks/](./.claude/tasks/) |
-| Product roadmap | [docs/product-roadmap.md](./docs/product-roadmap.md) |
+| Product roadmap | [docs/dev/product-roadmap.md](./docs/dev/product-roadmap.md) |
 | System spec | [docs/system-overview.md](./docs/system-overview.md) |
-| Architecture details | [docs/architecture.md](./docs/architecture.md) |
+| Architecture details | [docs/dev/architecture.md](./docs/dev/architecture.md) |
 | Design spec | [docs/design-spec.md](./docs/design-spec.md) |
 
 ---
@@ -56,27 +54,9 @@ This project uses a 9-agent pipeline:
 
 ---
 
-## Agent Reference
-
-| Agent | Role | Model |
-|-------|------|-------|
-| /brain-dump | Convert ideas to user stories | Haiku |
-| /vibe-check | Validate story quality | Haiku |
-| /connect | Coordinate pipeline | Haiku |
-| /cook | Implement features | Sonnet |
-| /test | Run automated tests | Sonnet |
-| /real | Exploratory testing | Sonnet |
-| /ship-it | Deploy to production | Haiku |
-| /yap | Retrospectives | Haiku |
-| /designer | UI/UX guidance | Sonnet |
-
-See [.claude/agents/](./.claude/agents/) for detailed agent definitions.
-
----
-
 ## Skill Reference
 
-Each skill is invoked with `/skill-name`. Skills are specialized subagents with single responsibilities:
+Each skill is invoked with `/skill-name`. Skills are the single source of truth for agent behavior:
 
 | Skill | Purpose | Model |
 |-------|---------|-------|
@@ -91,15 +71,6 @@ Each skill is invoked with `/skill-name`. Skills are specialized subagents with 
 | /designer | Design guidance | Sonnet |
 
 See [.claude/skills/*/SKILL.md](./.claude/skills/) for skill details.
-
----
-
-## Task System
-
-Tasks are small, atomic work items produced by the planner. Each task should be completable in a single developer execution.
-
-- **Template**: [.claude/tasks/task-template.md](./.claude/tasks/task-template.md)
-- **Source of Truth**: [docs/product-roadmap.md](./docs/product-roadmap.md)
 
 ---
 
