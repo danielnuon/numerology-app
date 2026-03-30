@@ -27,6 +27,7 @@ import {
   readStoredBirthDate,
   clearStoredBirthDate,
 } from "@/lib/storage";
+import { getActiveYear } from "@/lib/numerology/year-lookup";
 
 /** ID for the chart section — used by the widget's "View full cycle" scroll target. */
 const CHART_SECTION_ID = "cycle-chart-section";
@@ -199,7 +200,7 @@ export function HomeClient() {
               <YearTimeline
                 cycle={result.cycle}
                 birthYear={result.birthYear}
-                currentYear={currentYear}
+                currentYear={getActiveYear(currentYear, result.birthData.gregorianMonth, result.birthDay)}
                 selectedYear={selectionSource === "chart" ? selectedYear : null}
                 onSelectYear={handleTimelineSelectYear}
               />
