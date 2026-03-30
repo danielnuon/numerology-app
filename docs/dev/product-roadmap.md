@@ -868,3 +868,80 @@ This epic covers the visual and metadata shifts required to establish Solini as 
 
 ### Needs Further Discovery
 - Khmer Language Toggle — blocked by native Khmer speaker for culturally accurate translation and cultural review of interpretation text
+
+---
+
+## Epic: Bug Fixes
+
+### Lucky Number Year Timing Correction
+
+**Story:** As a returning visitor viewing my current year's luck number, I want the system to use the previous year's cycle number until my birthday has passed, so that the displayed number accurately reflects my position in the 12-year cycle relative to my actual birth date.
+
+**Priority:** High
+**Effort:** M
+
+**Acceptance Criteria:**
+- [x] Given today's date is before the user's birthday in the current calendar year, the system displays the previous year's cycle number (e.g., born July 24, today is March 29 2026 → show 2025's number)
+- [x] Given today's date is on or after the user's birthday in the current calendar year, the system displays the current year's cycle number (e.g., born July 24, today is July 24 2026 or later → show 2026's number)
+- [x] The boundary check compares month and day only — year-over-year logic remains based on the 12-year cycle index
+- [x] Edge case: birthday is January 1 — the current year's number is always used (today cannot be before Jan 1)
+- [x] Edge case: birthday is December 31 — the previous year's number is used for 364 days of the year; switches only on Dec 31
+- [x] Leap year: birthday is February 29 — the system correctly compares against Feb 29 in leap years and Feb 28 in non-leap years
+- [x] The year range 1900–2100 remains enforced; no new boundaries introduced
+- [x] The Interactive Cycle Chart's "current year" gold highlight pillar reflects the timing-corrected year, not the raw calendar year
+- [x] The Current Year Widget displays the timing-corrected number, not the raw calendar year
+- [x] All existing unit tests for `getYearNumber`, `getCycleIndex`, and the Current Year Widget continue to pass after the change
+
+**Tasks:**
+- [x] Create `getActiveYear()` function that accepts currentYear, birthMonth, birthDay, and optional todayOverride, comparing month/day to determine whether to use `currentYear` or `currentYear - 1`
+- [x] Update `getCycleIndex` call sites via `getCurrentYearColumn` to use the timing-corrected year
+- [x] Update the Interactive Cycle Chart to highlight the timing-corrected year as "current" (gold border pillar) — added birthMonth/birthDay props, updated `getCurrentYearColumn` call
+- [x] Update the Current Year Widget to display the timing-corrected number — added birthMonth/birthDay props, uses `getActiveYear()` for both heading year and cycle number lookup
+- [x] Write unit tests for: before birthday, on birthday, after birthday, Jan 1 birthday, Dec 31 birthday, Feb 29 birthday in leap year, Feb 29 birthday in non-leap year (14 tests in `year-lookup.test.ts`)
+- [x] Verify the worked example (July 24, 1997, Ox) with today = March 29, 2026 → the system returns 2025's number (index based on 2025), not 2026's (verified via `getActiveYear(2026, 7, 24, makeDate(2026, 3, 29)) === 2025` test)
+
+**Notes:** This is a behavioral correction to the existing Year Lookup story. The `getYearNumber` function signature may need to change, or a wrapper function may be needed. The Timeline Explorer (not yet built) will also need this logic when implemented — note this as a dependency for that story.
+
+---
+
+## Epic: Results & Sharing
+
+### Update Notification Banner
+
+**Story:** As a returning visitor who has previously used the app, I want to see a one-time popup banner notifying me about the lucky number timing correction, so that I understand why my displayed number may have changed.
+
+**Priority:** Medium
+**Effort:** S
+
+**Acceptance Criteria:**
+- [ ] A banner or modal appears on the first visit after the update is deployed, visible only to users who have previously entered birth data (localStorage key `khmer-numerology:birth` exists)
+- [ ] The banner explains in plain language that the lucky number calculation has been corrected to account for birthday timing
+- [ ] The banner includes a dismiss action (close button or "Got it" button)
+- [ ] After dismissal, the banner never appears again for that user — tracked via a new localStorage key (e.g., `khmer-numerology:update-notice-dismissed`)
+- [ ] First-time visitors (no stored birth data) never see the banner
+- [ ] The banner is visually consistent with the existing design system (parchment background, ink text, Cormorant Garamond font)
+- [ ] The banner does not block interaction with the form or cycle chart — it overlays or sits above the content without preventing scroll or input
+- [ ] The banner is announced to screen readers via `aria-live="polite"` so assistive users are aware of it
+
+**Tasks:**
+- [ ] Design banner content with three concrete deliverables: (a) short headline, e.g., "Your Lucky Number Has Been Updated" (2–5 words); (b) body copy of 1–2 sentences explaining that the calculation now correctly waits until your birthday to show the new year's number; (c) dismiss button label (e.g., "Got it")
+- [ ] Implement banner component with conditional rendering based on localStorage keys (has birth data AND has not dismissed)
+- [ ] Implement dismiss handler that writes `khmer-numerology:update-2026-timing-fix-dismissed` to localStorage
+- [ ] Style banner to match design system tokens (parchment background, ink text, Cormorant Garamond, gold close button)
+- [ ] Write unit tests covering four named cases: (a) "banner shows when birth data exists and not dismissed"; (b) "banner hidden when no birth data"; (c) "banner hidden after dismissal"; (d) "banner hidden for first-time visitors" — each test asserting the correct component mount/unmount state
+
+**Notes:** The localStorage key for dismissal should be specific to this update (e.g., `khmer-numerology:update-2026-timing-fix-dismissed`) so future updates can trigger new banners. Depends on the Lucky Number Year Timing Correction being deployed first.
+
+---
+
+### Phase 7: Bug Fix & Communication — "Correct the logic, notify users"
+| Story | Priority | Effort | Rationale |
+|-------|----------|--------|-----------|
+| Lucky Number Year Timing Correction | High | M | Core correctness fix — must land before any other work to ensure all year-based displays are accurate |
+| Update Notification Banner | Medium | S | Depends on the timing correction being deployed; communicates the change to existing users |
+
+### Dependencies
+- Update Notification Banner depends on Lucky Number Year Timing Correction (deploy the fix first, then show the banner)
+
+### Quick Wins
+- Update Notification Banner — Medium value, S effort, straightforward localStorage-gated UI with no calculation logic

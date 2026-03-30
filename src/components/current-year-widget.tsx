@@ -21,21 +21,28 @@ const TIER_SYMBOLS: Record<string, string> = {
   zero: "⊙",
 };
 
+import { getActiveYear } from "@/lib/numerology/year-lookup";
+
 interface Props {
   /** The computed 12-number cycle array. */
   cycle: number[];
   /** The birth year (cycle anchor). */
   birthYear: number;
+  /** Birth month (1–12) — used for timing-corrected year. */
+  birthMonth: number;
+  /** Birth day (1–31) — used for timing-corrected year. */
+  birthDay: number;
   /** Called when the user clicks "Not you?" — parent resets to first-visit state. */
   onReset: () => void;
   /** Ref ID of the chart section to scroll to. */
   chartSectionId: string;
 }
 
-export function CurrentYearWidget({ cycle, birthYear, onReset, chartSectionId }: Props) {
+export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onReset, chartSectionId }: Props) {
   const currentYear = new Date().getFullYear();
-  const cycleNumber = getYearNumber(cycle, birthYear, currentYear);
-  const cycleIndex = getCycleIndex(birthYear, currentYear);
+  const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
+  const cycleNumber = getYearNumber(cycle, birthYear, activeYear);
+  const cycleIndex = getCycleIndex(birthYear, activeYear);
   const lifeArea = getLifeArea(cycleIndex + 1); // getLifeArea is 1-indexed
   const interpretation = interpretYear(cycleNumber);
   const tierSymbol = TIER_SYMBOLS[interpretation.tier] ?? "◑";
@@ -54,9 +61,9 @@ export function CurrentYearWidget({ cycle, birthYear, onReset, chartSectionId }:
       role="region"
       aria-label="Your current year reading"
     >
-      {/* Year heading */}
+      {/* Year heading — shows timing-corrected year */}
       <p className="text-xs uppercase tracking-[0.08em] text-ink-light text-center">
-        Your {currentYear} Reading
+        Your {activeYear} Reading
       </p>
 
       {/* Cycle number — large display */}

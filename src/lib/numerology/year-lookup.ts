@@ -89,6 +89,43 @@ export function getLifeArea(column: number): string {
 }
 
 /**
+ * Returns the "active" year for displaying the user's current-year reading.
+ *
+ * Before the user's birthday has passed in the current calendar year, the
+ * cycle has not yet advanced — the user is still in the previous year's
+ * position. On or after the birthday, the new year's cycle position applies.
+ *
+ * @param currentYear   - The current calendar year (from `new Date().getFullYear()`).
+ * @param birthMonth   - Birth month (1–12).
+ * @param birthDay     - Birth day (1–31).
+ * @param todayOverride - Optional date to use as "today" for deterministic testing.
+ * @returns `currentYear - 1` if before birthday, otherwise `currentYear`.
+ *
+ * @example
+ * // Born July 24, today is March 29 → returns 2025
+ * getActiveYear(2026, 7, 24) === 2025
+ *
+ * @example
+ * // Born July 24, today is July 24 → returns 2026
+ * getActiveYear(2026, 7, 24) === 2026
+ */
+export function getActiveYear(
+  currentYear: number,
+  birthMonth: number,
+  birthDay: number,
+  todayOverride?: Date
+): number {
+  const today = todayOverride ?? new Date();
+  const todayMonth = today.getMonth() + 1; // convert 0-indexed to 1-indexed
+  const todayDay = today.getDate();
+
+  if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
+    return currentYear - 1;
+  }
+  return currentYear;
+}
+
+/**
  * Validates that a year falls within the supported range.
  *
  * @param year - The year to validate.

@@ -121,6 +121,7 @@ export function deriveBirthData(year: number, month: number, day: number): Birth
 /** Extended cycle result that also carries the birth year for year-lookup queries. */
 export interface CycleResultWithYear extends CycleResult {
   birthYear: number;
+  birthDay: number;
   birthData: BirthData;
 }
 
@@ -147,6 +148,7 @@ export function computeCycleFromBirthDate(
   return {
     ...cycleResult,
     birthYear: year,
+    birthDay: day,
     birthData,
   };
 }

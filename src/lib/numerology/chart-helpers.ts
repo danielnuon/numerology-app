@@ -5,7 +5,7 @@
  * stateless and have no side effects, enabling exhaustive unit testing.
  */
 
-import { getCycleIndex } from "./year-lookup";
+import { getActiveYear, getCycleIndex } from "./year-lookup";
 
 /** Maps a CSS-friendly tier name to its Unicode tier symbol. */
 export function getTierSymbol(tier: string): string {
@@ -80,14 +80,21 @@ export function getYearsForColumn(
 
 /**
  * Returns the 0-indexed column for the current year in the cycle.
+ * Uses timing-corrected active year: before the birthday has passed in the
+ * current calendar year, the previous year's cycle position is used.
  *
  * @param birthYear   - Birth year of the person.
- * @param currentYear - The year considered "now".
+ * @param currentYear - The calendar year (from `new Date().getFullYear()`).
+ * @param birthMonth  - Birth month (1–12).
+ * @param birthDay    - Birth day (1–31).
  * @returns Column index in range [0, 11].
  */
 export function getCurrentYearColumn(
   birthYear: number,
-  currentYear: number
+  currentYear: number,
+  birthMonth: number,
+  birthDay: number
 ): number {
-  return getCycleIndex(birthYear, currentYear);
+  const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
+  return getCycleIndex(birthYear, activeYear);
 }

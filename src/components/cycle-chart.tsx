@@ -27,6 +27,10 @@ export interface CycleChartProps {
   totalScore: number;
   /** Birth year of the person (cycle anchor). */
   birthYear: number;
+  /** Birth month (1–12) — used for timing-corrected "current year" highlight. */
+  birthMonth: number;
+  /** Birth day (1–31) — used for timing-corrected "current year" highlight. */
+  birthDay: number;
   /** When set from timeline, highlight this specific year instead of current year column. */
   selectedYear?: number | null;
   /** Callback when a pillar is selected. */
@@ -57,15 +61,17 @@ export function CycleChart({
   cycle, 
   totalScore, 
   birthYear,
+  birthMonth,
+  birthDay,
   selectedYear,
   onSelectPillar,
 }: CycleChartProps) {
   const currentYear = new Date().getFullYear();
   
-  // If selectedYear is provided (from timeline), use that; otherwise use current year
+  // If selectedYear is provided (from timeline), use that; otherwise use timing-corrected current year
   const highlightedColumn = selectedYear !== undefined && selectedYear !== null
     ? getCycleIndex(birthYear, selectedYear)
-    : getCurrentYearColumn(birthYear, currentYear);
+    : getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
     
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const prefersReducedMotion = useReducedMotion();

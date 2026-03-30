@@ -156,6 +156,8 @@ export function HomeClient() {
           <CurrentYearWidget
             cycle={result.cycle}
             birthYear={result.birthYear}
+            birthMonth={result.birthData.gregorianMonth}
+            birthDay={result.birthDay}
             onReset={handleReset}
             chartSectionId={CHART_SECTION_ID}
           />
@@ -185,6 +187,8 @@ export function HomeClient() {
                 cycle={result.cycle}
                 totalScore={result.totalScore}
                 birthYear={result.birthYear}
+                birthMonth={result.birthData.gregorianMonth}
+                birthDay={result.birthDay}
                 selectedYear={selectionSource === "timeline" ? selectedYear : undefined}
                 onSelectPillar={handleChartSelectPillar}
               />
