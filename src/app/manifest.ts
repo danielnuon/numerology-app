@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
+import { SHARE_DESCRIPTION, SITE_NAME } from "@/lib/site-copy";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Solini",
-    short_name: "Solini",
-    description:
-      "Discover your 12-year life cycle through Khmer numerology.",
+    name: SITE_NAME,
+    short_name: SITE_NAME,
+    description: SHARE_DESCRIPTION,
     start_url: "/",
     display: "standalone",
     background_color: "#17131C",

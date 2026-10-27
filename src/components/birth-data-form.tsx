@@ -286,6 +286,9 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         >
           Reveal My Cycle
         </button>
+        <p className="mt-3 text-center text-xs text-ink-light">
+          Free, no sign-up. Your birth date stays in this browser.
+        </p>
       </div>
     </form>
   );

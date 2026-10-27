@@ -1,11 +1,13 @@
 # Solini — Khmer Numerology
 
-A fortune calculation app rooted in Khmer tradition. Enter your birth date to discover your 12-year life cycle and luck strength.
+Khmer numerology, year by year. Enter your birth date and Solini reads a luck number for every year of your 12-year cycle, from a Cambodian tradition rarely found online. Readings are for reflection, not prediction.
+
+Live at [solini.vercel.app](https://solini.vercel.app).
 
 ## What It Does
 
 Solini calculates a personal life cycle based on three inputs:
-- **Birth month** (Margasir lunar calendar)
+- **Birth month** (counted from Margasir, the lunar month around November–December)
 - **Birth year** (Chinese zodiac)
 - **Birth weekday**
 
@@ -28,17 +30,17 @@ Your cycle also shows:
 - **Total cycle strength** — overall trajectory (weak ~56, balanced ~64, strong ~72)
 - **Life areas** — each position maps to a domain (self, family, money, health, etc.)
 
-## Compatibility
+## Coming Later
 
-Compare cycles with partners or family members to understand how your luck interacts.
+Partner comparison (how two cycles interact), a share card and a Khmer language option are on the [roadmap](docs/dev/product-roadmap.md).
 
 ## Usage
 
-1. Enter your birth date (month, year, weekday)
+1. Enter your birth date (Solini works out the weekday and zodiac animal)
 2. View your 12-year life cycle
 3. See your current year's luck strength
 4. Explore individual year details and life areas
-5. Share your results via link
+5. Come back any time: your birth date is saved in your browser only
 
 ---
 

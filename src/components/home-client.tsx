@@ -39,7 +39,7 @@ import {
 import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
-/** ID for the chart section — used by the widget's "View full cycle" scroll target. */
+/** ID for the chart section — used by the widget's "See all 12 years" scroll target. */
 const CHART_SECTION_ID = "cycle-chart-section";
 
 /** Computes a cycle from raw date parts, or null if they don't form a valid birth date. */
@@ -197,7 +197,7 @@ export function HomeClient() {
         className="rise mt-1 text-xs uppercase text-ink-light text-center tracking-[0.18em]"
         style={{ "--rise-delay": "620ms" } as React.CSSProperties}
       >
-        Discover your life cycle
+        Your cycle, lit year by year
       </p>
 
       <SectionDivider />
@@ -221,8 +221,10 @@ export function HomeClient() {
             className="rise glass max-w-[480px] w-full rounded-2xl p-6 sm:p-12"
             style={{ "--rise-delay": "760ms" } as React.CSSProperties}
           >
-            <p className="text-center text-ink-light text-sm tracking-[0.04em]">
-              Enter your birth date to reveal your 12-year cycle
+            <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
+              Enter your birth date to see a luck number for every year of
+              your 12-year cycle, read from your birth month, zodiac animal
+              and weekday.
             </p>
 
             <BirthDataForm onResult={handleResult} initialValues={initialValues} />
@@ -263,6 +265,11 @@ export function HomeClient() {
           </>
         )}
       </ErrorBoundary>
+
+      <p className="mt-16 max-w-[480px] text-center text-xs leading-relaxed text-ink-light">
+        Solini follows a Khmer numerology tradition. A reading is a lantern
+        for reflection, not a prediction or advice.
+      </p>
     </main>
     </MotionConfig>
   );

@@ -57,22 +57,22 @@ export function validateBirthDate(
   if (!isSupportedYear(year)) {
     errors.push({
       field: "year",
-      message: `Year must be between ${BIRTH_YEAR_MIN} and ${BIRTH_YEAR_MAX}.`,
+      message: `Enter a year from ${BIRTH_YEAR_MIN} to ${BIRTH_YEAR_MAX}.`,
     });
   }
 
   if (!Number.isInteger(month) || month < 1 || month > 12) {
-    errors.push({ field: "month", message: "Month must be between 1 and 12." });
+    errors.push({ field: "month", message: "Enter a month from 1 to 12." });
   }
 
   if (!Number.isInteger(day) || day < 1 || day > 31) {
-    errors.push({ field: "day", message: "Day must be between 1 and 31." });
+    errors.push({ field: "day", message: "Enter a day from 1 to 31." });
   }
 
   // Calendar and future-date checks only make sense once each part is in range.
   if (errors.length === 0) {
     if (!isRealCalendarDate(year, month, day)) {
-      errors.push({ field: "date", message: "Invalid date for the given month." });
+      errors.push({ field: "date", message: "That date doesn't exist. Check the day and month." });
     } else {
       const today = todayOverride ?? new Date();
       const startOfToday = new Date(
@@ -83,7 +83,7 @@ export function validateBirthDate(
       // Compare against midnight so a birth date of today is accepted
       // regardless of the current time of day.
       if (new Date(year, month - 1, day) > startOfToday) {
-        errors.push({ field: "date", message: "Birth date cannot be in the future." });
+        errors.push({ field: "date", message: "A birth date can't be in the future." });
       }
     }
   }

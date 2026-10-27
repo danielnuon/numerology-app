@@ -6,6 +6,13 @@ import {
   Noto_Serif_Khmer,
 } from "next/font/google";
 import { LanternSky } from "@/components/lantern-sky";
+import {
+  SHARE_DESCRIPTION,
+  SHARE_TITLE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+} from "@/lib/site-copy";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -45,22 +52,21 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://solini.vercel.app"
   ),
-  title: "Solini — Life Cycle Calculator",
-  description:
-    "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Solini — Life Cycle Calculator",
-    description:
-      "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
     type: "website",
     locale: "en_US",
-    siteName: "Solini",
+    siteName: SITE_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Solini — Life Cycle Calculator",
-    description:
-      "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
   },
 };
 

@@ -160,7 +160,7 @@ describe("validateBirthDate", () => {
   it("rejects February 30 as invalid calendar date", () => {
     const errors = validateBirthDate(2000, 2, 30, today);
     expect(errors.some((e) => e.field === "date")).toBe(true);
-    expect(errors[0].message).toMatch(/invalid date/i);
+    expect(errors[0].message).toMatch(/doesn't exist/i);
   });
 
   it("accepts Feb 29 on a leap year", () => {
