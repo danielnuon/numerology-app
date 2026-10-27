@@ -4,7 +4,7 @@
 
 - **Next.js 16** with App Router and React 19
 - **Tailwind CSS v4** for styling
-- **Framer Motion** for animations
+- **Motion** (`motion/react`), React `<ViewTransition>` and CSS for animation — see the motion tokens in `docs/design-spec.md`
 - **TypeScript** throughout
 - **Jest 30** + ts-jest for testing
 - **GitHub Actions** for CI

@@ -3,11 +3,13 @@
 /**
  * DetailPanel
  *
- * Slide-down panel that appears below the cycle chart when a pillar is
- * selected. Shows years, life area domain, tier interpretation, and guidance.
+ * Tab panel below the cycle chart for the selected pillar. Shows years, life
+ * area domain, tier interpretation, and guidance. When the selection changes
+ * inside a transition, the old content fades out and the new content settles
+ * in via a native view transition.
  */
 
-import { AnimatePresence, motion } from "framer-motion";
+import { ViewTransition } from "react";
 import { interpretYear } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import {
@@ -16,6 +18,10 @@ import {
 } from "@/lib/numerology/chart-helpers";
 
 export interface DetailPanelProps {
+  /** Element id, referenced by the pillars' aria-controls. */
+  id: string;
+  /** Id of the pillar (tab) that labels this panel. */
+  labelledBy: string;
   /** The cycle number for the selected pillar (0–11). */
   cycleNumber: number;
   /** 0-indexed column position. */
@@ -29,6 +35,8 @@ export interface DetailPanelProps {
 }
 
 export function DetailPanel({
+  id,
+  labelledBy,
   cycleNumber,
   columnIndex,
   birthYear,
@@ -48,15 +56,11 @@ export function DetailPanel({
   const isZero = interp.tier === "zero";
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={`${columnIndex}-${cycleNumber}`}
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        role="region"
-        aria-label={`Details for ${domain} domain`}
+    <ViewTransition update="panel-swap" default="none">
+      <div
+        id={id}
+        role="tabpanel"
+        aria-labelledby={labelledBy}
         className={[
           "mt-4 rounded-sm border border-border p-5 paper-texture",
           isZero
@@ -81,7 +85,7 @@ export function DetailPanel({
             <span
               className={[
                 "text-sm",
-                isZero ? "text-parchment/75" : "text-ink-faint",
+                isZero ? "text-parchment/75" : "text-ink-light",
               ].join(" ")}
             >
               {years.join(" · ")}
@@ -90,7 +94,7 @@ export function DetailPanel({
             <span
               className={[
                 "text-sm",
-                isZero ? "text-parchment/75" : "text-ink-faint",
+                isZero ? "text-parchment/75" : "text-ink-light",
               ].join(" ")}
               style={{ fontVariant: "small-caps" }}
             >
@@ -151,7 +155,7 @@ export function DetailPanel({
         >
           {interp.guidance}
         </p>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </ViewTransition>
   );
 }

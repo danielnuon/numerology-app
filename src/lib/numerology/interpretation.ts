@@ -6,12 +6,17 @@
  * so that labels and guidance can be swapped for i18n without touching logic.
  */
 
-import { YEAR_TIERS, TOTAL_TIERS } from "./interpretation-data";
+import {
+  YEAR_TIERS,
+  TOTAL_TIERS,
+  type TotalTier,
+  type YearTier,
+} from "./interpretation-data";
 
 /** Interpretation result for a single year's cycle number. */
 export interface YearInterpretation {
-  /** CSS-friendly tier identifier: "very-strong" | "strong" | "moderate" | "weak" | "zero" */
-  tier: string;
+  /** CSS-friendly tier identifier */
+  tier: YearTier;
   /** Human-readable tier label, e.g. "Very strong luck" */
   label: string;
   /** Longer description of the tier */
@@ -22,8 +27,8 @@ export interface YearInterpretation {
 
 /** Interpretation result for the total score across all years. */
 export interface TotalInterpretation {
-  /** CSS-friendly tier identifier: "strong" | "moderate" | "weak" */
-  tier: string;
+  /** CSS-friendly tier identifier */
+  tier: TotalTier;
   /** Human-readable tier label */
   label: string;
   /** Longer description of the tier */

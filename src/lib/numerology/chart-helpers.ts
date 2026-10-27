@@ -5,53 +5,57 @@
  * stateless and have no side effects, enabling exhaustive unit testing.
  */
 
+import type { YearTier } from "./interpretation-data";
+import { positiveMod } from "./cycle-math";
 import { getActiveYear, getCycleIndex } from "./year-lookup";
 
-/** Maps a CSS-friendly tier name to its Unicode tier symbol. */
-export function getTierSymbol(tier: string): string {
-  switch (tier) {
-    case "very-strong":
-      return "●";
-    case "strong":
-      return "◕";
-    case "moderate":
-      return "◑";
-    case "weak":
-      return "◔";
-    case "zero":
-      return "⊙";
-    default:
-      return "⊙";
-  }
-}
+/**
+ * Circle symbols that fill up as luck increases, so the tier reads without
+ * relying on colour alone. Zero gets a distinct dotted circle because it is
+ * its own outcome, not the bottom of the scale.
+ */
+const TIER_SYMBOLS: Record<YearTier, string> = {
+  "very-strong": "●",
+  strong: "◕",
+  moderate: "◑",
+  weak: "◔",
+  zero: "⊙",
+};
 
 /**
- * Returns the Tailwind background class with opacity modifier for a tier.
- * Zero-tier uses full opacity (charcoal) per design spec; all others use /15.
+ * Tailwind background classes per tier. Zero uses the full-strength charcoal
+ * token per the design spec; the others use a light /15 tint of their colour.
+ * Written out in full so Tailwind's class scanner can find them.
  */
+const TIER_BACKGROUNDS: Record<YearTier, string> = {
+  "very-strong": "bg-tier-very-strong/15",
+  strong: "bg-tier-strong/15",
+  moderate: "bg-tier-moderate/15",
+  weak: "bg-tier-weak/15",
+  zero: "bg-tier-zero",
+};
+
+function isYearTier(tier: string): tier is YearTier {
+  return tier in TIER_SYMBOLS;
+}
+
+/** Maps a CSS-friendly tier name to its Unicode tier symbol. Unknown tiers fall back to zero. */
+export function getTierSymbol(tier: string): string {
+  return TIER_SYMBOLS[isYearTier(tier) ? tier : "zero"];
+}
+
+/** Returns the Tailwind background class for a tier. Unknown tiers fall back to zero. */
 export function getTierColorClass(tier: string): string {
-  switch (tier) {
-    case "very-strong":
-      return "bg-tier-very-strong/15";
-    case "strong":
-      return "bg-tier-strong/15";
-    case "moderate":
-      return "bg-tier-moderate/15";
-    case "weak":
-      return "bg-tier-weak/15";
-    case "zero":
-      return "bg-tier-zero";
-    default:
-      return "bg-tier-zero";
-  }
+  return TIER_BACKGROUNDS[isYearTier(tier) ? tier : "zero"];
 }
 
 /**
  * Returns the 2–3 nearest calendar years for a given column index.
  *
- * The 12-year cycle repeats at a period of 12 years. This function finds the
- * most recent past occurrence of the column (≤ currentYear) and up to 2
- * upcoming occurrences.
+ * Column `c` recurs every 12 years: birthYear + c, birthYear + c + 12, ...
+ * This finds the most recent occurrence at or before currentYear, then the
+ * next two. Years before the birth year are dropped, which is why a young
+ * person can get only two.
  *
  * @param birthYear   - Birth year (reference anchor for the cycle).
  * @param columnIndex - 0-indexed column position (0–11).
@@ -63,19 +67,13 @@ export function getYearsForColumn(
   columnIndex: number,
   currentYear: number
 ): number[] {
-  // Find the most recent year ≤ currentYear whose cycle index equals columnIndex.
-  // offset = columnIndex means: targetYear = birthYear + columnIndex + k*12 for some integer k.
-  // We want the largest such year that is ≤ currentYear.
-  const diff = currentYear - birthYear;
-  const remainder = ((diff % 12) + 12) % 12;
-  // How many steps back from currentYear to reach this column?
-  let stepsBack = ((remainder - columnIndex) % 12 + 12) % 12;
-  const mostRecentPast = currentYear - stepsBack;
+  const currentColumn = positiveMod(currentYear - birthYear, 12);
+  const yearsSinceColumn = positiveMod(currentColumn - columnIndex, 12);
+  const mostRecent = currentYear - yearsSinceColumn;
 
-  const years: number[] = [mostRecentPast, mostRecentPast + 12, mostRecentPast + 24];
-
-  // Return at most 3 years, filtering to a reasonable window (no earlier than birth year)
-  return years.filter((y) => y >= birthYear).slice(0, 3);
+  return [mostRecent, mostRecent + 12, mostRecent + 24].filter(
+    (year) => year >= birthYear
+  );
 }
 
 /**
@@ -87,14 +85,16 @@ export function getYearsForColumn(
  * @param currentYear - The calendar year (from `new Date().getFullYear()`).
  * @param birthMonth  - Birth month (1–12).
  * @param birthDay    - Birth day (1–31).
+ * @param todayOverride - Optional date to use as "today" for deterministic testing.
  * @returns Column index in range [0, 11].
  */
 export function getCurrentYearColumn(
   birthYear: number,
   currentYear: number,
   birthMonth: number,
-  birthDay: number
+  birthDay: number,
+  todayOverride?: Date
 ): number {
-  const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
+  const activeYear = getActiveYear(currentYear, birthMonth, birthDay, todayOverride);
   return getCycleIndex(birthYear, activeYear);
 }

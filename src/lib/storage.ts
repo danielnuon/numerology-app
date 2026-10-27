@@ -5,6 +5,10 @@
  * is never persisted — always recomputed on load from the stored date.
  */
 
+import { isRealCalendarDate, isSupportedYear } from "./numerology/calendar";
+
+// Changing this key would silently drop every returning visitor's saved
+// birth date, so keep it as-is even if the app is renamed.
 const STORAGE_KEY = "khmer-numerology:birth";
 
 /** The shape stored in localStorage. */
@@ -51,25 +55,11 @@ export function readStoredBirthDate(): StoredBirthDate | null {
 
     const { day, month, year } = obj as unknown as StoredBirthDate;
 
-    // Must be integers
-    if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) {
-      return null;
-    }
-
-    // Range checks
-    if (year < 1900 || year > 2100) return null;
+    if (!Number.isInteger(day) || !Number.isInteger(month)) return null;
+    if (!isSupportedYear(year)) return null;
     if (month < 1 || month > 12) return null;
     if (day < 1 || day > 31) return null;
-
-    // Calendar validity: check Date constructor doesn't overflow
-    const date = new Date(year, month - 1, day);
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
-    }
+    if (!isRealCalendarDate(year, month, day)) return null;
 
     return { day, month, year };
   } catch {

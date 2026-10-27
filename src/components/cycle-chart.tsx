@@ -4,14 +4,15 @@
  * CycleChart
  *
  * Interactive 12-column pillar grid that visualises a person's life cycle.
- * Pillars animate in from below with an 80 ms stagger. Clicking a pillar
- * reveals a detail panel showing calendar years, tier interpretation, and
- * guidance text. Responsive: 3 columns on the narrowest phones, 4 on phones,
- * 6 on tablets, 12 on desktop.
+ * Pillars settle in from below with a 40 ms stagger. The pillars behave like
+ * tabs: one is always selected, arrow keys move focus and selection together,
+ * and the detail panel below is the tab panel. The selection outline glides
+ * between pillars with a native view transition. Responsive: 3 columns on
+ * the narrowest phones, 4 on phones, 6 on tablets, 12 on desktop.
  */
 
-import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef, ViewTransition } from "react";
+import { motion } from "motion/react";
 import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
 import { getLifeArea, getCycleIndex } from "@/lib/numerology/year-lookup";
 import {
@@ -20,6 +21,7 @@ import {
   getCurrentYearColumn,
 } from "@/lib/numerology/chart-helpers";
 import { DetailPanel } from "./detail-panel";
+import { EASE, MOTION, PRESS } from "@/lib/motion";
 
 export interface CycleChartProps {
   /** 12-element array of cycle numbers (each 0–11). */
@@ -32,10 +34,12 @@ export interface CycleChartProps {
   birthMonth: number;
   /** Birth day (1–31) — used for timing-corrected "current year" highlight. */
   birthDay: number;
-  /** When set from timeline, highlight this specific year instead of current year column. */
-  selectedYear?: number | null;
-  /** Callback when a pillar is selected. */
-  onSelectPillar?: (columnIndex: number | null) => void;
+  /** The selected calendar year; its pillar is the selected tab. */
+  selectedYear: number;
+  /** Show only the selected year in the detail panel instead of every year sharing its pillar. */
+  showSingleYear?: boolean;
+  /** Called with the 0-indexed column when a pillar is chosen. */
+  onSelectPillar?: (columnIndex: number) => void;
 }
 
 /**
@@ -50,23 +54,23 @@ const PILLAR_LABEL_BREAKS: Record<string, string> = {
   Protection: "Protec\u00ADtion",
 };
 
-/** Framer Motion container variant — staggers children by 80 ms. */
+/** Staggers pillar entrances by 40 ms. */
 const containerVariants = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.04,
     },
   },
 };
 
-/** Framer Motion item variant — rises from below. */
+/** Each pillar fades in and settles 8px upward. */
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 8, opacity: 0 },
   show: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.35, ease: "easeOut" as const },
+    transition: { duration: MOTION.gentle, ease: EASE.enter },
   },
 };
 
@@ -77,48 +81,35 @@ export function CycleChart({
   birthMonth,
   birthDay,
   selectedYear,
+  showSingleYear = false,
   onSelectPillar,
 }: CycleChartProps) {
   const currentYear = new Date().getFullYear();
-  
-  // If selectedYear is provided (from timeline), use that; otherwise use timing-corrected current year
-  const highlightedColumn = selectedYear !== undefined && selectedYear !== null
-    ? getCycleIndex(birthYear, selectedYear)
-    : getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
-    
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const currentColumn = getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
+  const selectedIndex = getCycleIndex(birthYear, selectedYear);
+  const pillarRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const totalInterp = interpretTotal(totalScore);
 
-  function handlePillarClick(index: number) {
-    const newIndex = selectedIndex === index ? null : index;
-    setSelectedIndex(newIndex);
-    onSelectPillar?.(newIndex);
-  }
-
+  // Tabs pattern (WAI-ARIA, automatic activation): arrows move focus and
+  // selection together, Home/End jump to the ends, focus wraps around.
   function handleKeyDown(
     event: React.KeyboardEvent<HTMLButtonElement>,
     index: number
   ) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handlePillarClick(index);
-    }
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      const next = (index + 1) % 12;
-      setSelectedIndex(next);
-      const el = document.getElementById(`pillar-${next}`);
-      el?.focus();
-    }
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      const prev = (index - 1 + 12) % 12;
-      setSelectedIndex(prev);
-      const el = document.getElementById(`pillar-${prev}`);
-      el?.focus();
-    }
+    const targets: Record<string, number> = {
+      ArrowRight: (index + 1) % 12,
+      ArrowDown: (index + 1) % 12,
+      ArrowLeft: (index + 11) % 12,
+      ArrowUp: (index + 11) % 12,
+      Home: 0,
+      End: 11,
+    };
+    const next = targets[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    pillarRefs.current[next]?.focus();
+    onSelectPillar?.(next);
   }
 
   return (
@@ -127,9 +118,9 @@ export function CycleChart({
       <motion.div
         role="tablist"
         aria-label="12-year life cycle pillars"
-        variants={prefersReducedMotion ? undefined : containerVariants}
-        initial={prefersReducedMotion ? false : "hidden"}
-        animate={prefersReducedMotion ? undefined : "show"}
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
         className="grid grid-cols-3 min-[360px]:grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2"
       >
         {cycle.map((cycleNumber, index) => {
@@ -138,7 +129,7 @@ export function CycleChart({
           const symbol = getTierSymbol(interp.tier);
           const bgClass = getTierColorClass(interp.tier);
           const isZero = interp.tier === "zero";
-          const isCurrent = index === highlightedColumn;
+          const isCurrent = index === currentColumn;
           const isSelected = selectedIndex === index;
 
           const ariaLabel = [
@@ -154,34 +145,34 @@ export function CycleChart({
           return (
             <motion.button
               key={index}
+              ref={(el) => {
+                pillarRefs.current[index] = el;
+              }}
               id={`pillar-${index}`}
+              type="button"
               role="tab"
               aria-selected={isSelected}
+              aria-controls="cycle-detail-panel"
+              tabIndex={isSelected ? 0 : -1}
               aria-label={ariaLabel}
-              variants={prefersReducedMotion ? undefined : itemVariants}
-              onClick={() => handlePillarClick(index)}
+              variants={itemVariants}
+              whileTap={{ scale: PRESS.scale, transition: PRESS.spring }}
+              onClick={() => onSelectPillar?.(index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={[
                 // Layout
                 "relative flex flex-col items-center justify-between gap-1",
-                "rounded-sm px-1 py-3 min-h-[96px] min-w-0 overflow-hidden cursor-pointer",
-                "transition-transform duration-150",
+                "rounded-sm px-1 py-3 min-h-[96px] min-w-0 overflow-hidden",
+                // Motion: lift on hover (mouse only), settle back when pressed
+                "pressable hover:-translate-y-0.5 hover:shadow-[var(--shadow-raised)] active:translate-y-0",
                 // Background
                 bgClass,
                 // Text colour
                 isZero ? "text-parchment" : "text-ink",
-                // Current year treatment
+                // Current year: gold ring + corner dot. Selection is a separate ink outline.
                 isCurrent
-                  ? "border-2 border-gold shadow-[0_0_8px_rgba(184,134,11,0.3)] -translate-y-0.5"
+                  ? "border-2 border-gold-deep"
                   : "border border-border",
-                // Zero breathing animation
-                isZero ? "animate-breathe" : "",
-                // Selected outline
-                isSelected && !isCurrent
-                  ? "ring-2 ring-gold/60 ring-offset-1"
-                  : "",
-                // Hover / focus
-                "hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-light focus-visible:ring-offset-1",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -222,24 +213,40 @@ export function CycleChart({
               {isCurrent && (
                 <span
                   aria-hidden="true"
-                  className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold"
+                  className={[
+                    "absolute top-1 right-1 w-1.5 h-1.5 rounded-full",
+                    isZero ? "bg-gold-light" : "bg-gold-deep",
+                  ].join(" ")}
                 />
+              )}
+
+              {/* Selection outline — one shared element that glides between pillars */}
+              {isSelected && (
+                <ViewTransition name="pillar-selection" share="auto" default="none">
+                  <span
+                    aria-hidden="true"
+                    className={[
+                      "pointer-events-none absolute inset-0 rounded-sm ring-2 ring-inset",
+                      isZero ? "ring-parchment" : "ring-ink",
+                    ].join(" ")}
+                  />
+                </ViewTransition>
               )}
             </motion.button>
           );
         })}
       </motion.div>
 
-      {/* Detail panel */}
-      {selectedIndex !== null && (
-        <DetailPanel
-          cycleNumber={cycle[selectedIndex]}
-          columnIndex={selectedIndex}
-          birthYear={birthYear}
-          currentYear={currentYear}
-          selectedYear={selectedYear}
-        />
-      )}
+      {/* Detail panel (the tab panel for the selected pillar) */}
+      <DetailPanel
+        id="cycle-detail-panel"
+        labelledBy={`pillar-${selectedIndex}`}
+        cycleNumber={cycle[selectedIndex]}
+        columnIndex={selectedIndex}
+        birthYear={birthYear}
+        currentYear={currentYear}
+        selectedYear={showSingleYear ? selectedYear : null}
+      />
 
       {/* Total score summary */}
       <div

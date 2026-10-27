@@ -5,8 +5,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { YearTimeline } from "../year-timeline";
 
-// Mock framer-motion to avoid animation issues in test environment
-jest.mock("framer-motion", () => ({
+// Mock Motion to avoid animation issues in test environment
+jest.mock("motion/react", () => ({
   useReducedMotion: () => true,
 }));
 
@@ -19,7 +19,7 @@ const defaultProps = {
   cycle: sampleCycle,
   birthYear,
   currentYear,
-  selectedYear: null,
+  selectedYear: currentYear,
   onSelectYear: jest.fn(),
 };
 
@@ -88,12 +88,31 @@ describe("YearTimeline", () => {
   // Current year highlighting
   // ---------------------------------------------------------------------------
 
-  it("highlights the current year with gold ring", () => {
-    render(<YearTimeline {...defaultProps} />);
+  it("highlights the current year with a gold ring and names it", () => {
+    render(<YearTimeline {...defaultProps} selectedYear={2000} />);
     const currentYearOption = screen.getByRole("option", { name: new RegExp(`Year ${currentYear}`) });
     expect(currentYearOption).toHaveAttribute("aria-selected", "false");
-    // The current year button has ring-gold class
-    expect(currentYearOption.className).toContain("ring-gold");
+    expect(currentYearOption).toHaveAccessibleName(expect.stringContaining("current year"));
+    expect(currentYearOption.innerHTML).toContain("ring-gold-deep");
+  });
+
+  it("marks the selected year as selected", () => {
+    render(<YearTimeline {...defaultProps} selectedYear={2000} />);
+    const option = screen.getByRole("option", { name: new RegExp(`Year 2000`) });
+    expect(option).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("makes the year label part of the clickable button", () => {
+    render(<YearTimeline {...defaultProps} />);
+    const option = screen.getByRole("option", { name: new RegExp(`Year 2000`) });
+    expect(option).toHaveTextContent("2000");
+  });
+
+  it("is a single Tab stop: only the selected year is tabbable", () => {
+    render(<YearTimeline {...defaultProps} selectedYear={2000} />);
+    const tabbable = screen.getAllByRole("option").filter((o) => o.tabIndex === 0);
+    expect(tabbable).toHaveLength(1);
+    expect(tabbable[0]).toHaveAccessibleName(expect.stringContaining("Year 2000"));
   });
 
   it("renders current year label in bold", () => {
@@ -115,12 +134,13 @@ describe("YearTimeline", () => {
     expect(onSelectYear).toHaveBeenCalledWith(2000);
   });
 
-  it("toggles selection off when clicking the same year again", () => {
+  it("keeps the year selected when clicking it again", () => {
     const onSelectYear = jest.fn();
     render(<YearTimeline {...defaultProps} selectedYear={2000} onSelectYear={onSelectYear} />);
     const option = screen.getByRole("option", { name: new RegExp(`Year 2000`) });
     fireEvent.click(option);
-    expect(onSelectYear).toHaveBeenCalledWith(null);
+    expect(onSelectYear).toHaveBeenCalledWith(2000);
+    expect(onSelectYear).not.toHaveBeenCalledWith(null);
   });
 
   // ---------------------------------------------------------------------------
@@ -133,6 +153,24 @@ describe("YearTimeline", () => {
     const option = screen.getByRole("option", { name: new RegExp(`Year 2000`) });
     fireEvent.keyDown(option, { key: "ArrowRight" });
     expect(onSelectYear).toHaveBeenCalledWith(2001);
+  });
+
+  it("moves focus along with the selection", () => {
+    render(<YearTimeline {...defaultProps} selectedYear={2000} />);
+    const option = screen.getByRole("option", { name: new RegExp(`Year 2000`) });
+    option.focus();
+    fireEvent.keyDown(option, { key: "ArrowRight" });
+    expect(document.activeElement).toHaveAccessibleName(expect.stringContaining("Year 2001"));
+  });
+
+  it("jumps to the first and last years with Home and End", () => {
+    const onSelectYear = jest.fn();
+    render(<YearTimeline {...defaultProps} onSelectYear={onSelectYear} />);
+    const option = screen.getByRole("option", { name: new RegExp(`Year 2000`) });
+    fireEvent.keyDown(option, { key: "Home" });
+    expect(onSelectYear).toHaveBeenLastCalledWith(birthYear);
+    fireEvent.keyDown(option, { key: "End" });
+    expect(onSelectYear).toHaveBeenLastCalledWith(currentYear + 30);
   });
 
   it("moves selection left with ArrowLeft key", () => {
