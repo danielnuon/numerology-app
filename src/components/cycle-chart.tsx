@@ -17,7 +17,7 @@ import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
 import { getLifeArea, getCycleIndex } from "@/lib/numerology/year-lookup";
 import {
   getTierSymbol,
-  getTierColorClass,
+  getTierTextClass,
   getCurrentYearColumn,
 } from "@/lib/numerology/chart-helpers";
 import { DetailPanel } from "./detail-panel";
@@ -114,7 +114,7 @@ export function CycleChart({
   }
 
   return (
-    <section aria-label="Life cycle chart" className="paper-texture w-full">
+    <section aria-label="Life cycle chart" className="w-full">
       {/* Pillar grid */}
       <motion.div
         role="tablist"
@@ -128,7 +128,6 @@ export function CycleChart({
           const interp = interpretYear(cycleNumber);
           const domain = getLifeArea(index + 1);
           const symbol = getTierSymbol(interp.tier);
-          const bgClass = getTierColorClass(interp.tier);
           const isZero = interp.tier === "zero";
           const isCurrent = index === currentColumn;
           const isSelected = selectedIndex === index;
@@ -156,6 +155,7 @@ export function CycleChart({
               aria-controls="cycle-detail-panel"
               tabIndex={isSelected ? 0 : -1}
               aria-label={ariaLabel}
+              data-tier={interp.tier}
               variants={itemVariants}
               whileTap={{ scale: PRESS.scale, transition: PRESS.spring }}
               onClick={() => onSelectPillar?.(index)}
@@ -163,17 +163,14 @@ export function CycleChart({
               className={[
                 // Layout
                 "relative flex flex-col items-center justify-between gap-1",
-                "rounded-sm px-0.5 sm:px-1 py-3 min-h-[96px] min-w-0 overflow-hidden",
+                "rounded-xl px-0.5 sm:px-1 py-3 min-h-[96px] min-w-0 overflow-hidden",
                 // Motion: lift on hover (mouse only), settle back when pressed
-                "pressable hover:-translate-y-0.5 hover:shadow-[var(--shadow-raised)] active:translate-y-0",
-                // Background
-                bgClass,
-                // Text colour
-                isZero ? "text-parchment" : "text-ink",
-                // Current year: gold ring + corner dot. Selection is a separate ink outline.
-                isCurrent
-                  ? "border-2 border-gold-deep"
-                  : "border border-border",
+                "pressable hover:-translate-y-0.5 active:translate-y-0",
+                // Lit from below by its tier; an unlit niche for zero
+                isZero ? "bg-tier-zero/70" : "bg-ink/[0.04]",
+                "text-ink",
+                // Current year: gold edge, glow and corner dot. Selection is a separate outline.
+                isCurrent ? "lamp-current" : "lamp",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -181,8 +178,7 @@ export function CycleChart({
               {/* Cycle number */}
               <span
                 aria-hidden="true"
-                className="font-serif text-[32px] leading-none"
-                style={{ fontFamily: "var(--font-serif)" }}
+                className="font-display text-[32px] leading-none tabular-nums"
               >
                 {cycleNumber}
               </span>
@@ -190,10 +186,7 @@ export function CycleChart({
               {/* Tier symbol */}
               <span
                 aria-hidden="true"
-                className={[
-                  "text-base leading-none",
-                  isZero ? "text-parchment/80" : "text-gold",
-                ].join(" ")}
+                className={`text-base leading-none ${getTierTextClass(interp.tier)}`}
               >
                 {symbol}
               </span>
@@ -201,10 +194,7 @@ export function CycleChart({
               {/* Life area label */}
               <span
                 aria-hidden="true"
-                className={[
-                  "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight w-full [overflow-wrap:anywhere]",
-                  isZero ? "text-parchment/80" : "text-ink-light",
-                ].join(" ")}
+                className="text-[9px] font-semibold uppercase tracking-wider text-center leading-tight w-full [overflow-wrap:anywhere] text-ink-light"
                 style={{ fontVariant: "small-caps" }}
               >
                 {PILLAR_LABEL_BREAKS[domain] ?? domain}
@@ -214,10 +204,7 @@ export function CycleChart({
               {isCurrent && (
                 <span
                   aria-hidden="true"
-                  className={[
-                    "absolute top-1 right-1 w-1.5 h-1.5 rounded-full",
-                    isZero ? "bg-gold-light" : "bg-gold-deep",
-                  ].join(" ")}
+                  className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-gold-deep shadow-[0_0_8px_rgba(226,182,90,0.8)]"
                 />
               )}
 
@@ -226,10 +213,7 @@ export function CycleChart({
                 <ViewTransition name="pillar-selection" share="auto" default="none">
                   <span
                     aria-hidden="true"
-                    className={[
-                      "pointer-events-none absolute inset-0 rounded-sm ring-2 ring-inset",
-                      isZero ? "ring-parchment" : "ring-ink",
-                    ].join(" ")}
+                    className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-inset ring-ink"
                   />
                 </ViewTransition>
               )}
@@ -253,14 +237,14 @@ export function CycleChart({
       <div
         className={[
           "mt-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4",
-          "rounded-sm border border-border bg-manuscript px-5 py-4 paper-texture",
+          "rounded-xl border border-border bg-parchment/40 px-5 py-4",
         ].join(" ")}
       >
         <div className="flex shrink-0 items-baseline gap-2">
           <span className="text-ink-light text-sm uppercase tracking-widest whitespace-nowrap">
             Total score
           </span>
-          <span className="font-serif text-2xl text-ink">{totalScore}</span>
+          <span className="font-display text-3xl text-gold-deep title-glow tabular-nums">{totalScore}</span>
         </div>
         <div className="hidden sm:block w-px h-8 bg-border" aria-hidden="true" />
         <div>

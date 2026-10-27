@@ -74,29 +74,31 @@ The design should feel like a digitized sacred text — not a theme park replica
 
 ## Visual System
 
-### Color Palette — "Temple at Dusk"
-| Role | Value | Usage |
-|------|-------|-------|
-| Background | `#F5F0E8` | Page background — warm parchment/palm leaf |
-| Surface | `#FFFDF7` | Cards, panels — lighter manuscript page |
-| Surface Alt | `#EDE7DB` | Subtle section separation, alternate rows |
-| Text Primary | `#2C2417` | Body text — dark sepia ink, not pure black |
-| Text Secondary | `#6F6454` | Labels, captions — faded ink (5.1:1 on parchment) |
-| Text Tertiary | `#857B6B` | Placeholders and decoration only — never text people must read (3.7:1) |
-| Accent Gold | `#B8860B` | Decorative gold only — diamonds, tier symbols (2.9:1, too low to carry meaning) |
-| Accent Gold Deep | `#86620A` | Gold that carries meaning — focus ring, current year, gold text (4.9:1) |
-| Accent Gold Light | `#D4A843` | Gold on the dark zero-year surface (4.55:1) |
-| Border | `#D5CBBA` | Dividers — like ruled lines on palm leaf |
-| Border Light | `#E8E0D2` | Subtle separators, card borders |
+### Color Palette — "Temple Lantern"
+A night temple lit by lanterns. The token names in `globals.css` are kept from the earlier parchment palette, so "parchment" is the page and "ink" the text.
 
-**Luck tier colors** (muted, never saturated — think mineral pigments, not neon):
+| Role | Token | Value | Usage |
+|------|-------|-------|-------|
+| Background | `parchment` | `#17131C` | Page — deep violet-black night, under a dusk gradient |
+| Surface | `manuscript` | `#221C28` | Cards, at 72% over the sky with a 14px backdrop blur (`.glass`) |
+| Surface Alt | `manuscript-alt` | `#2B2431` | Subtle separation |
+| Text Primary | `ink` | `#F1E8D8` | Body text — warm candle white (15:1) |
+| Text Secondary | `ink-light` | `#B4A894` | Labels, captions (7.8:1 on the page, 7.1:1 on cards) |
+| Text Tertiary | `ink-faint` | `#85796B` | Placeholders and decoration only (4.3:1) |
+| Accent Gold | `gold` | `#C99A3E` | Decorative gold — diamonds, hairlines |
+| Accent Gold Deep | `gold-deep` | `#E2B65A` | Gold that carries meaning — focus ring, current year, primary button, total score (9.7:1) |
+| Border | `border` | `#3B3242` | Card edges and dividers |
+
+**Luck tier colors** are the colour of each tier's lantern light. Pillars, timeline dots and the detail panel are lit from below by their tier (`data-tier` sets `--lamp`; `.lamp`, `.lamp-orb`, `.lamp-panel` apply it), and tier symbols take the solid colour:
 | Tier | Value | Usage |
 |------|-------|-------|
-| Very Strong (10–11) | `#5B7744` | Deep sage green — prosperity |
-| Strong (7–9) | `#7A9B6B` | Lighter sage — growth |
-| Moderate (4–6) | `#B8860B` | Warm amber/gold — balance (matches accent) |
-| Weak (1–3) | `#A0522D` | Sienna/terracotta — caution |
-| Zero (reset) | `#4A4039` | Charcoal brown — void/transition |
+| Very Strong (10–11) | `#BFE0A5` | Pale sage light — brightest |
+| Strong (7–9) | `#A9CC93` | Sage light |
+| Moderate (4–6) | `#E2B65A` | Lamp gold |
+| Weak (1–3) | `#D98A62` | Ember — also used for form errors (6.8:1) |
+| Zero (reset) | `#0E0B11` | An unlit niche, darker than the page; its symbol stays faint |
+
+**Atmosphere:** `LanternSky` draws 38 specks of dust drifting slowly upward through the light (20–60 s to cross the screen, with a slow flicker). It pauses while the tab is hidden and is drawn once, still, with Reduce Motion.
 
 **Non-color indicators** (for accessibility):
 - Very Strong: filled circle (●) + upward arrow
@@ -107,21 +109,20 @@ The design should feel like a digitized sacred text — not a theme park replica
 
 ### Typography — "Inscribed, Not Typed"
 
-**Primary font:** `Cormorant Garamond` — a high-contrast serif with the elegance of classical inscriptions. The thin/thick stroke variation echoes Khmer script letterforms.
+**Display font:** `Marcellus` — an inscriptional serif, like lettering cut into a temple lintel. Used for the title, cycle numbers, tier labels, the total score and form digits (`font-display`, also `font-serif`).
 
-**Secondary font (Khmer):** `Noto Serif Khmer` — for Khmer script toggle. Serif weight matches Cormorant's personality.
+**Body font:** `Hanken Grotesk` — a calm grotesque that stays crisp as light text on a dark page, where a thin serif would shimmer.
 
-**Monospace (numbers):** `Cormorant Garamond` tabular figures, or `DM Mono` for the cycle grid — numbers should feel etched, not computed.
+**Khmer:** `Noto Serif Khmer` is in both stacks for Khmer script.
 
-| Element | Font | Size | Weight | Line Height | Letter Spacing |
-|---------|------|------|--------|-------------|----------------|
-| Site Title | Cormorant Garamond | 36px / 2.25rem | 300 (Light) | 1.2 | 0.08em |
-| H1 (Section) | Cormorant Garamond | 28px / 1.75rem | 400 (Regular) | 1.3 | 0.04em |
-| H2 (Subsection) | Cormorant Garamond | 22px / 1.375rem | 500 (Medium) | 1.35 | 0.02em |
-| Body | Cormorant Garamond | 18px / 1.125rem | 400 (Regular) | 1.7 | 0.01em |
-| Caption/Label | Cormorant Garamond | 14px / 0.875rem | 400 (Regular) | 1.5 | 0.04em |
-| Cycle Number | Cormorant Garamond | 32px / 2rem | 600 (SemiBold) | 1.0 | 0 |
-| Button | Cormorant Garamond | 16px / 1rem | 600 (SemiBold) | 1.0 | 0.08em (uppercase) |
+| Element | Font | Size | Letter Spacing |
+|---------|------|------|----------------|
+| Site Title | Marcellus | 48–72px | 0.14em, with a soft gold glow |
+| Subtitle | Marcellus, gold-deep | 18px | 0.12em |
+| Body | Hanken Grotesk | 17px / 1.65 | 0 |
+| Caption/Label | Hanken Grotesk, uppercase | 12–14px | 0.08–0.18em |
+| Cycle Number | Marcellus | 32px, tabular | 0 |
+| Button | Hanken Grotesk 500, uppercase | 14px | 0.14em |
 
 **Key rule:** All text should feel like it was written with intention, not generated. High line-height (1.7 for body) gives breathing room — like text on a palm-leaf page with generous spacing between lines.
 
@@ -354,7 +355,8 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 **Rules**
 - Looks interactive if and only if it is: every control has a pointer cursor, hover (mouse only), a gold-deep focus ring and a pressed state. Static cards have none of these.
 - One meaning per visual: gold-deep = now, ink outline = selected, focus ring = keyboard.
-- Motion explains a change; nothing loops. Movement stays at 8px or less.
+- Interface motion explains a change; movement stays at 10px or less. The only continuous motion is the ambient dust, which is decorative, slow, and stops with Reduce Motion.
+- Entrance: the title "kindles" out of the dark (blur and letter-spacing settle, 1.6s), then the subtitle and first card follow (`.rise` with `--rise-delay`).
 - Selection changes run inside `startTransition`, so React `<ViewTransition>` animates the selection outline (shared element) and panel crossfade natively.
 - Sections marked `.scroll-settle` settle in on scroll via CSS scroll-driven animation where supported; elsewhere they simply appear.
 - Reduce Motion: nothing moves or scales; changes are instant.

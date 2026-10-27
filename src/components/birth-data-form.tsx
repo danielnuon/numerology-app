@@ -147,7 +147,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
             aria-describedby={errors.day ? "error-day" : undefined}
             className={[
               "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-lg font-serif placeholder:text-ink-faint",
+              "text-ink text-xl font-display tracking-[0.06em] placeholder:text-ink-faint",
               "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
               errors.day
                 ? "border-tier-weak"
@@ -187,7 +187,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
             aria-describedby={errors.month ? "error-month" : undefined}
             className={[
               "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-lg font-serif placeholder:text-ink-faint",
+              "text-ink text-xl font-display tracking-[0.06em] placeholder:text-ink-faint",
               "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
               errors.month
                 ? "border-tier-weak"
@@ -227,7 +227,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
             aria-describedby={errors.year ? "error-year" : undefined}
             className={[
               "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-lg font-serif placeholder:text-ink-faint",
+              "text-ink text-xl font-display tracking-[0.06em] placeholder:text-ink-faint",
               "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
               errors.year
                 ? "border-tier-weak"
@@ -277,15 +277,18 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         <button
           type="submit"
           className={[
-            "w-full border border-ink text-ink",
-            "py-3 px-6 min-h-[44px]",
-            "text-sm uppercase tracking-[0.08em]",
-            "bg-transparent hover:bg-ink hover:text-manuscript",
-            "pressable active:scale-[0.98] active:bg-ink active:text-manuscript",
+            "w-full rounded-full border border-gold-deep text-gold-deep",
+            "py-3 px-6 min-h-[48px]",
+            "text-sm font-medium uppercase tracking-[0.14em]",
+            "bg-transparent hover:bg-gold-deep hover:text-parchment hover:shadow-[var(--shadow-glow)]",
+            "pressable active:scale-[0.98] active:bg-gold-deep active:text-parchment",
           ].join(" ")}
         >
           Reveal My Cycle
         </button>
+        <p className="mt-3 text-center text-xs text-ink-light">
+          Free, no sign-up. Your birth date stays in this browser.
+        </p>
       </div>
     </form>
   );
