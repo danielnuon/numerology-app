@@ -7,8 +7,8 @@
  * Pillars settle in from below with a 40 ms stagger. The pillars behave like
  * tabs: one is always selected, arrow keys move focus and selection together,
  * and the detail panel below is the tab panel. The selection outline glides
- * between pillars with a native view transition. Responsive: 3 columns on
- * the narrowest phones, 4 on phones, 6 on tablets, 12 on desktop.
+ * between pillars with a native view transition. Responsive: the grid steps
+ * 3 → 4 → 6 → 12 columns so every life-area label fits on one line.
  */
 
 import { useRef, ViewTransition } from "react";
@@ -43,8 +43,9 @@ export interface CycleChartProps {
 }
 
 /**
- * Life area labels with soft hyphens at natural syllable breaks, so long
- * labels wrap cleanly inside narrow pillars instead of being cut off.
+ * Life area labels with soft hyphens at natural syllable breaks. The grid is
+ * sized so labels fit on one line from 320px up; this is a fallback for
+ * narrower screens, where a long label wraps instead of being cut off.
  * The hyphen only renders when the browser actually breaks the word.
  */
 const PILLAR_LABEL_BREAKS: Record<string, string> = {
@@ -121,7 +122,7 @@ export function CycleChart({
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-3 min-[360px]:grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2"
+        className="grid grid-cols-3 min-[480px]:grid-cols-4 md:grid-cols-6 xl:grid-cols-12 gap-1.5 sm:gap-2"
       >
         {cycle.map((cycleNumber, index) => {
           const interp = interpretYear(cycleNumber);
@@ -162,7 +163,7 @@ export function CycleChart({
               className={[
                 // Layout
                 "relative flex flex-col items-center justify-between gap-1",
-                "rounded-sm px-1 py-3 min-h-[96px] min-w-0 overflow-hidden",
+                "rounded-sm px-0.5 sm:px-1 py-3 min-h-[96px] min-w-0 overflow-hidden",
                 // Motion: lift on hover (mouse only), settle back when pressed
                 "pressable hover:-translate-y-0.5 hover:shadow-[var(--shadow-raised)] active:translate-y-0",
                 // Background
