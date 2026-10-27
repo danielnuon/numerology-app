@@ -137,7 +137,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
       aria-label="Birth date form"
     >
       {/* Date inputs */}
-      <div className="flex gap-6 mt-8">
+      <div className="flex gap-4 sm:gap-6 mt-8">
         {/* Day */}
         <div className="flex flex-col flex-1 min-w-0">
           <label
@@ -219,7 +219,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         </div>
 
         {/* Year */}
-        <div className="flex flex-col flex-[2] min-w-0">
+        <div className="flex flex-col flex-[1.25] sm:flex-[2] min-w-0">
           <label
             htmlFor="birth-year"
             className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"

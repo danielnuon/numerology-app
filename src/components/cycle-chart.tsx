@@ -7,8 +7,8 @@
  * Pillars settle in from below with a 40 ms stagger. The pillars behave like
  * tabs: one is always selected, arrow keys move focus and selection together,
  * and the detail panel below is the tab panel. The selection outline glides
- * between pillars with a native view transition. Responsive: 6 columns on
- * mobile, 12 on desktop.
+ * between pillars with a native view transition. Responsive: 3 columns on
+ * the narrowest phones, 4 on phones, 6 on tablets, 12 on desktop.
  */
 
 import { useRef, ViewTransition } from "react";
@@ -41,6 +41,18 @@ export interface CycleChartProps {
   /** Called with the 0-indexed column when a pillar is chosen. */
   onSelectPillar?: (columnIndex: number) => void;
 }
+
+/**
+ * Life area labels with soft hyphens at natural syllable breaks, so long
+ * labels wrap cleanly inside narrow pillars instead of being cut off.
+ * The hyphen only renders when the browser actually breaks the word.
+ */
+const PILLAR_LABEL_BREAKS: Record<string, string> = {
+  Movement: "Move\u00ADment",
+  Relationships: "Relation\u00ADships",
+  Opportunity: "Oppor\u00ADtunity",
+  Protection: "Protec\u00ADtion",
+};
 
 /** Staggers pillar entrances by 40 ms. */
 const containerVariants = {
@@ -109,7 +121,7 @@ export function CycleChart({
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-6 md:grid-cols-12 gap-2"
+        className="grid grid-cols-3 min-[360px]:grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2"
       >
         {cycle.map((cycleNumber, index) => {
           const interp = interpretYear(cycleNumber);
@@ -189,12 +201,12 @@ export function CycleChart({
               <span
                 aria-hidden="true"
                 className={[
-                  "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight truncate w-full",
+                  "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight w-full [overflow-wrap:anywhere]",
                   isZero ? "text-parchment/80" : "text-ink-light",
                 ].join(" ")}
                 style={{ fontVariant: "small-caps" }}
               >
-                {domain}
+                {PILLAR_LABEL_BREAKS[domain] ?? domain}
               </span>
 
               {/* Current year indicator dot */}
@@ -243,8 +255,8 @@ export function CycleChart({
           "rounded-sm border border-border bg-manuscript px-5 py-4 paper-texture",
         ].join(" ")}
       >
-        <div className="flex items-baseline gap-2">
-          <span className="text-ink-light text-sm uppercase tracking-widest">
+        <div className="flex shrink-0 items-baseline gap-2">
+          <span className="text-ink-light text-sm uppercase tracking-widest whitespace-nowrap">
             Total score
           </span>
           <span className="font-serif text-2xl text-ink">{totalScore}</span>

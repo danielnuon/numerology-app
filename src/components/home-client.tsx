@@ -180,7 +180,7 @@ export function HomeClient() {
 
         {/* Form card — shown for first-visit, after "Not you?", or when share URL params present */}
         {showForm && (
-          <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[var(--shadow-card)]">
+          <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-6 sm:p-12 shadow-[var(--shadow-card)]">
             <p className="text-center text-ink-light text-sm tracking-[0.04em]">
               Enter your birth date to reveal your 12-year cycle
             </p>
@@ -196,7 +196,7 @@ export function HomeClient() {
             <div
               id={CHART_SECTION_ID}
               ref={resultRef}
-              className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[var(--shadow-card)] scroll-mt-8"
+              className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-4 sm:p-8 lg:p-10 shadow-[var(--shadow-card)] scroll-mt-8"
             >
               <CycleChart
                 cycle={result.cycle}
