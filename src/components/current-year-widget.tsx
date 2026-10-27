@@ -5,7 +5,7 @@
  *
  * Displays the current year's cycle number, luck tier, life area, and
  * one-sentence guidance for returning visitors whose birth date is stored
- * in localStorage. Includes "View full cycle" (smooth-scroll) and
+ * in localStorage. Includes "See all 12 years" (smooth-scroll) and
  * "Not you?" (clear localStorage, reset to form) actions.
  */
 
@@ -103,7 +103,7 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
           onClick={handleViewFullCycle}
           className="pressable inline-flex items-center min-h-[44px] px-2 -mx-2 rounded-sm text-ink-light hover:text-ink active:opacity-70 underline underline-offset-4"
         >
-          View full cycle
+          See all 12 years
         </a>
         <button
           type="button"

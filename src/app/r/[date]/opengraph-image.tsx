@@ -3,7 +3,7 @@ import { decodeBirthDate } from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 
-export const alt = "Life Cycle Reading — Solini";
+export const alt = "A 12-year Khmer numerology reading from Solini: one luck number for each year, with the cycle's total score.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

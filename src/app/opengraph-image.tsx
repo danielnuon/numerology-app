@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Solini — Life Cycle Calculator";
+export const alt = "Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
