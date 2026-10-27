@@ -5,6 +5,9 @@
  * Births before CNY use the previous year's zodiac animal.
  */
 
+import { SUPPORTED_YEAR_MAX, SUPPORTED_YEAR_MIN } from "./calendar";
+import { positiveMod, rotatedCycle } from "./cycle-math";
+
 export const ZODIAC_ANIMALS = [
   "Rat",
   "Ox",
@@ -26,7 +29,8 @@ export type ZodiacAnimal = (typeof ZODIAC_ANIMALS)[number];
  * Chinese New Year dates by Gregorian year.
  * Format: { month, day } of the CNY date for that year.
  * Source: Hong Kong Observatory / authoritative lunar calendar references.
- * Coverage: 1900–2100 (201 years).
+ * Coverage: 1900–2100 (201 years). This table is what limits the app's
+ * supported year range; see SUPPORTED_YEAR_MIN/MAX in calendar.ts.
  */
 export const CNY_DATES: Record<number, { month: number; day: number }> = {
   1900: { month: 1, day: 31 },
@@ -249,7 +253,7 @@ export function getZodiacYear(birthDate: Date): number {
   const cny = CNY_DATES[year];
   if (!cny) {
     throw new Error(
-      `Year ${year} is outside the supported range (1900-2100).`
+      `Year ${year} is outside the supported range (${SUPPORTED_YEAR_MIN}-${SUPPORTED_YEAR_MAX}).`
     );
   }
 
@@ -262,12 +266,22 @@ export function getZodiacYear(birthDate: Date): number {
 }
 
 /**
+ * A Gregorian year whose zodiac animal is the Rat. Any Rat year works as the
+ * anchor (1984 and 2020 are too); 4 CE is the conventional one because it
+ * makes the formula `(year - 4) mod 12` index straight into ZODIAC_ANIMALS.
+ */
+const RAT_ANCHOR_YEAR = 4;
+
+/** 0-based position of a zodiac year in ZODIAC_ANIMALS (Rat = 0 ... Pig = 11). */
+function zodiacIndex(zodiacYear: number): number {
+  return positiveMod(zodiacYear - RAT_ANCHOR_YEAR, 12);
+}
+
+/**
  * Returns the zodiac animal name for a given birth date.
  */
 export function getZodiacAnimal(birthDate: Date): ZodiacAnimal {
-  const zodiacYear = getZodiacYear(birthDate);
-  const index = ((zodiacYear - 4) % 12 + 12) % 12; // Rat = year 4 in cycle
-  return ZODIAC_ANIMALS[index];
+  return ZODIAC_ANIMALS[zodiacIndex(getZodiacYear(birthDate))];
 }
 
 /**
@@ -275,8 +289,7 @@ export function getZodiacAnimal(birthDate: Date): ZodiacAnimal {
  * Rat=1, Ox=2, Tiger=3, ..., Pig=12
  */
 export function getZodiacNumber(birthDate: Date): number {
-  const zodiacYear = getZodiacYear(birthDate);
-  return ((zodiacYear - 4) % 12 + 12) % 12 + 1;
+  return zodiacIndex(getZodiacYear(birthDate)) + 1;
 }
 
 /**
@@ -292,9 +305,5 @@ export function getZodiacRow(zodiacNumber: number): number[] {
     );
   }
 
-  const row: number[] = [];
-  for (let i = 0; i < 12; i++) {
-    row.push(((zodiacNumber - 1 + i) % 12) + 1);
-  }
-  return row;
+  return rotatedCycle(zodiacNumber, 12);
 }

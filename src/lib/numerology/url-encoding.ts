@@ -6,7 +6,7 @@
  * The computed cycle is never stored — it is always recomputed server-side.
  */
 
-import { BIRTH_YEAR_MIN, BIRTH_YEAR_MAX } from "./derive";
+import { isRealCalendarDate, isSupportedYear } from "./calendar";
 
 /** Parsed birth date from a share URL. */
 export interface DecodedBirthDate {
@@ -52,24 +52,10 @@ export function decodeBirthDate(dateStr: string): DecodedBirthDate | null {
   const month = parseInt(monthStr, 10);
   const day = parseInt(dayStr, 10);
 
-  // Range validation
-  if (year < BIRTH_YEAR_MIN || year > BIRTH_YEAR_MAX) {
+  if (!isSupportedYear(year) || month < 1 || month > 12 || day < 1 || day > 31) {
     return null;
   }
-  if (month < 1 || month > 12) {
-    return null;
-  }
-  if (day < 1 || day > 31) {
-    return null;
-  }
-
-  // Calendar validity: check for date overflow (e.g., Feb 30)
-  const date = new Date(year, month - 1, day);
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  if (!isRealCalendarDate(year, month, day)) {
     return null;
   }
 
