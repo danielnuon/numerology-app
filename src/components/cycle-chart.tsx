@@ -75,9 +75,9 @@ const itemVariants = {
   },
 };
 
-export function CycleChart({ 
-  cycle, 
-  totalScore, 
+export function CycleChart({
+  cycle,
+  totalScore,
   birthYear,
   birthMonth,
   birthDay,
@@ -135,7 +135,7 @@ export function CycleChart({
           const ariaLabel = [
             `Column ${index + 1}`,
             `cycle number ${cycleNumber}`,
-            `${interp.label}`,
+            interp.label,
             `${domain} domain`,
             isCurrent ? "current year" : "",
           ]
@@ -171,11 +171,8 @@ export function CycleChart({
                 "text-ink",
                 // Current year: gold edge, glow and corner dot. Selection is a separate outline.
                 isCurrent ? "lamp-current" : "lamp",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              ].join(" ")}
             >
-              {/* Cycle number */}
               <span
                 aria-hidden="true"
                 className="font-display text-[32px] leading-none tabular-nums"
@@ -183,7 +180,6 @@ export function CycleChart({
                 {cycleNumber}
               </span>
 
-              {/* Tier symbol */}
               <span
                 aria-hidden="true"
                 className={`text-base leading-none ${getTierTextClass(interp.tier)}`}
@@ -191,7 +187,6 @@ export function CycleChart({
                 {symbol}
               </span>
 
-              {/* Life area label */}
               <span
                 aria-hidden="true"
                 className="text-[9px] font-semibold uppercase tracking-wider text-center leading-tight w-full [overflow-wrap:anywhere] text-ink-light"
