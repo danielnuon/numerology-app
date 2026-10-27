@@ -261,7 +261,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders 12 pillars as a `grid-cols-6 md:grid-cols-12` grid. Each pillar is a `<motion.button>` with role="tab". Supports keyboard navigation (ArrowLeft/ArrowRight). Highlights the current year column with a gold border and dot. Renders `DetailPanel` when a pillar is selected. Shows total score summary with `interpretTotal()`.
-- **DetailPanel**: Displays years for the column, tier symbol, label, description, and italic guidance text. Animated via Framer Motion `AnimatePresence`.
+- **DetailPanel**: Displays years for the column, tier symbol, label, description, and italic guidance text. Acts as the chart's tab panel; content crossfades via React `<ViewTransition update="panel-swap">` when selection changes inside a transition.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
 ## Styling Architecture
@@ -316,7 +316,7 @@ A CSS pseudo-element (`::before`) on `.paper-texture` applies an inline SVG frac
 
 The app respects `prefers-reduced-motion` at two levels:
 - **CSS**: `@media (prefers-reduced-motion: reduce)` in `globals.css` disables `.animate-breathe`.
-- **JavaScript**: `BirthDataForm` uses `window.matchMedia("(prefers-reduced-motion: reduce)")` to conditionally skip its fadeIn animation. `CycleChart` uses Framer Motion's `useReducedMotion()` hook to disable pillar stagger animations.
+- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to centre the selected year without smooth scrolling. A global CSS rule collapses CSS animations, transitions, smooth scrolling and view transitions.
 
 ## Testing Conventions
 

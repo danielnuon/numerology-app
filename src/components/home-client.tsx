@@ -10,8 +10,9 @@
  * - "Not you?" resets to first-visit state (AC #6)
  */
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, startTransition } from "react";
 import { useSearchParams } from "next/navigation";
+import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
@@ -27,7 +28,8 @@ import {
   readStoredBirthDate,
   clearStoredBirthDate,
 } from "@/lib/storage";
-import { getActiveYear } from "@/lib/numerology/year-lookup";
+import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
+import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
 /** ID for the chart section — used by the widget's "View full cycle" scroll target. */
 const CHART_SECTION_ID = "cycle-chart-section";
@@ -36,14 +38,19 @@ export function HomeClient() {
   const [result, setResult] = useState<CycleResultWithYear | null>(null);
   const [showWidget, setShowWidget] = useState(false);
   
-  // Selection state for bidirectional sync between timeline and chart
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectionSource, setSelectionSource] = useState<"chart" | "timeline" | null>(null);
+  // One selected year shared by the chart and the timeline, so they always
+  // agree. null means "the active year" until the user picks something.
+  const [pickedYear, setPickedYear] = useState<number | null>(null);
+  const [selectionSource, setSelectionSource] = useState<"chart" | "timeline">("timeline");
   
   const resultRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   
   const currentYear = new Date().getFullYear();
+  const activeYear = result
+    ? getActiveYear(currentYear, result.birthData.gregorianMonth, result.birthDay)
+    : currentYear;
+  const selectedYear = pickedYear ?? activeYear;
 
   // Pre-fill initial values from URL search params (set by /r/[date] redirect)
   const prefillDay = searchParams.get("day");
@@ -99,10 +106,13 @@ export function HomeClient() {
   const handleResult = useCallback((r: CycleResultWithYear) => {
     setResult(r);
     setShowWidget(false);
+    setPickedYear(null);
+    setSelectionSource("timeline");
 
-    // Scroll to result card after React renders
+    // Scroll to result card after React renders. "auto" defers to the CSS
+    // scroll-behavior, which is smooth unless the user prefers reduced motion.
     requestAnimationFrame(() => {
-      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      resultRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
     });
   }, []);
 
@@ -111,33 +121,37 @@ export function HomeClient() {
     clearStoredBirthDate();
     setResult(null);
     setShowWidget(false);
-    setSelectedYear(null);
-    setSelectionSource(null);
+    setPickedYear(null);
+    setSelectionSource("timeline");
   }, []);
 
-  // Timeline year selection
-  const handleTimelineSelectYear = useCallback((year: number | null) => {
-    setSelectedYear(year);
-    setSelectionSource(year !== null ? "timeline" : null);
+  // Selection changes run as transitions so <ViewTransition> can animate
+  // the selection outline and detail panel between states.
+  const handleTimelineSelectYear = useCallback((year: number) => {
+    startTransition(() => {
+      setPickedYear(year);
+      setSelectionSource("timeline");
+    });
   }, []);
 
-  // Chart pillar selection - sync with timeline
-  const handleChartSelectPillar = useCallback((columnIndex: number | null) => {
-    if (columnIndex === null) {
-      setSelectedYear(null);
-      setSelectionSource(null);
-    } else {
-      // Find the most recent year at or before current year for this column
-      const year = currentYear - ((currentYear - result!.birthYear) % 12 - columnIndex + 12) % 12;
-      setSelectedYear(year);
+  // Picking a pillar stays within the 12-year cycle that is already selected,
+  // so moving between pillars never jumps the timeline to another decade.
+  const handleChartSelectPillar = useCallback((columnIndex: number) => {
+    if (!result) return;
+    const cycleStart = selectedYear - getCycleIndex(result.birthYear, selectedYear);
+    let year = cycleStart + columnIndex;
+    if (year > currentYear + TIMELINE_YEARS_AHEAD) year -= 12;
+    startTransition(() => {
+      setPickedYear(year);
       setSelectionSource("chart");
-    }
-  }, [currentYear, result]);
+    });
+  }, [currentYear, result, selectedYear]);
 
   // SSR default: show form. After hydration, widget may replace it if localStorage data exists.
   const showForm = !showWidget;
 
   return (
+    <MotionConfig reducedMotion="user">
     <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-8">
       <h1 className="text-5xl sm:text-6xl font-light tracking-[0.08em] text-ink text-center">
         Solini
@@ -166,7 +180,7 @@ export function HomeClient() {
 
         {/* Form card — shown for first-visit, after "Not you?", or when share URL params present */}
         {showForm && (
-          <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[0_1px_3px_rgba(44,36,23,0.08)]">
+          <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[var(--shadow-card)]">
             <p className="text-center text-ink-light text-sm tracking-[0.04em]">
               Enter your birth date to reveal your 12-year cycle
             </p>
@@ -182,7 +196,7 @@ export function HomeClient() {
             <div
               id={CHART_SECTION_ID}
               ref={resultRef}
-              className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]"
+              className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-6 sm:p-10 shadow-[var(--shadow-card)] scroll-mt-8"
             >
               <CycleChart
                 cycle={result.cycle}
@@ -190,18 +204,19 @@ export function HomeClient() {
                 birthYear={result.birthYear}
                 birthMonth={result.birthData.gregorianMonth}
                 birthDay={result.birthDay}
-                selectedYear={selectionSource === "timeline" ? selectedYear : undefined}
+                selectedYear={selectedYear}
+                showSingleYear={selectionSource === "timeline"}
                 onSelectPillar={handleChartSelectPillar}
               />
             </div>
 
             {/* Year Timeline Explorer */}
-            <div className="w-full max-w-[900px] mt-6">
+            <div className="w-full max-w-[900px] mt-6 scroll-settle">
               <YearTimeline
                 cycle={result.cycle}
                 birthYear={result.birthYear}
-                currentYear={getActiveYear(currentYear, result.birthData.gregorianMonth, result.birthDay)}
-                selectedYear={selectionSource === "chart" ? selectedYear : null}
+                currentYear={activeYear}
+                selectedYear={selectedYear}
                 onSelectYear={handleTimelineSelectYear}
               />
             </div>
@@ -209,5 +224,6 @@ export function HomeClient() {
         )}
       </ErrorBoundary>
     </main>
+    </MotionConfig>
   );
 }

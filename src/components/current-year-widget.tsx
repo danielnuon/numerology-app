@@ -51,13 +51,14 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
     e.preventDefault();
     const el = document.getElementById(chartSectionId);
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // "auto" defers to CSS scroll-behavior: smooth unless motion is reduced
+      el.scrollIntoView({ behavior: "auto", block: "start" });
     }
   }
 
   return (
     <div
-      className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]"
+      className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-10 shadow-[var(--shadow-card)]"
       role="region"
       aria-label="Your current year reading"
     >
@@ -104,14 +105,14 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
         <a
           href={`#${chartSectionId}`}
           onClick={handleViewFullCycle}
-          className="text-ink-light hover:text-gold underline underline-offset-4 transition-colors"
+          className="pressable inline-flex items-center min-h-[44px] px-2 -mx-2 rounded-sm text-ink-light hover:text-ink active:opacity-70 underline underline-offset-4"
         >
           View full cycle
         </a>
         <button
           type="button"
           onClick={onReset}
-          className="text-ink-light hover:text-ink underline underline-offset-4 transition-colors"
+          className="pressable inline-flex items-center min-h-[44px] px-2 -mx-2 rounded-sm text-ink-light hover:text-ink active:opacity-70 underline underline-offset-4"
         >
           Not you?
         </button>

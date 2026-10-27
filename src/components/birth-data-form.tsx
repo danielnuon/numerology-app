@@ -9,7 +9,7 @@
  * `onResult` callback.
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   deriveBirthData,
   validateBirthDate,
@@ -45,21 +45,17 @@ interface FieldErrors {
   date?: string;
 }
 
+/** Keeps only digits, so letters and signs never reach the field. */
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
 export function BirthDataForm({ onResult, initialValues }: Props) {
   const [day, setDay] = useState(initialValues?.day ?? "");
   const [month, setMonth] = useState(initialValues?.month ?? "");
   const [year, setYear] = useState(initialValues?.year ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
 
   // Parse current field values as numbers (NaN if empty/invalid)
   const dayNum = parseInt(day, 10);
@@ -152,29 +148,31 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
           </label>
           <input
             id="birth-day"
-            type="number"
+            type="text"
             inputMode="numeric"
-            min={1}
-            max={31}
+            pattern="[0-9]*"
+            autoComplete="off"
+            maxLength={2}
             placeholder="DD"
             value={day}
             onChange={(e) => {
-              setDay(e.target.value);
-              revalidate(e.target.value, month, year);
+              const digits = digitsOnly(e.target.value);
+              setDay(digits);
+              revalidate(digits, month, year);
             }}
             aria-invalid={!!errors.day}
             aria-describedby={errors.day ? "error-day" : undefined}
             className={[
               "bg-transparent border-0 border-b pb-2 outline-none w-full",
               "text-ink text-lg font-serif placeholder:text-ink-faint",
-              "focus:border-gold transition-colors min-h-[44px]",
+              "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
               errors.day
-                ? "border-[#A0522D]"
+                ? "border-tier-weak"
                 : "border-border",
             ].join(" ")}
           />
           {errors.day && (
-            <p id="error-day" role="alert" className="mt-1 text-xs text-[#A0522D]">
+            <p id="error-day" role="alert" className="mt-1 text-xs text-tier-weak">
               {errors.day}
             </p>
           )}
@@ -190,29 +188,31 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
           </label>
           <input
             id="birth-month"
-            type="number"
+            type="text"
             inputMode="numeric"
-            min={1}
-            max={12}
+            pattern="[0-9]*"
+            autoComplete="off"
+            maxLength={2}
             placeholder="MM"
             value={month}
             onChange={(e) => {
-              setMonth(e.target.value);
-              revalidate(day, e.target.value, year);
+              const digits = digitsOnly(e.target.value);
+              setMonth(digits);
+              revalidate(day, digits, year);
             }}
             aria-invalid={!!errors.month}
             aria-describedby={errors.month ? "error-month" : undefined}
             className={[
               "bg-transparent border-0 border-b pb-2 outline-none w-full",
               "text-ink text-lg font-serif placeholder:text-ink-faint",
-              "focus:border-gold transition-colors min-h-[44px]",
+              "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
               errors.month
-                ? "border-[#A0522D]"
+                ? "border-tier-weak"
                 : "border-border",
             ].join(" ")}
           />
           {errors.month && (
-            <p id="error-month" role="alert" className="mt-1 text-xs text-[#A0522D]">
+            <p id="error-month" role="alert" className="mt-1 text-xs text-tier-weak">
               {errors.month}
             </p>
           )}
@@ -228,29 +228,31 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
           </label>
           <input
             id="birth-year"
-            type="number"
+            type="text"
             inputMode="numeric"
-            min={BIRTH_YEAR_MIN}
-            max={BIRTH_YEAR_MAX}
+            pattern="[0-9]*"
+            autoComplete="off"
+            maxLength={4}
             placeholder="YYYY"
             value={year}
             onChange={(e) => {
-              setYear(e.target.value);
-              revalidate(day, month, e.target.value);
+              const digits = digitsOnly(e.target.value);
+              setYear(digits);
+              revalidate(day, month, digits);
             }}
             aria-invalid={!!errors.year}
             aria-describedby={errors.year ? "error-year" : undefined}
             className={[
               "bg-transparent border-0 border-b pb-2 outline-none w-full",
               "text-ink text-lg font-serif placeholder:text-ink-faint",
-              "focus:border-gold transition-colors min-h-[44px]",
+              "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
               errors.year
-                ? "border-[#A0522D]"
+                ? "border-tier-weak"
                 : "border-border",
             ].join(" ")}
           />
           {errors.year && (
-            <p id="error-year" role="alert" className="mt-1 text-xs text-[#A0522D]">
+            <p id="error-year" role="alert" className="mt-1 text-xs text-tier-weak">
               {errors.year}
             </p>
           )}
@@ -259,7 +261,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
 
       {/* General date error (e.g. future date, invalid calendar date) */}
       {errors.date && (
-        <p role="alert" className="mt-2 text-xs text-[#A0522D]">
+        <p role="alert" className="mt-2 text-xs text-tier-weak">
           {errors.date}
         </p>
       )}
@@ -268,21 +270,16 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
       {derived && (
         <div
           aria-live="polite"
-          className={[
-            "mt-6 flex flex-wrap gap-6",
-            prefersReducedMotion ? "" : "animate-[fadeIn_0.3s_ease-in]",
-          ].join(" ")}
-          style={prefersReducedMotion ? undefined : { animation: "fadeIn 0.3s ease-in" }}
+          className="mt-6 flex flex-wrap gap-6 animate-settle-in"
         >
-          {!prefersReducedMotion && <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>}
           <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.08em] text-ink-faint">
+            <span className="text-xs uppercase tracking-[0.08em] text-ink-light">
               Zodiac
             </span>
             <span className="text-ink mt-1">{derived.zodiacAnimal}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.08em] text-ink-faint">
+            <span className="text-xs uppercase tracking-[0.08em] text-ink-light">
               Day of week
             </span>
             <span className="text-ink mt-1">
@@ -301,7 +298,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
             "py-3 px-6 min-h-[44px]",
             "text-sm uppercase tracking-[0.08em]",
             "bg-transparent hover:bg-ink hover:text-manuscript",
-            "transition-colors duration-200",
+            "pressable active:scale-[0.98] active:bg-ink active:text-manuscript",
           ].join(" ")}
         >
           Reveal My Cycle
