@@ -135,7 +135,7 @@ export function YearTimeline({
           const isCycleBoundary = year > birthYear && (year - birthYear) % 12 === 0;
 
           return (
-            <div key={year} className="relative flex flex-col items-center snap-align-center">
+            <div key={year} className="relative flex flex-col items-center snap-center">
               {/* Cycle boundary tick mark */}
               {isCycleBoundary && (
                 <div
