@@ -236,7 +236,7 @@ export function HomeClient() {
             <div
               id={CHART_SECTION_ID}
               ref={resultRef}
-              className="rise glass w-full max-w-[900px] rounded-2xl p-4 sm:p-8 lg:p-10 scroll-mt-8"
+              className="rise glass w-full max-w-[900px] xl:max-w-[1200px] rounded-2xl p-3 min-[360px]:p-4 sm:p-8 lg:p-10 scroll-mt-8"
             >
               <CycleChart
                 cycle={result.cycle}
@@ -251,7 +251,7 @@ export function HomeClient() {
             </div>
 
             {/* Year Timeline Explorer */}
-            <div className="w-full max-w-[900px] mt-6 scroll-settle">
+            <div className="w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle">
               <YearTimeline
                 cycle={result.cycle}
                 birthYear={result.birthYear}
