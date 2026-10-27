@@ -10,18 +10,13 @@
  */
 
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { getCycleIndex, getLifeArea, getYearNumber } from "@/lib/numerology/year-lookup";
-
-/** Tier symbol mapping — matches the cycle chart's pillar symbols. */
-const TIER_SYMBOLS: Record<string, string> = {
-  "very-strong": "●",
-  strong: "◕",
-  moderate: "◑",
-  weak: "◔",
-  zero: "⊙",
-};
-
-import { getActiveYear } from "@/lib/numerology/year-lookup";
+import { getTierSymbol } from "@/lib/numerology/chart-helpers";
+import {
+  getActiveYear,
+  getCycleIndex,
+  getLifeArea,
+  getYearNumber,
+} from "@/lib/numerology/year-lookup";
 
 interface Props {
   /** The computed 12-number cycle array. */
@@ -45,7 +40,7 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
   const cycleIndex = getCycleIndex(birthYear, activeYear);
   const lifeArea = getLifeArea(cycleIndex + 1); // getLifeArea is 1-indexed
   const interpretation = interpretYear(cycleNumber);
-  const tierSymbol = TIER_SYMBOLS[interpretation.tier] ?? "◑";
+  const tierSymbol = getTierSymbol(interpretation.tier);
 
   function handleViewFullCycle(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();

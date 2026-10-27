@@ -15,9 +15,8 @@ import {
   validateBirthDate,
   computeCycleFromBirthDate,
   type CycleResultWithYear,
-  BIRTH_YEAR_MIN,
-  BIRTH_YEAR_MAX,
 } from "@/lib/numerology/derive";
+import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { saveBirthDate } from "@/lib/storage";
 
 const WEEKDAY_NAMES = [
@@ -62,34 +61,18 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
   const monthNum = parseInt(month, 10);
   const yearNum = parseInt(year, 10);
 
-  // Auto-derive zodiac and weekday once all three fields look valid
+  // Preview the zodiac and weekday as soon as the three fields form a real
+  // date, before submission. Future dates still preview; they are rejected
+  // on submit with a message.
   const derived = useMemo(() => {
-    if (
-      !Number.isInteger(dayNum) ||
-      !Number.isInteger(monthNum) ||
-      !Number.isInteger(yearNum) ||
-      dayNum < 1 || dayNum > 31 ||
-      monthNum < 1 || monthNum > 12 ||
-      yearNum < BIRTH_YEAR_MIN || yearNum > BIRTH_YEAR_MAX
-    ) {
+    const partsInRange =
+      isSupportedYear(yearNum) &&
+      Number.isInteger(monthNum) && monthNum >= 1 && monthNum <= 12 &&
+      Number.isInteger(dayNum) && dayNum >= 1 && dayNum <= 31;
+    if (!partsInRange || !isRealCalendarDate(yearNum, monthNum, dayNum)) {
       return null;
     }
-
-    // Quick calendar check before deriving
-    const date = new Date(yearNum, monthNum - 1, dayNum);
-    if (
-      date.getFullYear() !== yearNum ||
-      date.getMonth() !== monthNum - 1 ||
-      date.getDate() !== dayNum
-    ) {
-      return null;
-    }
-
-    try {
-      return deriveBirthData(yearNum, monthNum, dayNum);
-    } catch {
-      return null;
-    }
+    return deriveBirthData(yearNum, monthNum, dayNum);
   }, [dayNum, monthNum, yearNum]);
 
   function handleSubmit(e: React.FormEvent) {
