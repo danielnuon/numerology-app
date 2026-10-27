@@ -7,11 +7,17 @@
  */
 
 import { computeCycle, type CycleResult, type Weekday } from "./calculate";
+import {
+  isRealCalendarDate,
+  isSupportedYear,
+  SUPPORTED_YEAR_MAX,
+  SUPPORTED_YEAR_MIN,
+} from "./calendar";
 import { getZodiacAnimal, getZodiacNumber, type ZodiacAnimal } from "./zodiac";
 
 /** The year range supported by the CNY lookup table. */
-export const BIRTH_YEAR_MIN = 1900;
-export const BIRTH_YEAR_MAX = 2100;
+export const BIRTH_YEAR_MIN = SUPPORTED_YEAR_MIN;
+export const BIRTH_YEAR_MAX = SUPPORTED_YEAR_MAX;
 
 /** All data derived from a birth date. */
 export interface BirthData {
@@ -48,7 +54,7 @@ export function validateBirthDate(
 ): BirthDateValidationError[] {
   const errors: BirthDateValidationError[] = [];
 
-  if (!Number.isInteger(year) || year < BIRTH_YEAR_MIN || year > BIRTH_YEAR_MAX) {
+  if (!isSupportedYear(year)) {
     errors.push({
       field: "year",
       message: `Year must be between ${BIRTH_YEAR_MIN} and ${BIRTH_YEAR_MAX}.`,
@@ -63,24 +69,20 @@ export function validateBirthDate(
     errors.push({ field: "day", message: "Day must be between 1 and 31." });
   }
 
-  // Only check calendar validity and future date if year/month/day passed basic range checks
+  // Calendar and future-date checks only make sense once each part is in range.
   if (errors.length === 0) {
-    const date = new Date(year, month - 1, day);
-    // Detect overflow: new Date(2000, 1, 30) overflows to March, so getMonth() !== month-1
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
+    if (!isRealCalendarDate(year, month, day)) {
       errors.push({ field: "date", message: "Invalid date for the given month." });
     } else {
       const today = todayOverride ?? new Date();
-      const todayNoon = new Date(
+      const startOfToday = new Date(
         today.getFullYear(),
         today.getMonth(),
         today.getDate()
       );
-      if (date > todayNoon) {
+      // Compare against midnight so a birth date of today is accepted
+      // regardless of the current time of day.
+      if (new Date(year, month - 1, day) > startOfToday) {
         errors.push({ field: "date", message: "Birth date cannot be in the future." });
       }
     }
@@ -104,7 +106,7 @@ export function validateBirthDate(
 export function deriveBirthData(year: number, month: number, day: number): BirthData {
   const date = new Date(year, month - 1, day);
 
-  // JS getDay(): 0=Sun, 1=Mon...6=Sat → Weekday type: 1=Sun, 2=Mon...7=Sat
+  // JS getDay() is 0-based (0=Sun); the Khmer weekday numbering is 1-based (1=Sun).
   const weekday = (date.getDay() + 1) as Weekday;
 
   const zodiacNumber = getZodiacNumber(date);
@@ -118,7 +120,10 @@ export function deriveBirthData(year: number, month: number, day: number): Birth
   };
 }
 
-/** Extended cycle result that also carries the birth year for year-lookup queries. */
+/**
+ * Cycle result plus the birth date it came from. Year lookups need the birth
+ * year as the cycle's anchor, and birthday timing needs the month and day.
+ */
 export interface CycleResultWithYear extends CycleResult {
   birthYear: number;
   birthDay: number;

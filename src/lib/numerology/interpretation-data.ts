@@ -6,10 +6,16 @@
  * constants, enabling future i18n by swapping this module.
  */
 
+/** Luck tier for a single year. Also used as a CSS token suffix (bg-tier-*). */
+export type YearTier = "zero" | "weak" | "moderate" | "strong" | "very-strong";
+
+/** Luck tier for the whole 12-year cycle's total score. */
+export type TotalTier = "weak" | "moderate" | "strong";
+
 /** A single year-cycle interpretation tier. */
 export interface YearTierEntry {
   /** CSS-friendly tier identifier */
-  tier: string;
+  tier: YearTier;
   /** Human-readable tier label */
   label: string;
   /** Longer description of the tier */
@@ -25,7 +31,7 @@ export interface YearTierEntry {
 /** A single total-score interpretation tier. */
 export interface TotalTierEntry {
   /** CSS-friendly tier identifier */
-  tier: string;
+  tier: TotalTier;
   /** Human-readable tier label */
   label: string;
   /** Longer description of the tier */
