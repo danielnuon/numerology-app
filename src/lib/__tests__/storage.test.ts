@@ -25,7 +25,7 @@ const localStorageMock = (() => {
     get length() {
       return Object.keys(store).length;
     },
-    key: jest.fn((_index: number) => null),
+    key: jest.fn((): string | null => null),
   };
 })();
 
