@@ -36,10 +36,11 @@ export class ErrorBoundary extends Component<
       return (
         <div className="max-w-[480px] w-full mx-auto glass rounded-2xl p-8 sm:p-12 text-center">
           <p className="font-display text-2xl tracking-[0.04em] text-ink mb-4">
-            Something went wrong
+            This reading didn&apos;t load
           </p>
           <p className="text-ink-light text-sm mb-6">
-            An unexpected error occurred while calculating your reading.
+            Something went wrong on our side. Try again, or re-enter the
+            birth date.
           </p>
           <button
             onClick={this.handleReset}
