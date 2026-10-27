@@ -81,10 +81,11 @@ The design should feel like a digitized sacred text — not a theme park replica
 | Surface | `#FFFDF7` | Cards, panels — lighter manuscript page |
 | Surface Alt | `#EDE7DB` | Subtle section separation, alternate rows |
 | Text Primary | `#2C2417` | Body text — dark sepia ink, not pure black |
-| Text Secondary | `#7A6F5F` | Labels, captions — faded ink |
-| Text Tertiary | `#A89F8F` | Placeholder text, disabled states |
-| Accent Gold | `#B8860B` | Sacred highlights — current year, totals, headings (use sparingly) |
-| Accent Gold Light | `#D4A843` | Hover states, subtle gold touches |
+| Text Secondary | `#6F6454` | Labels, captions — faded ink (5.1:1 on parchment) |
+| Text Tertiary | `#857B6B` | Placeholders and decoration only — never text people must read (3.7:1) |
+| Accent Gold | `#B8860B` | Decorative gold only — diamonds, tier symbols (2.9:1, too low to carry meaning) |
+| Accent Gold Deep | `#86620A` | Gold that carries meaning — focus ring, current year, gold text (4.9:1) |
+| Accent Gold Light | `#D4A843` | Gold on the dark zero-year surface (4.55:1) |
 | Border | `#D5CBBA` | Dividers — like ruled lines on palm leaf |
 | Border Light | `#E8E0D2` | Subtle separators, card borders |
 
@@ -174,17 +175,18 @@ Never for buttons, links, or large surfaces. Gold is sacred — overuse cheapens
 Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 ```
 
-**Current year pillar:** Gold border (`#B8860B`), subtle gold glow shadow, slightly elevated (2px translateY or box-shadow).
+**Current year pillar:** 2px gold-deep border and a gold-deep corner dot. Not raised: raising reads as pressed or selected.
 
 **States:**
 | State | Description |
 |-------|-------------|
 | Default | Pillar with tinted background, number, tier symbol, area label |
-| Hover | Pillar lifts slightly (translateY -2px), border intensifies, cursor pointer |
-| Selected | Gold border, expanded detail panel slides in below |
-| Zero | Pillar background is charcoal (`#4A4039`), number rendered in light text, subtle pulse animation (breathing) |
+| Hover | Pillar lifts 2px with a raised shadow (mouse only), cursor pointer |
+| Pressed | Settles back and scales to 0.97 on a no-bounce spring |
+| Selected | 2px ink outline that glides between pillars (view transition); detail panel content crossfades |
+| Zero | Pillar background is charcoal (`#4A4039`), number rendered in light text. No looping animation |
 
-**Interaction:** Click/tap a pillar to expand the year detail panel beneath the chart. The panel slides down with a gentle ease-out animation (300ms). Only one pillar can be selected at a time.
+**Interaction:** Pillars behave like tabs. One is always selected (the current year on load), tapping the selected pillar again does nothing, and the detail panel beneath is its tab panel.
 
 **Mobile (< 768px):** Two rows of 6 pillars, or a horizontally scrollable single row with snap points.
 
@@ -192,9 +194,10 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 - Each pillar is a `<button>` with `role="tab"` in a `tablist`
 - `aria-label`: "Year 2024, cycle number 8, strong luck, Health domain"
 - Keyboard: arrow keys navigate between pillars, Enter/Space selects
-- Focus ring: 2px gold outline with 2px offset
+- One Tab stop for the group (roving tabindex); arrows move focus and selection together, Home/End jump to the ends
+- Focus ring: 2px gold-deep outline with 2px offset
 
-**Implementation hint:** CSS Grid for the 12-column layout. Each pillar is a flex-column. Tier colors via CSS custom properties. Animation via Framer Motion `layout` prop or CSS transitions.
+**Implementation hint:** CSS Grid for the 12-column layout. Each pillar is a flex-column. Tier colors via CSS custom properties. Selection outline glides via React `<ViewTransition>`; entrance stagger via Motion; hover/press via CSS transitions.
 
 ### Birth Data Form
 **Type:** Centered parchment card
@@ -224,7 +227,7 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 
 **Input styling:** Underline-only input (no box border). Text appears to be written onto the page. On focus, the underline transitions to gold. Placeholder text in `#A89F8F`.
 
-**Button:** Outlined (not filled). Border in `#2C2417`, text in `#2C2417`, uppercase, 0.08em letter-spacing. On hover, fills with `#2C2417` and text turns `#FFFDF7`. Transition: 200ms ease. The button should feel like pressing a seal, not clicking a web button.
+**Button:** Outlined (not filled). Border in `#2C2417`, text in `#2C2417`, uppercase, 0.08em letter-spacing. On hover (mouse only), fills with `#2C2417` and text turns `#FFFDF7`; pressed scales to 0.98. Transition: `--duration-quick` with `--ease-standard`. The button should feel like pressing a seal, not clicking a web button.
 
 **Card:** `#FFFDF7` background, `1px` border `#D5CBBA`, subtle `box-shadow: 0 1px 3px rgba(44, 36, 23, 0.08)`. Max-width: 480px.
 
@@ -307,7 +310,7 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 1. User types or selects birth date → zodiac and weekday auto-derive and fade in below
 2. User clicks "Reveal My Cycle" → button text fades, a subtle ripple expands from the button
 3. The form card gently fades back (opacity 0.6) and the cycle chart section fades in below
-4. Cycle pillars animate in one by one, left to right, with 80ms stagger — each pillar rises from below (translateY 20px → 0) and fades in
+4. Cycle pillars animate in one by one, left to right, with 40ms stagger — each pillar rises 8px and fades in (400ms, `--ease-enter`)
 5. After all 12 pillars render, the current year pillar glows gold (border + shadow animate in)
 6. The total score fades in below the chart: "Your life pattern: Balanced (64)"
 
@@ -320,7 +323,7 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 **Steps:**
 1. Previously selected pillar loses gold border (200ms fade)
 2. Newly selected pillar gains gold border (200ms fade) and lifts 2px
-3. Detail panel below slides down (300ms ease-out) with new content
+3. Detail panel content crossfades (old fades out in 150ms, new settles in over 250ms)
 4. If timeline is visible, the corresponding year dot scrolls into view
 
 ### Timeline Scrubbing
@@ -330,6 +333,31 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 2. Corresponding cycle pillar gains selection state
 3. Detail panel updates
 4. 12-year cycle boundaries shown with subtle vertical tick marks
+
+---
+
+## Motion and Interaction Tokens
+
+Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves are Material 3's; Apple publishes no numeric curves, and these sit close to its no-overshoot springs.
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--duration-press` | 100ms | Pressed feedback |
+| `--duration-quick` | 150ms | Hover, focus, color changes |
+| `--duration-standard` | 250ms | Selection change, panel content swap |
+| `--duration-gentle` | 400ms | Entrances (cycle reveal) |
+| `--ease-enter` | `cubic-bezier(0.05, 0.7, 0.1, 1)` | Things arriving |
+| `--ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Things changing in place |
+| `--ease-exit` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | Things leaving |
+| `--shadow-card` / `--shadow-raised` | see globals.css | Resting card / hovered pillar |
+
+**Rules**
+- Looks interactive if and only if it is: every control has a pointer cursor, hover (mouse only), a gold-deep focus ring and a pressed state. Static cards have none of these.
+- One meaning per visual: gold-deep = now, ink outline = selected, focus ring = keyboard.
+- Motion explains a change; nothing loops. Movement stays at 8px or less.
+- Selection changes run inside `startTransition`, so React `<ViewTransition>` animates the selection outline (shared element) and panel crossfade natively.
+- Sections marked `.scroll-settle` settle in on scroll via CSS scroll-driven animation where supported; elsewhere they simply appear.
+- Reduce Motion: nothing moves or scales; changes are instant.
 
 ---
 
@@ -354,7 +382,7 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 | Components | shadcn/ui (modified) | Accessible primitives, easy to reskin with the manuscript aesthetic |
 | Styling | Tailwind CSS | Utility-first pairs well with design tokens; easy to enforce spacing scale |
 | Fonts | Google Fonts: Cormorant Garamond + Noto Serif Khmer | Free, high-quality, variable weight support |
-| Animation | Framer Motion | Layout animations for pillar selection, stagger for cycle reveal, gesture support for timeline |
+| Animation | Motion (`motion/react`) + React `<ViewTransition>` + CSS | Stagger for cycle reveal and press springs (Motion); selection glide and panel crossfade (native view transitions); hover and scroll-driven reveals (CSS) |
 | Icons | Lucide (minimal usage) | Only for UI chrome (language toggle, share button). Cultural symbols should be Unicode/SVG, not icon library. |
 | Charts | Custom SVG/CSS (no chart library) | The cycle chart is too bespoke for Recharts/D3. CSS Grid + styled divs is simpler and more controllable. |
 
@@ -362,11 +390,11 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 - **Paper texture:** CSS `background-image` with inline SVG noise pattern at low opacity, or a single small PNG texture repeated. Keep file size under 5KB.
 - **Gold glow:** `box-shadow: 0 0 12px rgba(184, 134, 11, 0.25)` — subtle, never garish.
 - **Pillar grid:** `display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px;` — simple and responsive.
-- **Stagger animation:** Framer Motion `variants` with `staggerChildren: 0.08` on the parent.
+- **Stagger animation:** Motion (`motion/react`) `variants` with `staggerChildren: 0.04` on the parent.
 - **Underline inputs:** `border: none; border-bottom: 1px solid #D5CBBA; background: transparent;` with `focus:border-color: #B8860B` transition.
 - **Scroll snap timeline:** `overflow-x: auto; scroll-snap-type: x mandatory;` with each year dot as `scroll-snap-align: center`.
 - **Dark inversion for zero state:** CSS class toggle that swaps `background` and `color` on the detail panel. Use CSS transitions, not conditional rendering.
-- **prefers-reduced-motion:** Wrap all Framer Motion animations in a check. Provide instant state changes as fallback.
+- **prefers-reduced-motion:** `<MotionConfig reducedMotion="user">` at the root, plus one global CSS rule that collapses animations, transitions, smooth scrolling and view transitions.
 
 ### Tailwind Config Extensions
 ```js
@@ -395,10 +423,10 @@ fontFamily: {
 ### Accessibility Checklist
 - [ ] All tier colors pass WCAG AA against parchment background (verify `#5B7744`, `#7A9B6B`, `#A0522D` on `#F5F0E8`)
 - [ ] Ink text (`#2C2417`) on parchment (`#F5F0E8`): contrast ratio ~11:1 (passes AAA)
-- [ ] Gold accent (`#B8860B`) on parchment: contrast ratio ~4.8:1 (passes AA for large text only — use for headings/decorative, not body)
+- [x] Gold accent (`#B8860B`) on parchment is 2.87:1, so it is decorative only; meaning uses gold-deep `#86620A` (4.92:1)
 - [ ] Gold text on charcoal (`#4A4039`): verify contrast for zero-state panel
 - [ ] Every tier has a non-color symbol (●, ◕, ◑, ◔, ⊙)
-- [ ] Focus ring: 2px solid gold with 2px offset — visible on both light and dark surfaces
+- [x] Focus ring: 2px solid gold-deep with 2px offset (4.9:1 on parchment)
 - [ ] All animations respect `prefers-reduced-motion`
 - [ ] Cycle pillars keyboard navigable as tablist
 - [ ] Timeline scrollable via keyboard (arrow keys)

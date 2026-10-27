@@ -149,22 +149,23 @@ describe("getYearsForColumn", () => {
 // ---------------------------------------------------------------------------
 
 describe("getCurrentYearColumn", () => {
+  // Born 1 January: the birthday has always passed, so the active year is the calendar year.
   it("birthYear=1997, currentYear=2026 → column 5", () => {
     // (2026 - 1997) % 12 = 29 % 12 = 5
-    expect(getCurrentYearColumn(1997, 2026)).toBe(5);
+    expect(getCurrentYearColumn(1997, 2026, 1, 1)).toBe(5);
   });
 
   it("returns 0 when currentYear equals birthYear", () => {
-    expect(getCurrentYearColumn(2000, 2000)).toBe(0);
+    expect(getCurrentYearColumn(2000, 2000, 1, 1)).toBe(0);
   });
 
   it("returns 0 when currentYear is exactly 12 years after birthYear", () => {
-    expect(getCurrentYearColumn(2000, 2012)).toBe(0);
+    expect(getCurrentYearColumn(2000, 2012, 1, 1)).toBe(0);
   });
 
   it("returns a value between 0 and 11 inclusive", () => {
     for (let offset = 0; offset < 24; offset++) {
-      const col = getCurrentYearColumn(2000, 2000 + offset);
+      const col = getCurrentYearColumn(2000, 2000 + offset, 1, 1);
       expect(col).toBeGreaterThanOrEqual(0);
       expect(col).toBeLessThanOrEqual(11);
     }
@@ -172,6 +173,6 @@ describe("getCurrentYearColumn", () => {
 
   it("handles a person born before current year with correct wrap", () => {
     // birthYear=1990, currentYear=2025 → (2025-1990) % 12 = 35 % 12 = 11
-    expect(getCurrentYearColumn(1990, 2025)).toBe(11);
+    expect(getCurrentYearColumn(1990, 2025, 1, 1)).toBe(11);
   });
 });

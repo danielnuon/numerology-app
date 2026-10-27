@@ -69,7 +69,7 @@ export function getYearsForColumn(
   const diff = currentYear - birthYear;
   const remainder = ((diff % 12) + 12) % 12;
   // How many steps back from currentYear to reach this column?
-  let stepsBack = ((remainder - columnIndex) % 12 + 12) % 12;
+  const stepsBack = ((remainder - columnIndex) % 12 + 12) % 12;
   const mostRecentPast = currentYear - stepsBack;
 
   const years: number[] = [mostRecentPast, mostRecentPast + 12, mostRecentPast + 24];
