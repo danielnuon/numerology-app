@@ -14,6 +14,7 @@ import { interpretYear } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import {
   getTierSymbol,
+  getTierTextClass,
   getYearsForColumn,
 } from "@/lib/numerology/chart-helpers";
 
@@ -59,22 +60,18 @@ export function DetailPanel({
     <ViewTransition update="panel-swap" default="none">
       <div
         id={id}
+        data-tier={interp.tier}
         role="tabpanel"
         aria-labelledby={labelledBy}
         className={[
-          "mt-4 rounded-sm border border-border p-5 paper-texture",
-          isZero
-            ? "bg-tier-zero text-parchment"
-            : "bg-manuscript text-ink",
+          "lamp-panel mt-4 rounded-xl border border-border p-5 text-ink",
+          isZero ? "bg-tier-zero/70" : "bg-parchment/40",
         ].join(" ")}
       >
         {/* Header row: domain + years */}
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-3">
           <span
-            className={[
-              "text-xs font-semibold uppercase tracking-widest",
-              isZero ? "text-parchment/80" : "text-ink-light",
-            ].join(" ")}
+            className="text-xs font-semibold uppercase tracking-widest text-ink-light"
             style={{ fontVariant: "small-caps" }}
           >
             {selectedYear !== undefined && selectedYear !== null 
@@ -82,22 +79,9 @@ export function DetailPanel({
               : domain}
           </span>
           {selectedYear === undefined || selectedYear === null ? (
-            <span
-              className={[
-                "text-sm",
-                isZero ? "text-parchment/75" : "text-ink-light",
-              ].join(" ")}
-            >
-              {years.join(" · ")}
-            </span>
+            <span className="text-sm text-ink-light">{years.join(" · ")}</span>
           ) : (
-            <span
-              className={[
-                "text-sm",
-                isZero ? "text-parchment/75" : "text-ink-light",
-              ].join(" ")}
-              style={{ fontVariant: "small-caps" }}
-            >
+            <span className="text-sm text-ink-light" style={{ fontVariant: "small-caps" }}>
               {domain}
             </span>
           )}
@@ -107,52 +91,23 @@ export function DetailPanel({
         <div className="flex items-center gap-3 mb-3">
           <span
             aria-hidden="true"
-            className={[
-              "text-2xl leading-none",
-              isZero ? "text-parchment/80" : "text-gold",
-            ].join(" ")}
+            className={`text-2xl leading-none ${getTierTextClass(interp.tier)}`}
           >
             {symbol}
           </span>
           <div>
-            <p
-              className={[
-                "text-base font-semibold leading-tight",
-                isZero ? "text-parchment" : "text-ink",
-              ].join(" ")}
-            >
+            <p className="font-display text-lg leading-tight tracking-[0.03em] text-ink">
               {interp.label}
             </p>
-            <p
-              className={[
-                "text-sm",
-                isZero ? "text-parchment/80" : "text-ink-light",
-              ].join(" ")}
-            >
-              Cycle number {cycleNumber}
-            </p>
+            <p className="text-sm text-ink-light">Cycle number {cycleNumber}</p>
           </div>
         </div>
 
         {/* Description */}
-        <p
-          className={[
-            "text-sm mb-3",
-            isZero ? "text-parchment/80" : "text-ink-light",
-          ].join(" ")}
-        >
-          {interp.description}
-        </p>
+        <p className="text-sm mb-3 text-ink-light">{interp.description}</p>
 
         {/* Guidance (italic) */}
-        <p
-          className={[
-            "text-sm italic border-l-2 pl-3",
-            isZero
-              ? "border-parchment/40 text-parchment/80"
-              : "border-gold/40 text-ink-light",
-          ].join(" ")}
-        >
+        <p className="text-sm italic border-l-2 pl-3 border-gold/40 text-ink-light">
           {interp.guidance}
         </p>
       </div>

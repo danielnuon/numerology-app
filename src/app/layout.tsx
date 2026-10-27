@@ -1,5 +1,11 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, Noto_Serif_Khmer } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import {
+  Cormorant_Garamond,
+  Hanken_Grotesk,
+  Marcellus,
+  Noto_Serif_Khmer,
+} from "next/font/google";
+import { LanternSky } from "@/components/lantern-sky";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -9,12 +15,31 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+const marcellus = Marcellus({
+  variable: "--font-marcellus",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
 const notoSerifKhmer = Noto_Serif_Khmer({
   variable: "--font-noto-serif-khmer",
   subsets: ["khmer"],
   weight: ["400", "600"],
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#17131C",
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -47,10 +72,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${notoSerifKhmer.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${marcellus.variable} ${hanken.variable} ${notoSerifKhmer.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col paper-texture">
-        {children}
+      <body className="min-h-full flex flex-col">
+        <LanternSky />
+        <div className="relative z-[1] flex flex-1 flex-col">{children}</div>
       </body>
     </html>
   );

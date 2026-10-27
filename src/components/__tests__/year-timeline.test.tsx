@@ -93,7 +93,7 @@ describe("YearTimeline", () => {
     const currentYearOption = screen.getByRole("option", { name: new RegExp(`Year ${currentYear}`) });
     expect(currentYearOption).toHaveAttribute("aria-selected", "false");
     expect(currentYearOption).toHaveAccessibleName(expect.stringContaining("current year"));
-    expect(currentYearOption.innerHTML).toContain("ring-gold-deep");
+    expect(currentYearOption.innerHTML).toContain("outline-gold-deep");
   });
 
   it("marks the selected year as selected", () => {
@@ -218,12 +218,9 @@ describe("YearTimeline", () => {
     expect(onSelectYear).toHaveBeenCalledWith(endYear);
   });
 
-  it("renders gradient fade indicators on both edges", () => {
+  it("fades the scrolling years out at both edges", () => {
     render(<YearTimeline {...defaultProps} />);
-    // The gradient fade divs have pointer-events-none and aria-hidden
-    // Plus the thread of fate connecting line also has pointer-events-none and aria-hidden
-    const fades = document.querySelectorAll('[aria-hidden="true"][class*="pointer-events-none"]');
-    expect(fades.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByRole("listbox")).toHaveClass("timeline-fade");
   });
 
   it("renders year labels below dots", () => {

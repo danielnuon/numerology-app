@@ -1,6 +1,7 @@
 import {
   getTierSymbol,
   getTierColorClass,
+  getTierTextClass,
   getYearsForColumn,
   getCurrentYearColumn,
 } from "../chart-helpers";
@@ -64,6 +65,24 @@ describe("getTierColorClass", () => {
 
   it("returns bg-tier-zero as fallback for unknown tier", () => {
     expect(getTierColorClass("unknown")).toBe("bg-tier-zero");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTierTextClass
+// ---------------------------------------------------------------------------
+
+describe("getTierTextClass", () => {
+  it("gives each lit tier the text colour of its light", () => {
+    expect(getTierTextClass("very-strong")).toBe("text-tier-very-strong");
+    expect(getTierTextClass("strong")).toBe("text-tier-strong");
+    expect(getTierTextClass("moderate")).toBe("text-tier-moderate");
+    expect(getTierTextClass("weak")).toBe("text-tier-weak");
+  });
+
+  it("keeps zero faint, and falls back to it for unknown tiers", () => {
+    expect(getTierTextClass("zero")).toBe("text-ink-faint");
+    expect(getTierTextClass("unknown")).toBe("text-ink-faint");
   });
 });
 

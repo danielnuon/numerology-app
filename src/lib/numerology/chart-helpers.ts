@@ -35,6 +35,18 @@ const TIER_BACKGROUNDS: Record<YearTier, string> = {
   zero: "bg-tier-zero",
 };
 
+/**
+ * Tailwind text classes for tier symbols: each takes the colour of its
+ * tier's lantern light. Zero is unlit, so its symbol stays faint.
+ */
+const TIER_TEXT_COLORS: Record<YearTier, string> = {
+  "very-strong": "text-tier-very-strong",
+  strong: "text-tier-strong",
+  moderate: "text-tier-moderate",
+  weak: "text-tier-weak",
+  zero: "text-ink-faint",
+};
+
 function isYearTier(tier: string): tier is YearTier {
   return tier in TIER_SYMBOLS;
 }
@@ -47,6 +59,11 @@ export function getTierSymbol(tier: string): string {
 /** Returns the Tailwind background class for a tier. Unknown tiers fall back to zero. */
 export function getTierColorClass(tier: string): string {
   return TIER_BACKGROUNDS[isYearTier(tier) ? tier : "zero"];
+}
+
+/** Returns the Tailwind text colour class for a tier's symbol. Unknown tiers fall back to zero. */
+export function getTierTextClass(tier: string): string {
+  return TIER_TEXT_COLORS[isYearTier(tier) ? tier : "zero"];
 }
 
 /**

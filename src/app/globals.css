@@ -1,35 +1,40 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* === Temple at Dusk — Color Palette === */
-  --color-parchment: #F5F0E8;
-  --color-manuscript: #FFFDF7;
-  --color-manuscript-alt: #EDE7DB;
-  --color-ink: #2C2417;
-  --color-ink-light: #6F6454; /* 5.1:1 on parchment — secondary text */
-  --color-ink-faint: #857B6B; /* 3.7:1 — placeholders and decoration only, never text people must read */
-  --color-gold: #B8860B; /* decorative only (2.9:1) */
-  --color-gold-deep: #86620A; /* 4.9:1 — gold that carries meaning: focus, "now", gold text */
-  --color-gold-light: #D4A843; /* gold on the dark zero surface (4.55:1) */
-  --color-border: #D5CBBA;
-  --color-border-light: #E8E0D2;
+  /* === Temple Lantern — Color Palette ===
+   * A night temple lit by lanterns. Token names are kept from the original
+   * parchment palette so every component follows: "parchment" is the page,
+   * "manuscript" the card surface, "ink" the text. */
+  --color-parchment: #17131C;
+  --color-manuscript: #221C28;
+  --color-manuscript-alt: #2B2431;
+  --color-ink: #F1E8D8; /* 15:1 on the page */
+  --color-ink-light: #B4A894; /* 7.8:1 on the page, 7.1:1 on cards — secondary text */
+  --color-ink-faint: #85796B; /* 4.3:1 — placeholders and decoration only */
+  --color-gold: #C99A3E; /* decorative: diamonds, hairlines */
+  --color-gold-deep: #E2B65A; /* 9.7:1 — gold that carries meaning: focus, "now", gold text */
+  --color-gold-light: #F0CD8C;
+  --color-border: #3B3242;
+  --color-border-light: #2E2734;
 
-  /* Luck tier colors */
-  --color-tier-very-strong: #5B7744;
-  --color-tier-strong: #7A9B6B;
-  --color-tier-moderate: #B8860B;
-  --color-tier-weak: #A0522D;
-  --color-tier-zero: #4A4039;
+  /* Luck tier colors: the lantern light each tier gives off */
+  --color-tier-very-strong: #BFE0A5;
+  --color-tier-strong: #A9CC93;
+  --color-tier-moderate: #E2B65A;
+  --color-tier-weak: #D98A62;
+  --color-tier-zero: #0E0B11; /* an unlit niche, darker than the page */
 
-  /* === Typography === */
-  --font-serif: var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+/* === Typography === */
+  --font-serif: var(--font-marcellus), var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+  --font-sans: var(--font-hanken), var(--font-noto-serif-khmer), "Helvetica Neue", Arial, sans-serif;
 
   /* === Spacing (temple proportions) === */
   --spacing-4_5: 18px;
 
   /* === Elevation === */
-  --shadow-card: 0 1px 3px rgba(44, 36, 23, 0.08);
-  --shadow-raised: 0 4px 12px rgba(44, 36, 23, 0.1);
+  --shadow-card: 0 40px 80px -40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(241, 232, 216, 0.06);
+  --shadow-raised: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 40px -6px rgba(226, 182, 90, 0.42);
 
   /* === Motion (Material 3 curves; see docs/design-spec.md "Motion") === */
   --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
@@ -46,35 +51,121 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
+  background: var(--color-parchment);
 }
 
 body {
   background: var(--color-parchment);
   color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-size: 1.125rem;
-  line-height: 1.7;
-  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
-/* Paper texture — subtle noise overlay */
-.paper-texture {
-  position: relative;
+/* Display face: Marcellus, an inscriptional serif like temple lettering */
+.font-display {
+  font-family: var(--font-serif);
 }
-.paper-texture::before {
-  content: "";
+
+/* === Lantern atmosphere ===
+ * A dusk sky behind everything; dust motes drift on a canvas above it. */
+.dusk-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(120, 72, 120, 0.35), transparent 70%),
+    radial-gradient(900px 500px at 50% 110%, rgba(226, 150, 70, 0.14), transparent 70%);
+}
+.dusk-sky canvas {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  z-index: 1;
+  width: 100%;
+  height: 100%;
 }
-.paper-texture > * {
-  position: relative;
-  z-index: 2;
+
+/* Frosted card over the sky */
+.glass {
+  background: color-mix(in srgb, var(--color-manuscript) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+.title-glow {
+  text-shadow: 0 0 40px rgba(226, 182, 90, 0.28);
+}
+
+/* Each tier lights its pillar from below; stronger years burn brighter. */
+[data-tier="very-strong"] { --lamp: rgba(170, 215, 140, 0.55); }
+[data-tier="strong"] { --lamp: rgba(150, 190, 130, 0.45); }
+[data-tier="moderate"] { --lamp: rgba(226, 182, 90, 0.42); }
+[data-tier="weak"] { --lamp: rgba(205, 110, 70, 0.45); }
+[data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); }
+
+.lamp {
+  box-shadow:
+    inset 0 -40px 40px -30px var(--lamp),
+    inset 0 0 0 1px rgba(241, 232, 216, 0.08);
+}
+.lamp-current {
+  box-shadow:
+    inset 0 -50px 50px -30px var(--lamp),
+    0 0 0 1.5px var(--color-gold-deep),
+    var(--shadow-glow);
+}
+@media (hover: hover) {
+  .lamp:hover {
+    box-shadow:
+      inset 0 -56px 48px -30px var(--lamp),
+      inset 0 0 0 1px rgba(241, 232, 216, 0.14),
+      var(--shadow-raised);
+  }
+  .lamp-current:hover {
+    box-shadow:
+      inset 0 -64px 56px -30px var(--lamp),
+      0 0 0 1.5px var(--color-gold-deep),
+      0 0 48px -4px rgba(226, 182, 90, 0.5);
+  }
+}
+
+/* The detail panel carries a soft wash of the selected tier's light */
+.lamp-panel {
+  box-shadow: inset 0 -70px 70px -60px var(--lamp);
+  transition: box-shadow var(--duration-gentle) var(--ease-standard);
+}
+
+/* A small orb of the same light for the timeline dots */
+.lamp-orb {
+  box-shadow: 0 0 14px -2px var(--lamp), inset 0 -8px 10px -6px var(--lamp);
+}
+
+/* The timeline fades into the dark at both edges */
+.timeline-fade {
+  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+/* === Entrance choreography ===
+ * On load the title surfaces out of the dark, then each block follows
+ * 120ms apart. Set --rise-delay on an element to place it in the sequence. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.rise {
+  animation: rise 900ms var(--ease-enter) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+@keyframes kindle {
+  from { opacity: 0; letter-spacing: 0.3em; filter: blur(10px); }
+  to { opacity: 1; filter: none; }
+}
+.kindle {
+  animation: kindle 1600ms var(--ease-enter) both;
 }
 
 /* === Interaction ===

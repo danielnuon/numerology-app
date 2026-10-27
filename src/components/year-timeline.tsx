@@ -15,6 +15,7 @@ import { getCycleIndex } from "@/lib/numerology/year-lookup";
 import {
   getTierSymbol,
   getTierColorClass,
+  getTierTextClass,
 } from "@/lib/numerology/chart-helpers";
 
 /** How many years past the current year the timeline extends. */
@@ -111,26 +112,17 @@ export function YearTimeline({
       aria-label="Year timeline"
       className="relative w-full overflow-hidden"
     >
-      {/* Gradient fade left */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-        style={{
-          background: "linear-gradient(to right, var(--color-parchment), transparent)",
-        }}
-        aria-hidden="true"
-      />
-
       {/* Timeline container */}
       <div
         ref={containerRef}
-        className="relative flex gap-1 overflow-x-auto scrollbar-hide py-4 px-6 snap-x snap-mandatory"
+        className="timeline-fade relative flex gap-1 overflow-x-auto scrollbar-hide py-4 px-6 snap-x snap-mandatory"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         role="listbox"
         aria-label="Select a year"
       >
         {/* Thread of fate connecting line */}
         <div
-          className="absolute top-1/2 left-6 right-6 h-px bg-border/60 -translate-y-1/2 pointer-events-none"
+          className="absolute top-1/2 left-6 right-6 h-px bg-gradient-to-r from-border via-gold/50 to-border -translate-y-1/2 pointer-events-none"
           aria-hidden="true"
         />
 
@@ -140,7 +132,6 @@ export function YearTimeline({
           const interp = interpretYear(cycleNumber);
           const symbol = getTierSymbol(interp.tier);
           const bgClass = getTierColorClass(interp.tier);
-          const isZero = interp.tier === "zero";
           const isCurrent = year === currentYear;
           const isSelected = selectedYear === year;
           const isPast = year < currentYear;
@@ -153,7 +144,7 @@ export function YearTimeline({
               {/* Cycle boundary tick mark */}
               {isCycleBoundary && (
                 <div
-                  className="absolute top-0 bottom-0 w-px bg-border/50"
+                  className="absolute top-0 bottom-0 w-px bg-border"
                   aria-hidden="true"
                 />
               )}
@@ -171,20 +162,21 @@ export function YearTimeline({
                 aria-label={`Year ${year}, cycle number ${cycleNumber}, ${interp.label}${isCurrent ? ", current year" : ""}`}
                 onClick={() => onSelectYear(year)}
                 onKeyDown={(e) => handleKeyDown(e, year)}
-                className="group relative flex flex-col items-center rounded-sm"
+                data-tier={interp.tier}
+                className="group relative flex flex-col items-center rounded-lg"
               >
                 <span
                   className={[
                     "relative flex items-center justify-center",
-                    "w-10 h-10 rounded-full pressable",
+                    "w-10 h-10 rounded-full pressable lamp-orb",
                     "group-hover:scale-110 group-active:scale-95",
                     // Background
                     bgClass,
                     // Text
-                    isZero ? "text-parchment" : "text-ink",
-                    // Current year: gold ring
+                    "text-ink",
+                    // Current year: gold ring (an outline, since the glow owns box-shadow)
                     isCurrent
-                      ? "ring-2 ring-gold-deep ring-offset-2 ring-offset-parchment"
+                      ? "outline-2 outline-offset-2 outline-gold-deep"
                       : "",
                   ]
                     .filter(Boolean)
@@ -195,7 +187,7 @@ export function YearTimeline({
                     aria-hidden="true"
                     className={[
                       "text-xs leading-none",
-                      isZero ? "text-parchment/80" : "text-gold",
+                      getTierTextClass(interp.tier),
                     ].join(" ")}
                   >
                     {symbol}
@@ -206,10 +198,7 @@ export function YearTimeline({
                     <ViewTransition name="timeline-selection" share="auto" default="none">
                       <span
                         aria-hidden="true"
-                        className={[
-                          "pointer-events-none absolute inset-0 rounded-full ring-2 ring-inset",
-                          isZero ? "ring-parchment" : "ring-ink",
-                        ].join(" ")}
+                        className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-inset ring-ink"
                       />
                     </ViewTransition>
                   )}
@@ -235,14 +224,6 @@ export function YearTimeline({
         })}
       </div>
 
-      {/* Gradient fade right */}
-      <div
-        className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-        style={{
-          background: "linear-gradient(to left, var(--color-parchment), transparent)",
-        }}
-        aria-hidden="true"
-      />
     </section>
   );
 }

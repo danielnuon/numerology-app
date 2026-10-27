@@ -183,14 +183,21 @@ export function HomeClient() {
   return (
     <MotionConfig reducedMotion="user">
     <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-8">
-      <h1 className="text-5xl sm:text-6xl font-light tracking-[0.08em] text-ink text-center">
+      {/* Entrance: the title surfaces out of the dark, then each block follows. */}
+      <h1 className="kindle title-glow font-display text-5xl sm:text-7xl tracking-[0.14em] text-ink text-center">
         Solini
       </h1>
-      <p className="mt-3 text-lg text-ink-light italic text-center">
+      <p
+        className="rise mt-4 font-display text-lg text-gold-deep text-center tracking-[0.12em]"
+        style={{ "--rise-delay": "500ms" } as React.CSSProperties}
+      >
         Khmer Numerology
       </p>
-      <p className="mt-1 text-sm text-ink-light font-light text-center tracking-[0.08em]">
-        Discover Your Life Cycle
+      <p
+        className="rise mt-1 text-xs uppercase text-ink-light text-center tracking-[0.18em]"
+        style={{ "--rise-delay": "620ms" } as React.CSSProperties}
+      >
+        Discover your life cycle
       </p>
 
       <SectionDivider />
@@ -210,7 +217,10 @@ export function HomeClient() {
 
         {/* Form card — shown for first-visit, after "Not you?", or when share URL params present */}
         {showForm && (
-          <div className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-6 sm:p-12 shadow-[var(--shadow-card)]">
+          <div
+            className="rise glass max-w-[480px] w-full rounded-2xl p-6 sm:p-12"
+            style={{ "--rise-delay": "760ms" } as React.CSSProperties}
+          >
             <p className="text-center text-ink-light text-sm tracking-[0.04em]">
               Enter your birth date to reveal your 12-year cycle
             </p>
@@ -226,7 +236,7 @@ export function HomeClient() {
             <div
               id={CHART_SECTION_ID}
               ref={resultRef}
-              className="w-full max-w-[900px] paper-texture rounded-sm border border-border bg-manuscript p-4 sm:p-8 lg:p-10 shadow-[var(--shadow-card)] scroll-mt-8"
+              className="rise glass w-full max-w-[900px] rounded-2xl p-4 sm:p-8 lg:p-10 scroll-mt-8"
             >
               <CycleChart
                 cycle={result.cycle}

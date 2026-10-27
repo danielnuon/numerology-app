@@ -34,8 +34,8 @@ export class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="max-w-[480px] w-full mx-auto rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[var(--shadow-card)] text-center">
-          <p className="text-2xl font-light tracking-[0.04em] text-ink mb-4">
+        <div className="max-w-[480px] w-full mx-auto glass rounded-2xl p-8 sm:p-12 text-center">
+          <p className="font-display text-2xl tracking-[0.04em] text-ink mb-4">
             Something went wrong
           </p>
           <p className="text-ink-light text-sm mb-6">
