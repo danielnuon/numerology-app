@@ -18,7 +18,7 @@ const notoSerifKhmer = Noto_Serif_Khmer({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://khmer-numerology.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://solini.vercel.app"
   ),
   title: "Solini — Life Cycle Calculator",
   description:
