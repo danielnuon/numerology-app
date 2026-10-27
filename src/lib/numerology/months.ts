@@ -2,9 +2,15 @@
  * Margasir Month Mapping
  *
  * Maps Gregorian months (1-12) to their Margasir-relative positions (1-12).
- * The Khmer lunar calendar uses Margasir (November-December) as the starting month,
- * so December = position 1 and months cycle from there.
+ *
+ * This system counts months from Margasir (the lunar month spanning roughly
+ * November-December), not from January or from Khmer New Year in April.
+ * Margasir is approximated as Gregorian December, so December = position 1
+ * and every other month shifts up by one. Getting this offset wrong changes
+ * every number in the cycle, so it is pinned by tests.
  */
+
+import { rotatedCycle } from "./cycle-math";
 
 /** Gregorian month (1-12) → Margasir-relative position (1-12) */
 export const MARGASIR_MONTH_MAP: Record<number, number> = {
@@ -36,9 +42,5 @@ export function getMonthRow(gregorianMonth: number): number[] {
     );
   }
 
-  const row: number[] = [];
-  for (let i = 0; i < 12; i++) {
-    row.push(((startPosition - 1 + i) % 12) + 1);
-  }
-  return row;
+  return rotatedCycle(startPosition, 12);
 }

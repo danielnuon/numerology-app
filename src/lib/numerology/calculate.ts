@@ -5,6 +5,7 @@
  * birth month, zodiac number, and weekday number. Zero UI dependencies.
  */
 
+import { rotatedCycle } from "./cycle-math";
 import { getMonthRow } from "./months";
 import { getZodiacRow } from "./zodiac";
 
@@ -26,21 +27,31 @@ export interface CycleResult {
 }
 
 /**
+ * Number of chart columns the day row fills.
+ *
+ * Unlike the month and zodiac rows, the day row does not wrap to fill all 12
+ * columns: it lists the 7 weekdays once and leaves columns 8-12 empty. Those
+ * five years are therefore scored on month + zodiac only. Wrapping the row
+ * would look natural but produces the wrong cycle.
+ */
+const DAY_ROW_COLUMNS = 7;
+
+/**
  * Builds the day row (7 values only, columns 8-12 are empty).
  * Starts at the weekday number and cycles through 1-7.
  *
  * Example: Thursday (5) → [5, 6, 7, 1, 2, 3, 4]
  */
 export function buildDayRow(weekday: Weekday): number[] {
-  const row: number[] = [];
-  for (let i = 0; i < 7; i++) {
-    row.push(((weekday - 1 + i) % 7) + 1);
-  }
-  return row;
+  return rotatedCycle(weekday, 7, DAY_ROW_COLUMNS);
 }
 
 /**
  * Computes the 12-number life cycle.
+ *
+ * Each column is the sum of the month, zodiac and (for the first 7 columns)
+ * day values, reduced mod 12. A result of 0 is kept as 0 rather than mapped
+ * to 12: zero is its own, meaningful outcome in the interpretation tiers.
  *
  * @param gregorianMonth - Gregorian birth month (1-12)
  * @param zodiacNumber - Chinese zodiac number (1-12, Rat=1...Pig=12)
@@ -56,25 +67,14 @@ export function computeCycle(
   const zodiacRow = getZodiacRow(zodiacNumber);
   const dayRow = buildDayRow(weekday);
 
-  const cycle: number[] = [];
-
-  for (let col = 0; col < 12; col++) {
-    let sum = monthRow[col] + zodiacRow[col];
-
-    // Day row only fills columns 0-6 (1-7 in 1-indexed)
-    if (col < 7) {
-      sum += dayRow[col];
-    }
-
-    // mod 12, where 12 mod 12 = 0 (zero is valid)
-    cycle.push(sum % 12);
-  }
-
-  const totalScore = cycle.reduce((acc, val) => acc + val, 0);
+  const cycle = monthRow.map((monthValue, col) => {
+    const dayValue = dayRow[col] ?? 0; // columns past DAY_ROW_COLUMNS have no day value
+    return (monthValue + zodiacRow[col] + dayValue) % 12;
+  });
 
   return {
     cycle,
-    totalScore,
+    totalScore: computeTotalScore(cycle),
     rows: {
       month: monthRow,
       zodiac: zodiacRow,
