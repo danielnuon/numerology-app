@@ -27,8 +27,9 @@ src/
 ├── lib/numerology/ # Pure calculation logic
 │   └── __tests__/ # Unit tests
 docs/
-├── app/            # Client-facing docs
-└── dev/           # This file
+├── backlog.md      # Open stories
+├── decisions/      # Architecture decision records
+└── dev/            # This file, architecture, contributing
 ```
 
 ## Documentation
@@ -39,8 +40,9 @@ docs/
 | [design-spec.md](../design-spec.md) | Visual design, component specs |
 | [architecture.md](./architecture.md) | Module structure, data flow |
 | [contributing.md](./contributing.md) | Dev setup, conventions, CI |
-| [product-roadmap.md](./product-roadmap.md) | Stories, acceptance criteria |
+| [backlog.md](../backlog.md) | Open stories and acceptance criteria |
+| [decisions/](../decisions/) | Architecture decision records |
 
-## Agent Pipeline
+## Working with Claude
 
-This project uses a multi-agent pipeline for development. See [AGENTS.md](../../AGENTS.md) for model assignments and pipeline structure.
+[CLAUDE.md](../../CLAUDE.md) is the entry point. It covers the `/story`, `/build` and `/design-review` skills in `.claude/skills/` and the lint and test hooks. [ADR-002](../decisions/adr-002-lean-claude-setup.md) explains why it's set up this way.

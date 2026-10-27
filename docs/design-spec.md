@@ -345,7 +345,7 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 
 ---
 
-## Implementation Guidance for /cook
+## Implementation Guidance
 
 ### Recommended Stack
 | Concern | Recommendation | Why |

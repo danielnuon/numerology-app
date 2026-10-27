@@ -322,7 +322,7 @@ The app respects `prefers-reduced-motion` at two levels:
 
 ### Framework
 
-Jest with `ts-jest` preset, running in a Node environment (no jsdom). This works because the calculation engine has no DOM dependencies.
+Jest with `ts-jest` preset, running in a Node environment by default, which works because the calculation engine has no DOM dependencies. Component tests in `src/components/__tests__/` opt into jsdom with a `/** @jest-environment jsdom */` docblock.
 
 ### Configuration (jest.config.ts)
 
@@ -333,7 +333,7 @@ Jest with `ts-jest` preset, running in a Node environment (no jsdom). This works
 
 ### Test file locations
 
-All tests live in `src/lib/numerology/__tests__/`:
+Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live in `src/components/__tests__/` (currently `year-timeline.test.tsx`).
 
 | Test file | Module under test |
 |---|---|
@@ -353,4 +353,4 @@ All tests live in `src/lib/numerology/__tests__/`:
 - **Deterministic dates**: `validateBirthDate` accepts an optional `todayOverride` parameter so tests pin "today" to a fixed date rather than depending on the system clock.
 - **Boundary coverage**: Tests exercise CNY boundary dates, leap years, min/max year range, and edge-case weekdays (Sunday=1, Saturday=7).
 - **Worked examples**: The derive test suite includes a full acceptance test for July 24, 1997, verifying the expected 12-number cycle `[3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8]`.
-- **No component tests**: All tests target the pure calculation layer. There are no React component tests or integration tests with jsdom.
+- **Component tests**: Use React Testing Library under jsdom, opted into per file. Mock `framer-motion`'s `useReducedMotion` for deterministic rendering (see `year-timeline.test.tsx`).
