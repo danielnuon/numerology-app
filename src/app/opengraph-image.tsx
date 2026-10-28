@@ -1,8 +1,13 @@
 import { ImageResponse } from "next/og";
+import { interpretYear } from "@/lib/numerology/interpretation";
+import { OG_COLORS, OG_SITE_LABEL, pillarColors } from "@/lib/og-theme";
 
 export const alt = "Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+/** The worked example's cycle (July 24, 1997), used as a sample on the card. */
+const SAMPLE_CYCLE = [3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8];
 
 export default function OgImage() {
   return new ImageResponse(
@@ -15,29 +20,17 @@ export default function OgImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#F5F0E8",
+          background: `radial-gradient(circle at 50% 30%, ${OG_COLORS.card}, ${OG_COLORS.page} 70%)`,
           fontFamily: "Georgia, serif",
         }}
       >
-        {/* Diamond motif */}
-        <svg
-          width="64"
-          height="64"
-          viewBox="0 0 32 32"
-          style={{ marginBottom: 24 }}
-        >
-          <path d="M16 2 L30 16 L16 30 L2 16 Z" fill="none" stroke="#B8860B" strokeWidth="2" />
-          <path d="M16 8 L24 16 L16 24 L8 16 Z" fill="#B8860B" opacity="0.3" />
-          <circle cx="16" cy="16" r="3" fill="#2C2417" />
-        </svg>
-
         <div
           style={{
-            fontSize: 56,
+            display: "flex",
+            fontSize: 72,
             fontWeight: 300,
-            color: "#2C2417",
-            letterSpacing: "0.08em",
-            marginBottom: 8,
+            color: OG_COLORS.ink,
+            letterSpacing: "0.14em",
           }}
         >
           Solini
@@ -45,67 +38,59 @@ export default function OgImage() {
 
         <div
           style={{
-            fontSize: 24,
-            color: "#7A6F5F",
-            fontStyle: "italic",
-            marginBottom: 32,
+            display: "flex",
+            fontSize: 28,
+            color: OG_COLORS.goldDeep,
+            letterSpacing: "0.1em",
+            marginTop: 8,
           }}
         >
-          Khmer Numerology
+          Khmer numerology, year by year
         </div>
 
-        {/* Decorative line */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            marginBottom: 32,
-          }}
-        >
-          <div style={{ width: 80, height: 1, background: "#D5CBBA" }} />
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              background: "#B8860B",
-              transform: "rotate(45deg)",
-            }}
-          />
-          <div style={{ width: 80, height: 1, background: "#D5CBBA" }} />
+        {/* Divider */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "36px 0" }}>
+          <div style={{ width: 90, height: 1, background: OG_COLORS.border }} />
+          <div style={{ width: 8, height: 8, background: OG_COLORS.gold, transform: "rotate(45deg)" }} />
+          <div style={{ width: 90, height: 1, background: OG_COLORS.border }} />
         </div>
 
         {/* Sample pillars */}
-        <div style={{ display: "flex", gap: 8 }}>
-          {[3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8].map((n, i) => (
-            <div
-              key={i}
-              style={{
-                width: 48,
-                height: 48,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 4,
-                border: "1px solid #D5CBBA",
-                background:
-                  n === 0
-                    ? "#4A4039"
-                    : n >= 10
-                      ? "rgba(91,119,68,0.15)"
-                      : n >= 7
-                        ? "rgba(122,155,107,0.15)"
-                        : n >= 4
-                          ? "rgba(184,134,11,0.15)"
-                          : "rgba(160,82,45,0.15)",
-                color: n === 0 ? "#F5F0E8" : "#2C2417",
-                fontSize: 20,
-                fontWeight: 500,
-              }}
-            >
-              {n}
-            </div>
-          ))}
+        <div style={{ display: "flex", gap: 10 }}>
+          {SAMPLE_CYCLE.map((n, i) => {
+            const { background, border } = pillarColors(interpretYear(n).tier);
+            return (
+              <div
+                key={i}
+                style={{
+                  width: 64,
+                  height: 80,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 12,
+                  border: `1px solid ${border}`,
+                  background,
+                  color: OG_COLORS.ink,
+                  fontSize: 30,
+                }}
+              >
+                {String(n)}
+              </div>
+            );
+          })}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            marginTop: 40,
+            fontSize: 22,
+            color: OG_COLORS.inkLight,
+            letterSpacing: "0.06em",
+          }}
+        >
+          {`A lantern for your twelve years  ·  ${OG_SITE_LABEL}`}
         </div>
       </div>
     ),
