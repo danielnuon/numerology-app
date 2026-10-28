@@ -376,7 +376,7 @@ export function BirthDataForm({
             "py-3 px-6 min-h-[48px]",
             "text-sm font-medium uppercase tracking-[0.14em]",
             "bg-transparent hover:bg-gold-deep hover:text-parchment hover:shadow-[var(--shadow-glow)]",
-            "pressable active:scale-[0.98] active:bg-gold-deep active:text-parchment",
+            "pressable active:scale-[0.97] active:bg-gold-deep active:text-parchment",
           ].join(" ")}
         >
           Reveal My Cycle

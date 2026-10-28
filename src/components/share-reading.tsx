@@ -39,7 +39,7 @@ const SHARE_TEXT = "Here's my 12-year Khmer numerology cycle. See yours on Solin
 const ACTION_CLASS = [
   "pressable inline-flex items-center justify-center min-h-[44px] px-5 rounded-full",
   "border border-border text-sm text-ink-light tracking-[0.04em]",
-  "hover:text-ink hover:border-gold active:opacity-70",
+  "hover:text-ink hover:border-gold active:scale-[0.97]",
 ].join(" ");
 
 export function ShareReading({ year, month, day, rule }: Props) {
@@ -89,7 +89,7 @@ export function ShareReading({ year, month, day, rule }: Props) {
             "pressable inline-flex items-center justify-center min-h-[44px] px-6 rounded-full",
             "border border-gold-deep text-gold-deep text-sm font-medium uppercase tracking-[0.14em]",
             "hover:bg-gold-deep hover:text-parchment hover:shadow-[var(--shadow-glow)]",
-            "active:scale-[0.98] active:bg-gold-deep active:text-parchment",
+            "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
           ].join(" ")}
         >
           Share

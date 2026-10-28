@@ -359,7 +359,8 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 - One meaning per visual: gold-deep = now, ink outline = selected, focus ring = keyboard.
 - Interface motion explains a change; movement stays at 10px or less. The only continuous motion is the ambient dust, which is decorative, slow, and stops with Reduce Motion.
 - Entrance: the title "kindles" out of the dark (blur and letter-spacing settle, 1.6s), then the subtitle and first card follow (`.rise` with `--rise-delay`).
-- Selection changes run inside `startTransition`, so React `<ViewTransition>` animates the selection outline (shared element) and panel crossfade natively.
+- Selection changes run inside `startTransition`, so React `<ViewTransition>` animates the selection outline (shared element) and panel crossfade natively. This covers the wheel, the timeline and the New Year toggle; each marks its choice with an ink outline that glides to the new option.
+- Pressed state: every pill, button and orb scales to 0.97 (`PRESS.scale` in Motion, `active:scale-[0.97]` in CSS). Inline text links dim instead.
 - Sections marked `.scroll-settle` settle in on scroll via CSS scroll-driven animation where supported; elsewhere they simply appear.
 - Reduce Motion: nothing moves or scales; changes are instant.
 

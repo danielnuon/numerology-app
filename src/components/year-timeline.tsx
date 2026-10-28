@@ -167,7 +167,7 @@ export function YearTimeline({
                   className={[
                     "relative flex items-center justify-center",
                     "w-10 h-10 rounded-full pressable lamp-orb",
-                    "group-hover:scale-110 group-active:scale-95",
+                    "group-hover:scale-110 group-active:scale-[0.97]",
                     bgClass,
                     "text-ink",
                     // Current year: gold ring (an outline, since the glow owns box-shadow)
