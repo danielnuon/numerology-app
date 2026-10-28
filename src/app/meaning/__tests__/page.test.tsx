@@ -16,6 +16,15 @@ describe("What the numbers mean page", () => {
     expect(screen.getAllByRole("listitem").some((li) => li.textContent?.startsWith("12Protection."))).toBe(true);
   });
 
+  it("lists the seven day planets from strongest to weakest", () => {
+    const { container } = render(<MeaningPage />);
+    const days = [...container.querySelectorAll("#birth-day dd")].map((dd) => dd.textContent);
+    expect(days).toEqual([
+      "Friday, Venus", "Thursday, Jupiter", "Wednesday, Mercury", "Monday, the Moon",
+      "Saturday, Saturn", "Tuesday, Mars", "Sunday, the Sun",
+    ]);
+  });
+
   it("states the only totals a cycle can have", () => {
     render(<MeaningPage />);
     expect(screen.getByText(/every cycle totals 52, 64 or 76/)).toBeInTheDocument();

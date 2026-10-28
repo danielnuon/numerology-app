@@ -1,18 +1,19 @@
 # How a year is read
 
-This explains how Solini turns a year's number and life area into a reading, what in the tradition supports it, and what only the family's own chart can settle. Read it before changing the readings in `src/lib/numerology/life-area-data.ts` or the tiers in `interpretation-data.ts`.
+This explains how Solini turns a year's number, life area and day planet into a reading, what in the tradition supports it, and what only the family's own chart can settle. Read it before changing the readings in `src/lib/numerology/life-area-data.ts`, the day planets in `day-planet-data.ts` or the tiers in `interpretation-data.ts`.
 
 Labels used below: **Documented** means a cited source says it. **Inference** means it's our reasoning from sources, not stated by them. **Family rule** means it comes from the system as the family passed it on (see `docs/system-overview.md`), with no outside source found.
 
 ## The rule
 
-A year is read as its life area and its number together.
+A year is read as its life area and its number together, with the day planet that stands over it.
 
 - The **number** (0 to 11) sets how strong the year is, on the five tiers in `interpretation-data.ts`. Higher is luckier, and zero is a turning point.
 - The **life area** (the year's position in the cycle, Self through Protection) says what that strength applies to.
-- The **reading** is the text for that pair: `AREA_READINGS[column][tier]`, 12 areas by 5 tiers, 60 readings in all. A 9 in Money reads "A favorable year for earning"; a 9 in Health reads "A year of good energy".
+- The **reading** is the text for that pair: `AREA_READINGS[column][tier]`, 12 areas by 5 tiers, 60 readings in all. A 9 in Money reads "A year read as favorable for earning"; a 9 in Health reads "A year of good energy".
+- The **day planet** comes from the birth weekday. The day row starts at the birth day and counts on through the week, so the birth day's planet stands over the year of birth (Self), the next day's planet over Family, and so on to column 7. Each planet adds one sentence on what it lends the year, set by its strength in the Khmer count (`DAY_PLANETS`, see "Birth weekday" below). Columns 8 to 12 have no day value, so the reading says no day planet stands over them.
 
-Before this change, every reading came from the tier alone. The area was a label above five shared texts, so a 9 in Money and a 9 in Health read the same.
+The day planet never changes the number or the tier, which stay as the family's chart gives them. Before this change, every reading came from the tier alone. The area was a label above five shared texts, so a 9 in Money and a 9 in Health read the same.
 
 ## What the tradition supports
 
@@ -87,7 +88,9 @@ The family this system comes from holds that birth weekday matters to luck: Tues
 
 **The Khmer account (documented).** In a 2014 Radio Free Asia Khmer feature, Khmer cultural researcher Vay Vibol retells how each day's deity was made: the Sun from 6 sages, the Moon from 15 goddesses, Mars from 8 buffalo heads, Mercury from 17 elephant heads, Jupiter from 19 sages, Venus from 21 cow heads and Saturn from 10 tiger heads [13]. These counts are the planet strengths in the table above, so the strength scale is Khmer tradition as well as Thai. The same feature calls Tuesday "not very good", calls Monday a soft, gentle day, and calls Thursday the royal teacher's day, good for work, with those born on it suited to study, teaching and medicine. It gives no overall luck ranking.
 
-**Decision.** The family follows the Khmer account, so if Solini ever ranks birth weekdays, it uses the planet strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Tuesday near the bottom and Thursday near the top, with neither at the extreme, which matches the family's account. The RFA feature's own notes agree: Tuesday "not very good", Thursday the royal teacher's day.
+**Decision.** The family follows the Khmer account, so Solini ranks the day planets by these strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Tuesday near the bottom and Thursday near the top, with neither at the extreme, which matches the family's account. The RFA feature's own notes agree: Tuesday "not very good", Thursday the royal teacher's day.
+
+**How the planets enter a reading (inference).** In the seven-number chart the day row's values are planets, and predictions are made for a planet in a house [1][2]. Solini's day row is the same row, so each of the first seven years has a planet in it. The reading adds one sentence for that planet: the stronger planets (Venus, Jupiter, Mercury) lend support, the Moon is gentle, and the weaker ones (Saturn, Mars, the Sun) ask for patience. The traits come from the RFA feature where it gives one (Mars quick to heat, the Moon soft, Jupiter the teacher, Mercury unhurried) and from the strength alone otherwise.
 
 **Character.** The family also holds that people born on Tuesday are stubborn. The RFA feature says people born on Tuesday are impatient and quick to fight [13], and popular Khmer horoscope columns call Tuesday births "a little stubborn" [14]. Those columns cite no tradition and disagree with each other elsewhere (one gives stubbornness to Saturday instead [15]), so they count only as support for the RFA account.
 

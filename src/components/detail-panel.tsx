@@ -4,12 +4,13 @@
  * DetailPanel
  *
  * The full reading for one year of the cycle: life area, zodiac animal, what
- * the year's tier means for that life area and the tier's guidance, plus the
- * other years that share its number.
+ * the year's tier means for that life area, the day planet that stands over
+ * the year and the tier's guidance, plus the other years that share its number.
  * Shown inside the reading that blooms out of the cycle wheel's center.
  */
 
-import { interpretAreaYear } from "@/lib/numerology/interpretation";
+import type { Weekday } from "@/lib/numerology/calculate";
+import { describeYearPlanet, interpretAreaYear } from "@/lib/numerology/interpretation";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers";
@@ -27,6 +28,8 @@ export interface DetailPanelProps {
   year: number;
   /** Whether this is the person's current cycle year. */
   isCurrent: boolean;
+  /** Birth weekday (1-7, Sunday=1); sets which day planet stands over the year. */
+  weekday: Weekday;
 }
 
 export function DetailPanel({
@@ -36,6 +39,7 @@ export function DetailPanel({
   birthYear,
   year,
   isCurrent,
+  weekday,
 }: DetailPanelProps) {
   const interp = interpretAreaYear(columnIndex + 1, cycleNumber);
   const animal = getZodiacAnimalForYear(year);
@@ -71,6 +75,8 @@ export function DetailPanel({
       </div>
 
       <p className="mb-3 text-sm text-ink-light">{interp.reading}</p>
+
+      <p className="mb-3 text-sm text-ink-light">{describeYearPlanet(weekday, columnIndex + 1)}</p>
 
       <p className="text-sm italic border-l-2 pl-3 border-gold/40 text-ink-light">
         {interp.guidance}

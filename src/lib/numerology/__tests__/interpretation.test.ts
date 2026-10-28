@@ -1,4 +1,5 @@
-import { interpretAreaYear, interpretYear, interpretTotal } from "../interpretation";
+import { describeYearPlanet, getYearPlanet, interpretAreaYear, interpretYear, interpretTotal } from "../interpretation";
+import { DAY_PLANETS, NO_DAY_PLANET_NOTE } from "../day-planet-data";
 import { YEAR_TIERS, TOTAL_TIERS } from "../interpretation-data";
 import { AREA_READINGS } from "../life-area-data";
 import { computeCycle } from "../calculate";
@@ -191,5 +192,46 @@ describe("interpretAreaYear", () => {
     expect(() => interpretAreaYear(0, 5)).toThrow();
     expect(() => interpretAreaYear(13, 5)).toThrow();
     expect(() => interpretAreaYear(5, 12)).toThrow();
+  });
+});
+
+describe("getYearPlanet", () => {
+  it("puts the birth day's planet over the year of birth and counts on through the week", () => {
+    // 1997-07-24 is a Thursday: day row 5, 6, 7, 1, 2, 3, 4
+    expect([1, 2, 3, 4, 5, 6, 7].map((col) => getYearPlanet(5, col)?.planet)).toEqual([
+      "Jupiter", "Venus", "Saturn", "the Sun", "the Moon", "Mars", "Mercury",
+    ]);
+  });
+
+  it("has no planet for columns 8-12", () => {
+    for (let col = 8; col <= 12; col++) expect(getYearPlanet(3, col)).toBeNull();
+  });
+
+  it("throws for a column outside 1-12", () => {
+    expect(() => getYearPlanet(1, 0)).toThrow();
+    expect(() => getYearPlanet(1, 13)).toThrow();
+  });
+
+  it("uses the Khmer strengths, Venus highest and the Sun lowest", () => {
+    const strengths = Object.values(DAY_PLANETS).map((p) => [p.day, p.strength]);
+    expect(Object.fromEntries(strengths)).toEqual({
+      Sunday: 6, Monday: 15, Tuesday: 8, Wednesday: 17, Thursday: 19, Friday: 21, Saturday: 10,
+    });
+  });
+});
+
+describe("describeYearPlanet", () => {
+  it("names the planet as the birth day's own in the year of birth", () => {
+    expect(describeYearPlanet(3, 1)).toBe(`Your birth day's planet, Mars, stands over this year. ${DAY_PLANETS[3].note}`);
+  });
+
+  it("names the planet plainly in later years", () => {
+    expect(describeYearPlanet(3, 2)).toBe(`Mercury stands over this year. ${DAY_PLANETS[4].note}`);
+    expect(describeYearPlanet(1, 1)).toMatch(/^Your birth day's planet, the Sun,/);
+    expect(describeYearPlanet(7, 2)).toMatch(/^The Sun stands over this year\./);
+  });
+
+  it("says no planet stands over columns 8-12", () => {
+    expect(describeYearPlanet(5, 8)).toBe(NO_DAY_PLANET_NOTE);
   });
 });

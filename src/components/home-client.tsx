@@ -423,6 +423,7 @@ export function HomeClient({ searchParams }: Props) {
                     birthYear={result.birthYear}
                     birthMonth={result.birthData.gregorianMonth}
                     birthDay={result.birthDay}
+                    weekday={result.birthData.weekday}
                   />
 
                   <button
@@ -447,6 +448,7 @@ export function HomeClient({ searchParams }: Props) {
                     birthYear={result.birthYear}
                     birthMonth={result.birthData.gregorianMonth}
                     birthDay={result.birthDay}
+                    weekday={result.birthData.weekday}
                     selectedYear={selectedYear}
                     onSelectPillar={handleChartSelectPillar}
                     onReturnToCurrent={handleReturnToCurrent}

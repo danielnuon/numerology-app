@@ -13,6 +13,8 @@ import {
   type TotalTier,
   type YearTier,
 } from "./interpretation-data";
+import { buildDayRow, type Weekday } from "./calculate";
+import { DAY_PLANETS, NO_DAY_PLANET_NOTE, type DayPlanet } from "./day-planet-data";
 import { AREA_READINGS } from "./life-area-data";
 import { getLifeArea } from "./year-lookup";
 
@@ -90,6 +92,42 @@ export function interpretAreaYear(
   const area = getLifeArea(column);
   const year = interpretYear(cycleNumber);
   return { ...year, area, reading: AREA_READINGS[column][year.tier] };
+}
+
+/**
+ * Returns the weekday planet that stands over one year of the cycle.
+ *
+ * The day row starts at the birth weekday and counts on through the week,
+ * so the birth day's planet stands over the year of birth (Self), the next
+ * day's planet over Family, and so on. The row covers columns 1-7 only, so
+ * columns 8-12 have no planet and return null.
+ *
+ * @param weekday - Birth weekday (1-7, Sunday=1)
+ * @param column - 1-indexed position of the year in the cycle (1-12)
+ * @throws If the column is outside 1-12
+ */
+export function getYearPlanet(weekday: Weekday, column: number): DayPlanet | null {
+  if (!Number.isInteger(column) || column < 1 || column > 12) {
+    throw new Error(`Invalid column position: ${column}. Must be 1-12.`);
+  }
+  const value = buildDayRow(weekday)[column - 1];
+  return value === undefined ? null : DAY_PLANETS[value as Weekday];
+}
+
+/**
+ * The day-planet sentence for one year: which planet stands over it and what
+ * it lends, or that no planet does (columns 8-12). The year of birth names
+ * the planet as the birth day's own.
+ *
+ * @param weekday - Birth weekday (1-7, Sunday=1)
+ * @param column - 1-indexed position of the year in the cycle (1-12)
+ */
+export function describeYearPlanet(weekday: Weekday, column: number): string {
+  const planet = getYearPlanet(weekday, column);
+  if (!planet) return NO_DAY_PLANET_NOTE;
+  const name = planet.planet.charAt(0).toUpperCase() + planet.planet.slice(1);
+  const subject = column === 1 ? `Your birth day's planet, ${planet.planet},` : name;
+  return `${subject} stands over this year. ${planet.note}`;
 }
 
 /**
