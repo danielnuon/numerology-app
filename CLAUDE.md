@@ -2,9 +2,9 @@
 
 @AGENTS.md
 
-**Solini** is a Khmer numerology web app. A visitor enters a birth date and gets a 12-year repeating luck cycle built from three inputs: birth month (Margasir calendar), Chinese zodiac year and birth weekday. The repo and package keep the internal name `numerology-app`.
+**Solini** is a Khmer numerology web app. A visitor enters a birth date and gets a 12-year repeating luck cycle built from three inputs: birth month (Margasir calendar), zodiac year and birth weekday. The repo and package keep the internal name `numerology-app`.
 
-Production: https://solini.vercel.app. Vercel deploys every push to `main`. CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run build` on pushes and PRs to `main`.
+Production: https://solini.vercel.app. Vercel deploys every push to `main`. CI (`.github/workflows/ci.yml`) runs lint, type check, tests and a production build on pushes and PRs to `main`.
 
 ## Commands
 
@@ -18,6 +18,19 @@ Production: https://solini.vercel.app. Vercel deploys every push to `main`. CI (
 | Screenshots at 320/768/1280/1920px | `node .claude/skills/design-review/screenshot.mjs [url]` |
 
 Node 22 or later.
+
+## Standards
+
+The project's standards live in [docs/standards/](docs/standards/README.md). Read the one that matches the work before starting, and follow it:
+
+| Standard | Covers |
+|----------|--------|
+| [Design language](docs/standards/design-language.md) | Principles, color, type, spacing, iconography, interaction states, motion and its approved exceptions, accessibility |
+| [Code](docs/standards/code.md) | Structure, TypeScript and React conventions, styling with tokens, comments, naming, tests |
+| [Writing](docs/standards/writing.md) | Voice, American spelling, naming, commit messages and PR text |
+| [Shipping](docs/standards/shipping.md) | Definition of done, the PR checklist, CI, review and deploy |
+
+ESLint and `src/lib/__tests__/standards.test.ts` enforce the rules that can be checked by machine. If a standard is wrong or missing, change it in the same PR as the code, rather than working around it.
 
 ## Workflow
 
@@ -36,9 +49,10 @@ When you learn something a future session would otherwise rediscover the hard wa
 | What | Where |
 |------|-------|
 | Pure calculation logic (no React, no Next) | `src/lib/numerology/`, tests in `__tests__/` beside it |
-| Components (all `"use client"`) | `src/components/`, tests in `__tests__/` |
-| Routes | `src/app/` (`/` and the share route `/r/[date]`) |
-| Design tokens | `src/app/globals.css` (`@theme inline` block) |
+| Components (`"use client"` only where needed) | `src/components/`, shared pieces in `components/ui/`, tests in `__tests__/` |
+| Routes | `src/app/` (`/`, `/about`, `/how-it-works`, `/meaning` and the share route `/r/[date]`) |
+| Design tokens | `src/app/globals.css` (`@theme inline` block) and `src/lib/motion.ts` |
+| Project standards | [docs/standards/](docs/standards/README.md) |
 | Domain rules, algorithm, worked examples | [docs/system-overview.md](docs/system-overview.md) |
 | Visual design and component specs | [docs/design-spec.md](docs/design-spec.md) |
 | Modules, types, data flow, component tree | [docs/dev/architecture.md](docs/dev/architecture.md) |
@@ -51,7 +65,7 @@ The repo copies of `system-overview.md` and `design-spec.md` are the source of t
 ## Domain rules that are easy to get wrong
 
 - The month row is Margasir-relative, not Gregorian. July is always position 8, and the mapping doesn't change by year.
-- Zodiac year follows Chinese New Year. A birth before CNY in January or February belongs to the previous zodiac year (lookup table for 1900–2100).
+- The zodiac year turns at Khmer New Year (mid-April) by default, or at Chinese New Year if the visitor chooses it on the form. A birth before the chosen New Year belongs to the previous animal year (`zodiac.ts`, `khmer-new-year.ts`).
 - Weekday is 1-indexed starting Sunday, not JS `getDay()`.
 - Cycle values are modulo 12. **0 is a valid "reset" tier**, not an error.
 - The active year waits for the birthday. Before this year's birthday, show the previous year's number (`getActiveYear()`).
@@ -60,15 +74,16 @@ The repo copies of `system-overview.md` and `design-spec.md` are the source of t
 
 ## Conventions
 
-- `@/*` maps to `src/*`.
-- Use "Solini" in anything user-facing, and keep "numerology-app" and existing `numerology`/`cycle` identifiers in code.
-- Colors come from Tailwind tokens (`parchment`, `manuscript`, `ink`, `ink-light`, `ink-faint`, `gold`, `tier-*`). Never hardcode hex.
-- Contrast: `text-ink-faint` and `text-gold` fail WCAG for meaningful text. Use them only for placeholders and decoration. Focus rings use `focus-visible:ring-ink-light`, not gold.
-- Tier symbols are `aria-hidden="true"`. The parent's `aria-label` carries the meaning.
-- Animations respect `prefers-reduced-motion` (Framer Motion `useReducedMotion()`).
-- Next.js 16: `useSearchParams()` needs a `<Suspense>` boundary, and route `params` is a Promise, so always `await params`.
+The full rules are in the standards above. The ones most often missed:
+
+- Colors come from tokens (`text-ink`, `bg-manuscript`, `text-gold-deep`, `tier-*`). Never hardcode hex; ESLint rejects it.
+- `ink-faint` and `gold` are for decoration and placeholders only. Meaningful text uses `ink`, `ink-light` or `gold-deep`. The focus ring is the global 2px `gold-deep` outline.
+- Pressed controls use `pressable active:scale-[0.97]` or `PRESS` from `@/lib/motion`. Selection is an ink outline that glides with `<ViewTransition>`; gold means "now".
+- No looping animation outside the approved exceptions in the design language. Everything stops with Reduce Motion.
+- Tier symbols and decorative icons are `aria-hidden="true"`; the parent's label carries the meaning.
+- Next.js 16: route `params` and `searchParams` are Promises, so always `await` them. `useSearchParams()` needs a `<Suspense>` boundary.
 - Lib tests run in Node. Component tests opt into jsdom with a `/** @jest-environment jsdom */` docblock.
-- Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`). Doc and backlog updates go in the same commit as the code they describe.
+- American spelling everywhere. Commits use conventional prefixes, and PR text describes the change like a technical writer, with no narration of who asked for it.
 
 ## Gotchas
 

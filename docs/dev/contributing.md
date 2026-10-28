@@ -30,118 +30,25 @@ Tests run with Jest 30 + ts-jest in a Node environment by default; component tes
 npm run lint
 ```
 
-Uses ESLint 9 with `eslint-config-next`.
+Uses ESLint 9 with `eslint-config-next`, plus project rules in `eslint.config.mjs` that enforce the [standards](../standards/README.md#where-each-rule-is-enforced).
 
-### Branding
+## Standards
 
-The application is publicly branded as **Solini**, with "Khmer Numerology" used as a descriptive subtitle. However, for technical stability, the project retains its original internal name for the following:
+How code is written, how the app looks and moves, how copy and commits read, and what a PR needs before merging are defined once, in [docs/standards/](../standards/README.md):
 
-- **Directory Name:** `numerology-app`
-- **Package Name:** `numerology-app` (in `package.json`)
-- **Internal Variables:** Any logic or constants referring to "numerology" or "cycle" should remain unchanged.
+- [Design language](../standards/design-language.md): color and contrast, type, spacing, iconography, interaction states, motion and accessibility
+- [Code](../standards/code.md): structure, TypeScript, React and Next.js 16 conventions, styling, comments, naming, tests
+- [Writing](../standards/writing.md): voice, American spelling, the Solini name, commit messages and PR text
+- [Shipping](../standards/shipping.md): the definition of done and the PR checklist
 
-Always use "Solini" in user-facing strings (headings, metadata, help text) and "numerology-app" for system-level references.
-
----
-
-## Project Conventions
-
-### Path alias
-
-`@/*` maps to `src/*` (configured in both `tsconfig.json` and `jest.config.ts`).
-
-### Calculation code
-
-All numerology logic lives in `src/lib/numerology/` as pure functions with zero framework imports. Modules export typed interfaces and functions that work in any Node environment. Examples: `calculate.ts`, `interpretation.ts`, `months.ts`, `zodiac.ts`, `year-lookup.ts`.
-
-### Components
-
-All components live in `src/components/` and must use the `"use client"` directive. The one exception is the share redirect route (`src/app/r/[date]/page.tsx`), which is a server component that awaits params and delegates rendering to a client component.
-
-### Next.js 16 conventions
-
-Next.js 16 introduced breaking changes that differ from earlier versions:
-
-**`useSearchParams()` requires a Suspense boundary.** Any page or component that calls `useSearchParams()` must be wrapped in `<Suspense>` in its parent server component. Failure to do this causes a build error. Pattern:
-
-```tsx
-// src/app/page.tsx (server component)
-import { Suspense } from "react";
-import { HomeClient } from "@/components/home-client";
-
-export default function Home() {
-  return <Suspense><HomeClient /></Suspense>;
-}
-
-// src/components/home-client.tsx ("use client")
-// calls useSearchParams() safely inside the Suspense boundary
-```
-
-**Route params are `Promise<{ param: string }>`** — not a plain object. Always `await params` in both `generateMetadata` and the default export:
-
-```tsx
-type Props = { params: Promise<{ date: string }> };
-
-export async function generateMetadata({ params }: Props) {
-  const { date } = await params;
-  // ...
-}
-
-export default async function Page({ params }: Props) {
-  const { date } = await params;
-  // ...
-}
-```
-
-Omitting `await` results in a type error and a runtime failure accessing properties on the Promise object.
-
-### Tests
-
-Calculation tests live in `src/lib/numerology/__tests__/` (`*.test.ts`) and run in Node. They cover boundary values, worked examples from the numerology spec, and data integrity checks. Component tests live in `src/components/__tests__/` (`*.test.tsx`) and opt into jsdom with a `/** @jest-environment jsdom */` docblock at the top of the file.
-
-### Styling
-
-Tailwind CSS 4 utility classes. Custom design tokens are defined in `globals.css` inside the `@theme inline` block:
-
-- Colors: `parchment`, `manuscript`, `ink`, `ink-light`, `ink-faint`, `gold`, `gold-light`, `border`, `border-light`
-- Luck tier colors: `tier-very-strong`, `tier-strong`, `tier-moderate`, `tier-weak`, `tier-zero`
-- Typography: `--font-serif` stack combining Cormorant Garamond + Noto Serif Khmer
-- Spacing: `--spacing-4_5` (18px) for temple-proportion layouts
-
-Use these tokens via Tailwind classes (e.g., `text-ink`, `bg-parchment`). Do not hardcode hex values.
-
-#### WCAG contrast constraints on design tokens
-
-Not all tokens are safe for all contexts. The following rules apply (adopted after QA caught contrast failures in form labels and the focus ring):
-
-| Token | Contrast on manuscript | Safe for informational text? |
-|-------|----------------------|------------------------------|
-| `text-ink` (#2C2417) | 15.05:1 | ✓ Yes |
-| `text-ink-light` (#7A6F5F) | 4.84:1 | ✓ Yes |
-| `text-ink-faint` (#A89F8F) | 2.57:1 | ✗ No — decorative/placeholder only |
-| `text-gold` (#B8860B) | ~2.87:1 on parchment | ✗ No — decorative accent only |
-
-**Rules:**
-- `text-ink-faint` must only be used for placeholder text (`placeholder:text-ink-faint`) and purely decorative labels. Never use it for `<label>` elements or any text that conveys meaning.
-- For focus indicators, use `focus-visible:ring-ink-light` — not `ring-gold`. Gold (#B8860B) on parchment (#F5F0E8) is 2.87:1, below the WCAG 2.2 SC 2.4.11 Non-text Contrast minimum of 3:1.
-- Opacity-reduced parchment text on the zero-tier charcoal background (#4A4039) must use minimum `/75` opacity at 14px body text (~4.9:1 effective) and `/80` for all other text (~6.4:1 effective). Never go below `/75` for informational text on this background.
-- Tier symbols (●/◕/◑/◔/⊙) should always be `aria-hidden="true"` — they are decorative reinforcement. The aria-label on the parent element carries the tier meaning for screen readers.
-
-### Fonts
-
-Loaded via `next/font/google` in `layout.tsx`:
-
-- **Cormorant Garamond** (Latin) -- CSS variable `--font-cormorant`, weights 300/400/500/600
-- **Noto Serif Khmer** (Khmer script) -- CSS variable `--font-noto-serif-khmer`, weights 400/600
-
-Both are applied to the `<html>` element as CSS variable classes and composed into `--font-serif` in `globals.css`.
+This page keeps setup steps and practical tips that don't belong in a standard.
 
 ---
 
 ## Adding a Calculation Module
 
 1. Create a pure function file in `src/lib/numerology/` (e.g., `my-calculation.ts`).
-2. Export typed interfaces and functions. Follow the pattern in `calculate.ts`: JSDoc comments, explicit parameter types, and a result interface.
+2. Export typed interfaces and functions. Follow the pattern in `calculate.ts`: a header comment, JSDoc on every export, explicit parameter types and a result interface.
 3. Add tests in `src/lib/numerology/__tests__/my-calculation.test.ts` covering:
    - The worked example from the numerology specification
    - Boundary values (min/max inputs, zero cases)
@@ -152,18 +59,10 @@ Both are applied to the `<html>` element as CSS variable classes and composed in
 
 ## Adding a UI Component
 
-1. Create in `src/components/` with the `"use client"` directive at the top of the file.
-2. Use Tailwind tokens from `globals.css` (e.g., `text-gold`, `bg-manuscript`) instead of hardcoded hex values.
-3. Follow accessibility patterns: `aria-label`, keyboard navigation, `role` attributes where appropriate.
-4. Reference `docs/design-spec.md` for visual specifications (color palette, typography, spacing, animation).
-
----
-
-## Commit Conventions
-
-- Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
-- Include a `Co-Authored-By:` trailer when AI-assisted
-- Commit doc updates (e.g., roadmap checkbox changes) in the same commit as the code they describe -- not as a separate commit
+1. Create it in `src/components/` (or `src/components/ui/` for a small presentational piece). Add `"use client"` only if it uses state, effects, browser APIs or event handlers.
+2. Build it from the tokens and shared states in the [design language](../standards/design-language.md), and the component specs in [docs/design-spec.md](../design-spec.md).
+3. Add a jsdom test in `src/components/__tests__/` that queries by role and accessible name.
+4. Check it at 320px, 768px and 1280px, by keyboard and with Reduce Motion on, as the [shipping checklist](../standards/shipping.md#definition-of-done) asks.
 
 ---
 
@@ -225,7 +124,9 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on pushes and pull
 1. **Checkout** -- `actions/checkout@v4`
 2. **Node setup** -- `actions/setup-node@v4` with Node 22 and npm cache enabled
 3. **Install** -- `npm install` (not `npm ci`, to tolerate lockfile version differences)
-4. **Test** -- `npm test`
-5. **Build** -- `npm run build`
+4. **Lint** -- `npm run lint`
+5. **Type check** -- `npx tsc --noEmit`
+6. **Test** -- `npm test`
+7. **Build** -- `npm run build`
 
-There is no automated deployment step. Deployment is handled manually or via Vercel auto-deploy.
+Vercel deploys every push to `main` to production and builds a preview for every PR.

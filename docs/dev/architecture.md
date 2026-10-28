@@ -275,57 +275,15 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 
 ## Styling Architecture
 
-### Framework
+Tailwind CSS v4, imported via `@import "tailwindcss"` in `src/app/globals.css`. Color, font, shadow and easing tokens are declared in its `@theme inline` block, durations in `:root`, and reusable effects (the glass card, lantern glows, wheel orbs, form fields, entrance and view-transition animations) as named classes below it. JavaScript animation reads the matching tokens from `src/lib/motion.ts`.
 
-Tailwind CSS v4, imported via `@import "tailwindcss"` in `globals.css`. Custom theme tokens are defined inline using the `@theme inline` directive.
-
-### Color palette: "Temple at Dusk"
-
-| Token | Hex | Usage |
-|---|---|---|
-| `parchment` | `#F5F0E8` | Page background |
-| `manuscript` | `#FFFDF7` | Card backgrounds |
-| `manuscript-alt` | `#EDE7DB` | Alternate card bg |
-| `ink` | `#2C2417` | Primary text |
-| `ink-light` | `#7A6F5F` | Secondary text |
-| `ink-faint` | `#A89F8F` | Placeholder / tertiary text |
-| `gold` | `#B8860B` | Accents, current-year border |
-| `gold-light` | `#D4A843` | Light accent |
-| `border` | `#D5CBBA` | Card/pillar borders |
-| `border-light` | `#E8E0D2` | Lighter borders |
-
-### Tier colors
-
-| Tier | Token | Hex |
-|---|---|---|
-| Very strong | `tier-very-strong` | `#5B7744` |
-| Strong | `tier-strong` | `#7A9B6B` |
-| Moderate | `tier-moderate` | `#B8860B` |
-| Weak | `tier-weak` | `#A0522D` |
-| Zero | `tier-zero` | `#4A4039` |
-
-Non-zero tiers use `/15` opacity as pillar backgrounds. Zero tier uses full opacity with inverted (parchment) text.
-
-### Typography
-
-- **Serif stack**: Cormorant Garamond (Latin) + Noto Serif Khmer (Khmer script), falling back to Georgia.
-- Font loaded via `next/font/google` with `display: "swap"`.
-- Weights loaded: Cormorant 300/400/500/600; Noto Serif Khmer 400/600.
-- Base font size: `1.125rem` (18px), line-height `1.7`, letter-spacing `0.01em`.
-
-### Paper texture effect
-
-A CSS pseudo-element (`::before`) on `.paper-texture` applies an inline SVG fractal noise filter at 4% opacity, creating a subtle parchment texture. Content is elevated to `z-index: 2` above the texture layer.
-
-### Custom animation
-
-`animate-breathe`: A 3-second infinite ease-in-out animation that pulses opacity between 1.0 and 0.85, applied to zero-tier pillars. Disabled via `@media (prefers-reduced-motion: reduce)` for accessibility.
+The palette, type, spacing, motion rules and their approved exceptions are defined in [the design language](../standards/design-language.md); this file does not repeat them.
 
 ### Reduced motion support
 
 The app respects `prefers-reduced-motion` at two levels:
-- **CSS**: `@media (prefers-reduced-motion: reduce)` in `globals.css` disables `.animate-breathe`.
-- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling. A global CSS rule collapses CSS animations, transitions, smooth scrolling and view transitions.
+- **CSS**: a global `@media (prefers-reduced-motion: reduce)` rule in `globals.css` collapses animations, transitions, smooth scrolling and view transitions. Ambient and scroll-driven animations are declared only inside `@media (prefers-reduced-motion: no-preference)`.
+- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling, and `LanternSky` draws its dust once, still.
 
 ## Testing Conventions
 
@@ -362,4 +320,4 @@ Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live 
 - **Deterministic dates**: `validateBirthDate` accepts an optional `todayOverride` parameter so tests pin "today" to a fixed date rather than depending on the system clock.
 - **Boundary coverage**: Tests exercise CNY boundary dates, leap years, min/max year range, and edge-case weekdays (Sunday=1, Saturday=7).
 - **Worked examples**: The derive test suite includes a full acceptance test for July 24, 1997, verifying the expected 12-number cycle `[3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8]`.
-- **Component tests**: Use React Testing Library under jsdom, opted into per file. Mock `framer-motion`'s `useReducedMotion` for deterministic rendering (see `year-timeline.test.tsx`).
+- **Component tests**: Use React Testing Library under jsdom, opted into per file. Mock `useReducedMotion` from `motion/react` for deterministic rendering (see `year-timeline.test.tsx`).
