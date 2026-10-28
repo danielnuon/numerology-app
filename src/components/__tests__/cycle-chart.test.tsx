@@ -137,6 +137,17 @@ describe("CycleChart (cycle wheel)", () => {
     expect(elsewhere).toHaveFocus();
   });
 
+  it("lets taps on the ring behind the reading reach the page", () => {
+    render(<CycleChart {...defaultProps} />);
+    const ring = screen.getByRole("tablist").closest(".aspect-square")!;
+    expect(ring).not.toHaveClass("pointer-events-none");
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: /Read 2026 in full/ }));
+    });
+    expect(ring).toHaveAttribute("inert");
+    expect(ring).toHaveClass("pointer-events-none");
+  });
+
   it("stays open when the tap is inside the reading", () => {
     render(<CycleChart {...defaultProps} />);
     act(() => {

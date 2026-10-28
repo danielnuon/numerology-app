@@ -15,8 +15,8 @@
  */
 
 import {
-  useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   startTransition,
@@ -116,7 +116,9 @@ export function CycleChart({
 
   // Move focus into the reading when it opens and back to the centre when it
   // closes, so keyboard and screen reader users stay where they were.
-  useEffect(() => {
+  // Layout effects run inside the commit, while passive effects wait for the
+  // bloom's view transition to finish, which some browsers delay or never do.
+  useLayoutEffect(() => {
     if (readingOpen) closeRef.current?.focus();
     else if (wasOpen.current && returnFocus.current) hubRef.current?.focus();
     wasOpen.current = readingOpen;
@@ -128,7 +130,8 @@ export function CycleChart({
   }
 
   // Light dismiss: a tap or click anywhere outside the reading folds it back.
-  useEffect(() => {
+  // Attached in a layout effect for the same reason as the focus handling.
+  useLayoutEffect(() => {
     if (!readingOpen) return;
     function handlePointerDown(event: PointerEvent) {
       if (readingRef.current?.contains(event.target as Node)) return;
@@ -169,7 +172,11 @@ export function CycleChart({
       <div className="@container mx-auto grid w-full max-w-[440px] grid-cols-[minmax(0,1fr)]">
         {/* The ring: orbs, animals and the gold arc */}
         <div
-          className="relative col-start-1 row-start-1 aspect-square w-full"
+          className={`relative col-start-1 row-start-1 aspect-square w-full ${
+            // Let taps on the ring fall through to the page, since browsers
+            // differ on delivering pointer events that land on inert content.
+            readingOpen ? "pointer-events-none" : ""
+          }`}
           inert={readingOpen}
         >
           <svg
