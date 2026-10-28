@@ -246,7 +246,7 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Reading summary:** The top of the reading card names whose reading it is: the birth date ("July 24, 1997") and "Year of the Ox · Born on a Thursday". A share link adds "A reading shared with you" above them.
 
-**Read for someone else:** A button beside the summary ("Read your own" on a share link) folds the reading back into an empty form with the same transition, faster on the way out. The intro reads "Enter another birth date to read that person's 12-year cycle." A "Back to the reading" link returns to the previous reading without re-entering it.
+**Read for someone else:** A quiet underlined text link on the date's line, top right ("Someone else?", or "Read your own" on a share link; the accessible name is "Read for someone else"), styled like "Back to the reading". It folds the reading back into an empty form with the same transition, faster on the way out. The intro reads "Enter another birth date to read that person's 12-year cycle." A "Back to the reading" link returns to the previous reading without re-entering it.
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
 

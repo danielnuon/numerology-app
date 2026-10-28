@@ -360,7 +360,7 @@ export function HomeClient({ searchParams }: Props) {
               {bloomed && <div aria-hidden="true" className="reading-bloom-glow" />}
 
               {/* Whose reading this is, and the way back to the form */}
-              <div className="mx-auto mb-2 flex max-w-[440px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
+              <div className="mx-auto mb-2 flex max-w-[440px] items-start justify-between gap-x-3 px-1">
                 <div id="reading-summary" className="min-w-0">
                   {hasShareParams && !bloomed && (
                     <p className="text-xs uppercase tracking-[0.12em] text-gold-deep">
@@ -375,12 +375,14 @@ export function HomeClient({ searchParams }: Props) {
                     {WEEKDAY_NAMES[result.birthData.weekday - 1]}
                   </p>
                 </div>
+                {/* A quiet text link on the date's line, styled like "Back to the reading" */}
                 <button
                   type="button"
                   onClick={handleReadAgain}
-                  className="pressable inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-4 text-sm text-ink-light hover:border-gold hover:text-ink active:scale-[0.97]"
+                  aria-label={hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                  className="pressable -mt-2 flex min-h-[44px] shrink-0 items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
                 >
-                  {hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                  {hasShareParams && !bloomed ? "Read your own" : "Someone else?"}
                 </button>
               </div>
 
