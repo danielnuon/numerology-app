@@ -11,7 +11,7 @@
  * and selection together, and the centre of the wheel (the tab panel) shows a
  * short preview of the selected year. Tapping the centre, or the selected
  * orb again, blooms the full reading out over the wheel with a native view
- * transition; Escape or the close button folds it back.
+ * transition; Escape, the close button or a tap outside it folds it back.
  */
 
 import {
@@ -103,7 +103,11 @@ export function CycleChart({
   const orbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const hubRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const readingRef = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(false);
+  // False when the reading closed because of a tap elsewhere on the page, so
+  // focus stays with whatever was tapped instead of jumping back to the wheel.
+  const returnFocus = useRef(true);
   const headingId = useId();
 
   const selected = interpretYear(cycle[selectedIndex]);
@@ -114,13 +118,26 @@ export function CycleChart({
   // closes, so keyboard and screen reader users stay where they were.
   useEffect(() => {
     if (readingOpen) closeRef.current?.focus();
-    else if (wasOpen.current) hubRef.current?.focus();
+    else if (wasOpen.current && returnFocus.current) hubRef.current?.focus();
     wasOpen.current = readingOpen;
+    returnFocus.current = true;
   }, [readingOpen]);
 
   function setOpen(open: boolean) {
     startTransition(() => setReadingOpen(open));
   }
+
+  // Light dismiss: a tap or click anywhere outside the reading folds it back.
+  useEffect(() => {
+    if (!readingOpen) return;
+    function handlePointerDown(event: PointerEvent) {
+      if (readingRef.current?.contains(event.target as Node)) return;
+      returnFocus.current = false;
+      startTransition(() => setReadingOpen(false));
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [readingOpen]);
 
   function handleOrbClick(index: number) {
     if (index === selectedIndex) setOpen(true);
@@ -287,6 +304,7 @@ export function CycleChart({
           {readingOpen ? (
             <ViewTransition name="wheel-bloom" share="auto" default="none">
               <div
+                ref={readingRef}
                 role="dialog"
                 aria-modal="false"
                 aria-labelledby={headingId}
@@ -358,7 +376,7 @@ export function CycleChart({
 
       <p className="mt-3 text-center text-xs text-ink-light">
         {readingOpen
-          ? "Close the reading to choose another year."
+          ? "Tap outside the reading to close it and choose another year."
           : "Tap a number to choose a year, then the centre to read it in full."}
       </p>
 
