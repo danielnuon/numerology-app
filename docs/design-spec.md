@@ -38,7 +38,7 @@ The design should feel like a digitized sacred text — not a theme park replica
 │              3   6                          │
 │          8           9                      │ ← cycle wheel: 12 lantern orbs,
 │        6    ( 11 )     5                    │    this year's preview in the
-│          4  Allies   8                      │    centre; tap it to bloom the
+│          4  Allies   8                      │    center; tap it to bloom the
 │            2  0  2⑪                         │    full reading over the wheel
 │                                             │
 ├─────────────────────────────────────────────┤
@@ -86,7 +86,7 @@ A night temple lit by lanterns. The token names in `globals.css` are kept from t
 | Accent Gold Deep | `gold-deep` | `#E2B65A` | Gold that carries meaning — focus ring, current year, primary button, total score (9.7:1) |
 | Border | `border` | `#3B3242` | Card edges and dividers |
 
-**Luck tier colors** are the colour of each tier's lantern light. Wheel orbs, the wheel's centre and reading, and timeline dots are lit by their tier (`data-tier` sets `--lamp`; `.wheel-orb`, `.wheel-hub`, `.wheel-reading`, `.lamp-orb` apply it), and tier symbols take the solid colour:
+**Luck tier colors** are the color of each tier's lantern light. Wheel orbs, the wheel's center and reading, and timeline dots are lit by their tier (`data-tier` sets `--lamp`; `.wheel-orb`, `.wheel-hub`, `.wheel-reading`, `.lamp-orb` apply it), and tier symbols take the solid color:
 | Tier | Value | Usage |
 |------|-------|-------|
 | Very Strong (10–11) | `#BFE0A5` | Pale sage light — brightest |
@@ -177,26 +177,26 @@ A thin gold arc traces the ring from the birth year to this year.
           0   2  (11)
 ```
 
-**Centre (the preview):** The selected year's year, life area, number, tier label and animal, with "Read more". It shows on load for the current year, so the reading is visible without a tap.
+**Center (the preview):** The selected year's year, life area, number, tier label and animal, with "Read more". It shows on load for the current year, so the reading is visible without a tap.
 
-**Bloom (the full reading):** Tapping the centre, or the selected orb again, opens the full reading over the wheel: number, tier, animal, description, guidance and the other years that share the number. It grows out of the centre with a shared-element view transition and folds back the same way. On narrow screens it grows taller than the wheel instead of scrolling inside it.
+**Bloom (the full reading):** Tapping the center, or the selected orb again, opens the full reading over the wheel: number, tier, animal, description, guidance and the other years that share the number. It grows out of the center with a shared-element view transition and folds back the same way. On narrow screens it grows taller than the wheel instead of scrolling inside it.
 
 **Current year:** Gold-deep edge, a warmer glow and a gold-deep corner dot. No looping animation.
 
 **States:**
 | State | Description |
 |-------|-------------|
-| Default | Orb lit by its tier, number at centre |
+| Default | Orb lit by its tier, number at center |
 | Hover | Glow brightens (mouse only), cursor pointer |
 | Pressed | Scales to 0.97 on a no-bounce spring |
-| Selected | 2px ink ring that glides between orbs (view transition); the centre crossfades |
+| Selected | 2px ink ring that glides between orbs (view transition); the center crossfades |
 | Zero | Charcoal orb, number in light text |
 
 **Accessibility:**
-- Each orb is a `<button>` with `role="tab"` in a `tablist`; the centre is the tab panel
+- Each orb is a `<button>` with `role="tab"` in a `tablist`; the center is the tab panel
 - `aria-label`: "2026, Allies, cycle number 11, Very strong luck, Year of the Horse, current year"
 - One Tab stop for the group (roving tabindex); arrows move focus and selection together around the wheel, Home/End jump to the ends
-- Enter or Space on the selected orb, or on the centre, opens the reading; focus moves to its close button, and Escape or Close returns focus to the centre
+- Enter or Space on the selected orb, or on the center, opens the reading; focus moves to its close button, and Escape or Close returns focus to the center
 - While the reading is open the ring behind it is `inert`
 - Orbs are at least 44px; focus ring is a 2px gold-deep outline
 
@@ -314,7 +314,7 @@ A thin gold arc traces the ring from the birth year to this year.
 2. User clicks "Reveal My Cycle" → button text fades, a subtle ripple expands from the button
 3. The form card gently fades back (opacity 0.6) and the cycle chart section fades in below
 4. Cycle orbs swell in one by one, clockwise from the birth year, with 40ms stagger (400ms, `--ease-enter`)
-5. The gold arc traces the ring from the birth year to this year, and the centre shows this year's preview
+5. The gold arc traces the ring from the birth year to this year, and the center shows this year's preview
 6. The total score fades in below the chart: "Your life pattern: Balanced (64)"
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
@@ -325,16 +325,16 @@ A thin gold arc traces the ring from the birth year to this year.
 **Trigger:** User clicks/taps an orb
 **Steps:**
 1. The selection ring glides to the new orb and its animal turns gold
-2. The centre preview crossfades (old fades out in 150ms, new settles in over 250ms)
+2. The center preview crossfades (old fades out in 150ms, new settles in over 250ms)
 3. The timeline selects the same year
-4. Tapping the centre (or the selected orb again) blooms the full reading over the wheel
+4. Tapping the center (or the selected orb again) blooms the full reading over the wheel
 
 ### Timeline Scrubbing
 **Trigger:** User clicks a year dot on the timeline or drags/scrolls
 **Steps:**
 1. Selected dot gains gold fill
 2. Corresponding orb on the wheel gains the selection ring
-3. The wheel's centre updates
+3. The wheel's center updates
 4. 12-year cycle boundaries shown with subtle vertical tick marks
 
 ---

@@ -24,7 +24,7 @@ BirthDataForm (input)
               |- interpretYear() [interpretation.ts]
               |- interpretTotal() [interpretation.ts]
               |- getLifeArea() [year-lookup.ts]
-              +- DetailPanel (reading that blooms from the wheel centre)
+              +- DetailPanel (reading that blooms from the wheel center)
                   |- getYearsForColumn() [chart-helpers.ts]
                   |- getTierSymbol() [chart-helpers.ts]
                   |- interpretYear() [interpretation.ts]
@@ -265,7 +265,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **CurrentYearWidget**: Client component displaying the current year's cycle number, luck tier, life area domain, and one-sentence guidance. Renders "View full cycle" (smooth-scroll to chart) and "Not you?" (clear localStorage, reset to form) actions. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
-- **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The centre is the tab panel: a preview of the selected year (the current year on load). Tapping the centre or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
+- **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
@@ -321,7 +321,7 @@ A CSS pseudo-element (`::before`) on `.paper-texture` applies an inline SVG frac
 
 The app respects `prefers-reduced-motion` at two levels:
 - **CSS**: `@media (prefers-reduced-motion: reduce)` in `globals.css` disables `.animate-breathe`.
-- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to centre the selected year without smooth scrolling. A global CSS rule collapses CSS animations, transitions, smooth scrolling and view transitions.
+- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling. A global CSS rule collapses CSS animations, transitions, smooth scrolling and view transitions.
 
 ## Testing Conventions
 

@@ -2,7 +2,7 @@
  * ZodiacIcon
  *
  * The twelve zodiac animals drawn as engraved line marks for Temple Lantern:
- * a 32-unit grid, 1.5 strokes with round ends, coloured by currentColor
+ * a 32-unit grid, 1.5 strokes with round ends, colored by currentColor
  * (gold on the dark page). Decorative by default, because the animal's name
  * is always written next to it.
  *
@@ -110,7 +110,7 @@ export const ZODIAC_ICON_PATHS: Record<ZodiacAnimal, readonly string[]> = {
 
 interface ZodiacIconProps {
   animal: ZodiacAnimal;
-  /** Sizing and colour classes; defaults to 24px in the current text colour. */
+  /** Sizing and color classes; defaults to 24px in the current text color. */
   className?: string;
   /** Accessible name. Leave unset when the animal's name is shown beside it. */
   title?: string;

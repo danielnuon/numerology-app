@@ -1,7 +1,7 @@
 /**
  * Preview Card Theme
  *
- * Colours for the link-preview images (opengraph-image.tsx), matching the
+ * Colors for the link-preview images (opengraph-image.tsx), matching the
  * Temple Lantern palette in globals.css. Image routes can't read CSS
  * variables, so the values are repeated here; keep the two in step.
  */
@@ -19,7 +19,7 @@ export const OG_COLORS = {
   zero: "#0E0B11",
 } as const;
 
-/** Tier colours, as --color-tier-* in globals.css. */
+/** Tier colors, as --color-tier-* in globals.css. */
 const TIER_COLORS: Record<YearTier, string> = {
   "very-strong": "#BFE0A5",
   strong: "#A9CC93",
@@ -34,7 +34,7 @@ export function pillarColors(tier: YearTier): { background: string; border: stri
     return { background: OG_COLORS.zero, border: OG_COLORS.border };
   }
   const color = TIER_COLORS[tier];
-  // 8-digit hex: tier colour at ~16% for the fill, ~50% for the edge.
+  // 8-digit hex: tier color at ~16% for the fill, ~50% for the edge.
   return { background: `${color}29`, border: `${color}80` };
 }
 
