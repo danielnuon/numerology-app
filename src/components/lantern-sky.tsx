@@ -52,10 +52,12 @@ export function LanternSky() {
     let frame = 0;
     let last = performance.now();
 
+    // Match the canvas to its box, which is the large viewport (taller than
+    // innerHeight while mobile toolbars are showing).
     function resize() {
       const dpr = window.devicePixelRatio || 1;
-      canvas!.width = window.innerWidth * dpr;
-      canvas!.height = window.innerHeight * dpr;
+      canvas!.width = canvas!.clientWidth * dpr;
+      canvas!.height = canvas!.clientHeight * dpr;
     }
 
     function draw(now: number) {

@@ -285,6 +285,15 @@ export function getZodiacAnimal(birthDate: Date): ZodiacAnimal {
 }
 
 /**
+ * Returns the animal that rules a calendar year: the one in force from that
+ * year's New Year onward, which covers most of the year. For a specific
+ * birth date, use getZodiacAnimal, which applies the New Year boundary.
+ */
+export function getZodiacAnimalForYear(year: number): ZodiacAnimal {
+  return ZODIAC_ANIMALS[zodiacIndex(year)];
+}
+
+/**
  * Returns the zodiac number (1-12) for a given birth date.
  * Rat=1, Ox=2, Tiger=3, ..., Pig=12
  */

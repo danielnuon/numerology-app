@@ -3,6 +3,7 @@ import {
   ZODIAC_ANIMALS,
   getZodiacYear,
   getZodiacAnimal,
+  getZodiacAnimalForYear,
   getZodiacNumber,
   getZodiacRow,
 } from "../zodiac";
@@ -93,6 +94,18 @@ describe("getZodiacYear", () => {
     expect(() => getZodiacYear(new Date(2101, 5, 1))).toThrow(
       "outside the supported range"
     );
+  });
+});
+
+describe("getZodiacAnimalForYear", () => {
+  it("returns the animal that rules each calendar year", () => {
+    expect(getZodiacAnimalForYear(1997)).toBe("Ox");
+    expect(getZodiacAnimalForYear(2000)).toBe("Dragon");
+    expect(getZodiacAnimalForYear(2026)).toBe("Horse");
+  });
+
+  it("repeats every 12 years", () => {
+    expect(getZodiacAnimalForYear(1924)).toBe(getZodiacAnimalForYear(2020));
   });
 });
 

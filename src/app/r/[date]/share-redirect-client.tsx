@@ -28,7 +28,7 @@ export function ShareRedirectClient({ day, month, year }: Props) {
 
   // Brief loading state while redirecting
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4 py-16">
+    <main className="flex flex-1 flex-col items-center justify-center safe-gutter py-16">
       <p className="text-ink-light text-sm italic">Opening this reading…</p>
     </main>
   );

@@ -18,6 +18,7 @@ import {
 } from "@/lib/numerology/derive";
 import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { saveBirthDate } from "@/lib/storage";
+import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -47,6 +48,63 @@ interface FieldErrors {
 /** Keeps only digits, so letters and signs never reach the field. */
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
+}
+
+interface DateFieldProps {
+  id: string;
+  label: string;
+  placeholder: string;
+  maxLength: number;
+  /** Autofill hint, so Safari and Chrome can offer the saved birthday. */
+  autoComplete: string;
+  value: string;
+  error?: string;
+  onChange: (digits: string) => void;
+  className?: string;
+}
+
+/** One labelled date part: a lit well that glows gold on focus and ember on error. */
+function DateField({
+  id,
+  label,
+  placeholder,
+  maxLength,
+  autoComplete,
+  value,
+  error,
+  onChange,
+  className = "",
+}: DateFieldProps) {
+  const errorId = `error-${id.replace("birth-", "")}`;
+  return (
+    <div className={`flex flex-col min-w-0 ${className}`}>
+      <label
+        htmlFor={id}
+        className="mb-2 text-center text-xs uppercase tracking-[0.12em] text-ink-light"
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete={autoComplete}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(digitsOnly(e.target.value))}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
+        className="lantern-input pressable"
+      />
+      {error && (
+        <p id={errorId} role="alert" className="mt-2 text-xs text-tier-weak">
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export function BirthDataForm({ onResult, initialValues }: Props) {
@@ -120,160 +178,81 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
       aria-label="Birth date form"
     >
       {/* Date inputs */}
-      <div className="flex gap-4 sm:gap-6 mt-8">
-        {/* Day */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <label
-            htmlFor="birth-day"
-            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
-          >
-            Day
-          </label>
-          <input
-            id="birth-day"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoComplete="off"
-            maxLength={2}
-            placeholder="DD"
-            value={day}
-            onChange={(e) => {
-              const digits = digitsOnly(e.target.value);
-              setDay(digits);
-              revalidate(digits, month, year);
-            }}
-            aria-invalid={!!errors.day}
-            aria-describedby={errors.day ? "error-day" : undefined}
-            className={[
-              "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-xl font-display tracking-[0.06em] placeholder:text-ink-faint",
-              "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
-              errors.day
-                ? "border-tier-weak"
-                : "border-border",
-            ].join(" ")}
-          />
-          {errors.day && (
-            <p id="error-day" role="alert" className="mt-1 text-xs text-tier-weak">
-              {errors.day}
-            </p>
-          )}
-        </div>
-
-        {/* Month */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <label
-            htmlFor="birth-month"
-            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
-          >
-            Month
-          </label>
-          <input
-            id="birth-month"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoComplete="off"
-            maxLength={2}
-            placeholder="MM"
-            value={month}
-            onChange={(e) => {
-              const digits = digitsOnly(e.target.value);
-              setMonth(digits);
-              revalidate(day, digits, year);
-            }}
-            aria-invalid={!!errors.month}
-            aria-describedby={errors.month ? "error-month" : undefined}
-            className={[
-              "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-xl font-display tracking-[0.06em] placeholder:text-ink-faint",
-              "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
-              errors.month
-                ? "border-tier-weak"
-                : "border-border",
-            ].join(" ")}
-          />
-          {errors.month && (
-            <p id="error-month" role="alert" className="mt-1 text-xs text-tier-weak">
-              {errors.month}
-            </p>
-          )}
-        </div>
-
-        {/* Year */}
-        <div className="flex flex-col flex-[1.25] sm:flex-[2] min-w-0">
-          <label
-            htmlFor="birth-year"
-            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
-          >
-            Year
-          </label>
-          <input
-            id="birth-year"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoComplete="off"
-            maxLength={4}
-            placeholder="YYYY"
-            value={year}
-            onChange={(e) => {
-              const digits = digitsOnly(e.target.value);
-              setYear(digits);
-              revalidate(day, month, digits);
-            }}
-            aria-invalid={!!errors.year}
-            aria-describedby={errors.year ? "error-year" : undefined}
-            className={[
-              "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-xl font-display tracking-[0.06em] placeholder:text-ink-faint",
-              "pressable focus:border-gold-deep focus:shadow-[0_1px_0_0_var(--color-gold-deep)] focus-visible:outline-none min-h-[44px]",
-              errors.year
-                ? "border-tier-weak"
-                : "border-border",
-            ].join(" ")}
-          />
-          {errors.year && (
-            <p id="error-year" role="alert" className="mt-1 text-xs text-tier-weak">
-              {errors.year}
-            </p>
-          )}
-        </div>
+      <div className="mt-8 grid grid-cols-[1fr_1fr_1.5fr] gap-3 sm:gap-4">
+        <DateField
+          id="birth-day"
+          label="Day"
+          placeholder="DD"
+          maxLength={2}
+          autoComplete="bday-day"
+          value={day}
+          error={errors.day}
+          onChange={(digits) => {
+            setDay(digits);
+            revalidate(digits, month, year);
+          }}
+        />
+        <DateField
+          id="birth-month"
+          label="Month"
+          placeholder="MM"
+          maxLength={2}
+          autoComplete="bday-month"
+          value={month}
+          error={errors.month}
+          onChange={(digits) => {
+            setMonth(digits);
+            revalidate(day, digits, year);
+          }}
+        />
+        <DateField
+          id="birth-year"
+          label="Year"
+          placeholder="YYYY"
+          maxLength={4}
+          autoComplete="bday-year"
+          value={year}
+          error={errors.year}
+          onChange={(digits) => {
+            setYear(digits);
+            revalidate(day, month, digits);
+          }}
+        />
       </div>
 
       {/* General date error (e.g. future date, invalid calendar date) */}
       {errors.date && (
-        <p role="alert" className="mt-2 text-xs text-tier-weak">
+        <p role="alert" className="mt-3 text-center text-xs text-tier-weak">
           {errors.date}
         </p>
       )}
 
-      {/* Auto-derived display */}
-      {derived && (
-        <div
-          aria-live="polite"
-          className="mt-6 flex flex-wrap gap-6 animate-settle-in"
-        >
-          <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.08em] text-ink-light">
-              Zodiac
+      {/* Auto-derived zodiac and weekday. The slot reserves room for the two
+          chips (stacked on phones) so the button doesn't jump when they appear. */}
+      <div aria-live="polite" className="mt-6 flex min-h-[92px] min-[480px]:min-h-[44px] justify-center">
+        {derived && (
+          <p className="animate-settle-in flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-gold-deep/[0.06] py-1 pl-2 pr-4">
+              <ZodiacIcon animal={derived.zodiacAnimal} className="size-6 text-gold-deep" />
+              <span>
+                Year of the{" "}
+                <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
+              </span>
             </span>
-            <span className="text-ink mt-1">{derived.zodiacAnimal}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.08em] text-ink-light">
-              Day of week
+            <span className="inline-flex items-center rounded-full border border-border bg-gold-deep/[0.06] px-4 py-1.5">
+              <span>
+                Born on a{" "}
+                <span className="font-display text-base text-gold-deep">
+                  {WEEKDAY_NAMES[derived.weekday]}
+                </span>
+              </span>
             </span>
-            <span className="text-ink mt-1">
-              {WEEKDAY_NAMES[derived.weekday]}
-            </span>
-          </div>
-        </div>
-      )}
+          </p>
+        )}
+      </div>
 
       {/* Submit */}
-      <div className="mt-10">
+      <div className="mt-6">
         <button
           type="submit"
           className={[
