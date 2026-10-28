@@ -15,6 +15,7 @@
  */
 
 import {
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -46,7 +47,18 @@ export interface CycleChartProps {
   selectedYear: number;
   /** Called with the 0-indexed position when an orb is chosen. */
   onSelectPillar?: (columnIndex: number) => void;
+  /** Called when the wheel has sat idle on another year long enough to return to now. */
+  onReturnToCurrent?: () => void;
 }
+
+/**
+ * How long the wheel rests on another year before gliding back to the
+ * current one, counted from the last tap, key, scroll or wheel anywhere.
+ */
+export const RETURN_TO_CURRENT_MS = 9000;
+
+/** Page activity that restarts the idle countdown. */
+const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "scroll"] as const;
 
 /** Orbs sit on this ring, as a percentage of the wheel's width. */
 const ORB_RADIUS = 36;
@@ -91,6 +103,7 @@ export function CycleChart({
   birthDay,
   selectedYear,
   onSelectPillar,
+  onReturnToCurrent,
 }: CycleChartProps) {
   const currentYear = new Date().getFullYear();
   const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
@@ -101,9 +114,11 @@ export function CycleChart({
 
   const [readingOpen, setReadingOpen] = useState(false);
   const orbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const rippleRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const hubRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const readingRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const wasOpen = useRef(false);
   // False when the reading closed because of a tap elsewhere on the page, so
   // focus stays with whatever was tapped instead of jumping back to the wheel.
@@ -142,7 +157,51 @@ export function CycleChart({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [readingOpen]);
 
+  // Return to now: after a quiet spell on another year, the selection glides
+  // back to the current one. Never while a reading is open, the pointer rests
+  // on the wheel, or the keyboard is working in it.
+  useEffect(() => {
+    if (!onReturnToCurrent || readingOpen || selectedYear === activeYear) return;
+    let timer = 0;
+    function isInUse(): boolean {
+      const section = sectionRef.current;
+      if (!section) return false;
+      // Touch screens keep :hover on the last tap, so only real pointers count
+      const hovered = window.matchMedia("(hover: hover)").matches && section.matches(":hover");
+      let keyboardFocus = false;
+      try {
+        keyboardFocus = section.querySelector(":focus-visible") !== null;
+      } catch {
+        // Older engines without :focus-visible: treat focus as not keyboard
+      }
+      return hovered || keyboardFocus;
+    }
+    function restart() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (isInUse()) restart();
+        else onReturnToCurrent?.();
+      }, RETURN_TO_CURRENT_MS);
+    }
+    restart();
+    for (const type of ACTIVITY_EVENTS) window.addEventListener(type, restart, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      for (const type of ACTIVITY_EVENTS) window.removeEventListener(type, restart);
+    };
+  }, [onReturnToCurrent, readingOpen, selectedYear, activeYear]);
+
+  // One soft ring spreads from a tapped number (CSS, so Reduce Motion skips it)
+  function ripple(index: number) {
+    const el = rippleRefs.current[index];
+    if (!el) return;
+    el.classList.remove("wheel-ripple-run");
+    void el.offsetWidth; // restart the animation on a repeat tap
+    el.classList.add("wheel-ripple-run");
+  }
+
   function handleOrbClick(index: number) {
+    ripple(index);
     if (index === selectedIndex) setOpen(true);
     else onSelectPillar?.(index);
   }
@@ -168,17 +227,21 @@ export function CycleChart({
   const arcLength = (RING_LENGTH * currentColumn) / 12;
 
   return (
-    <section aria-label="Life cycle chart" className="w-full">
+    <section ref={sectionRef} aria-label="Life cycle chart" className="w-full">
       <div className="@container mx-auto grid w-full max-w-[440px] grid-cols-[minmax(0,1fr)]">
         {/* The ring: orbs, animals and the gold arc */}
         <div
-          className={`relative col-start-1 row-start-1 aspect-square w-full ${
+          className={`wheel-depth-ring relative col-start-1 row-start-1 aspect-square w-full ${
             // Let taps on the ring fall through to the page, since browsers
             // differ on delivering pointer events that land on inert content.
             readingOpen ? "pointer-events-none" : ""
           }`}
           inert={readingOpen}
         >
+          {/* Ambient light: a fine tick ring that turns very slowly and a glint
+              that travels the ring now and then */}
+          <div aria-hidden="true" className="wheel-ticks pointer-events-none absolute inset-[9%] rounded-full" />
+          <div aria-hidden="true" className="wheel-glint pointer-events-none absolute inset-[14%] rounded-full" />
           <svg
             viewBox="0 0 100 100"
             aria-hidden="true"
@@ -246,7 +309,12 @@ export function CycleChart({
                   whileTap={{ scale: PRESS.scale, transition: PRESS.spring }}
                   onClick={() => handleOrbClick(index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  style={polar(index, ORB_RADIUS)}
+                  style={{
+                    ...polar(index, ORB_RADIUS),
+                    // Each lantern breathes at its own pace so the ring never pulses in unison
+                    "--breathe-duration": `${(5 + ((index * 7) % 5) * 0.9).toFixed(1)}s`,
+                    "--breathe-delay": `${(-index * 1.3).toFixed(1)}s`,
+                  } as React.CSSProperties}
                   className={[
                     "wheel-orb pressable absolute grid size-[clamp(44px,13cqw,58px)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full",
                     "focus-visible:outline-offset-[6px]",
@@ -256,10 +324,17 @@ export function CycleChart({
                 >
                   <span
                     aria-hidden="true"
-                    className="font-sans text-[clamp(1.05rem,5cqw,1.4rem)] font-medium leading-none tabular-nums"
+                    className="wheel-orb-number font-sans text-[clamp(1.05rem,5cqw,1.4rem)] font-medium leading-none tabular-nums"
                   >
                     {cycleNumber}
                   </span>
+                  <span
+                    aria-hidden="true"
+                    ref={(el) => {
+                      rippleRefs.current[index] = el;
+                    }}
+                    className="wheel-ripple pointer-events-none absolute inset-0 rounded-full"
+                  />
 
                   {/* Current year marker */}
                   {isCurrent && (
@@ -343,7 +418,7 @@ export function CycleChart({
               </div>
             </ViewTransition>
           ) : (
-            <div className="grid h-[100cqw] place-items-center">
+            <div className="wheel-depth-hub grid h-[100cqw] place-items-center">
               <ViewTransition name="wheel-bloom" share="auto" update="panel-swap" default="none">
                 <button
                   ref={hubRef}

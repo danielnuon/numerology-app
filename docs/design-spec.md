@@ -357,7 +357,10 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 **Rules**
 - Looks interactive if and only if it is: every control has a pointer cursor, hover (mouse only), a gold-deep focus ring and a pressed state. Static cards have none of these.
 - One meaning per visual: gold-deep = now, ink outline = selected, focus ring = keyboard.
-- Interface motion explains a change; movement stays at 10px or less. The only continuous motion is the ambient dust, which is decorative, slow, and stops with Reduce Motion.
+- Interface motion explains a change; movement stays at 10px or less. Continuous motion is limited to two ambient places, both slow, opacity- and transform-only, and stopped by Reduce Motion:
+  - the dust and lantern glows in the sky;
+  - the living wheel. The current year's number pulses with a soft gold halo (1.8s each way). Every number's light breathes at its own pace (5–8.6s) while the numbers float about 1px. A glint travels the ring every 14s, and a fine tick ring turns once every 3 minutes. A tapped number sends out one ring. When scrolling, a scroll-driven `view()` timeline shifts the ring and the center up to 6px apart for depth.
+- Return to now: when the wheel rests on another year, it glides back to the current year after 9s without any tap, key, scroll or wheel anywhere on the page (`RETURN_TO_CURRENT_MS`). It never does so while a reading is open, while a mouse hovers the wheel, or while keyboard focus is inside it.
 - Entrance: the title "kindles" out of the dark (blur and letter-spacing settle, 1.6s), then the subtitle and first card follow (`.rise` with `--rise-delay`).
 - Selection changes run inside `startTransition`, so React `<ViewTransition>` animates the selection outline (shared element) and panel crossfade natively. This covers the wheel, the timeline and the New Year toggle; each marks its choice with an ink outline that glides to the new option.
 - Pressed state: every pill, button and orb scales to 0.97 (`PRESS.scale` in Motion, `active:scale-[0.97]` in CSS). Inline text links dim instead.

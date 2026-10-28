@@ -208,6 +208,11 @@ export function HomeClient({ searchParams }: Props) {
     startTransition(() => setPickedYear(year));
   }, []);
 
+  // After a quiet spell the wheel glides back to the current year.
+  const handleReturnToCurrent = useCallback(() => {
+    startTransition(() => setPickedYear(null));
+  }, []);
+
   // Picking an orb stays within the 12-year cycle that is already selected,
   // so moving around the wheel never jumps the timeline to another decade.
   const handleChartSelectPillar = useCallback((columnIndex: number) => {
@@ -307,6 +312,7 @@ export function HomeClient({ searchParams }: Props) {
                 birthDay={result.birthDay}
                 selectedYear={selectedYear}
                 onSelectPillar={handleChartSelectPillar}
+                onReturnToCurrent={handleReturnToCurrent}
               />
             </div>
 
