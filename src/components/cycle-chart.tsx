@@ -135,7 +135,7 @@ export function CycleChart({
             `Column ${index + 1}`,
             `cycle number ${cycleNumber}`,
             `${interp.label}`,
-            `${domain} domain`,
+            `life area ${domain}`,
             isCurrent ? "current year" : "",
           ]
             .filter(Boolean)

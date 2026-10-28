@@ -83,7 +83,7 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
 
       {/* Life area */}
       <p className="mt-1 text-center text-sm text-ink-light">
-        {lifeArea} domain
+        Life area: {lifeArea}
       </p>
 
       {/* Guidance — one sentence */}
@@ -93,7 +93,7 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
 
       {/* Screen reader summary */}
       <span className="sr-only">
-        {`Year ${currentYear}: cycle number ${cycleNumber}, ${interpretation.label}, ${lifeArea} domain. ${interpretation.guidance}`}
+        {`Year ${currentYear}: cycle number ${cycleNumber}, ${interpretation.label}, life area ${lifeArea}. ${interpretation.guidance}`}
       </span>
 
       {/* Actions */}
