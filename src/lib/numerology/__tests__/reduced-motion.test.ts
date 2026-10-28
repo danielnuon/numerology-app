@@ -36,8 +36,19 @@ describe("prefers-reduced-motion CSS rules", () => {
     expect(blockContent).toMatch(/::view-transition-group\(\*\)/);
   });
 
-  it("globals.css has no looping animations", () => {
-    expect(cssContent).not.toMatch(/infinite/);
+  it("loops only on the cycle wheel, and only when motion is allowed", () => {
+    // The wheel's ambient light is the one sanctioned exception to the
+    // no-loops rule; every looping rule must sit in a no-preference block
+    // and style a .wheel- element.
+    const lines = cssContent.split("\n");
+    lines.forEach((line, index) => {
+      if (!/\binfinite\b/.test(line)) return;
+      const before = lines.slice(0, index);
+      const media = before.filter((l) => l.trim().startsWith("@media")).pop() ?? "";
+      expect(media).toMatch(/prefers-reduced-motion:\s*no-preference/);
+      const selector = before.filter((l) => l.trim().endsWith("{")).pop() ?? "";
+      expect(selector).toMatch(/\.wheel-/);
+    });
   });
 
   it("scroll-driven animations only run when motion is allowed", () => {

@@ -39,6 +39,8 @@
   /* === Motion (Material 3 curves; see docs/design-spec.md "Motion") === */
   --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* Symmetric ease for ambient breathing that runs back and forth */
+  --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
   --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
 }
 
@@ -267,6 +269,125 @@ body {
 }
 .wheel-orb-current {
   box-shadow: 0 0 0 1.5px var(--color-gold-deep), 0 0 30px -2px rgba(226, 182, 90, 0.55);
+}
+/* === The living wheel ===
+ * The wheel is the one place the interface moves on its own, so it reads as
+ * lit rather than printed. Everything is slow, animates only opacity and
+ * transform (compositor work, no repaints), and is still under Reduce Motion:
+ * - the current year's number breathes with a soft gold halo
+ * - every number's light breathes at its own pace, like lanterns
+ * - the numbers float about a pixel
+ * - a glint travels the ring every 14 s; a fine tick ring turns every 3 min
+ * - a tapped number sends out one ring
+ * - scrolling shifts the ring and the center slightly apart, for depth */
+.wheel-ticks {
+  background: repeating-conic-gradient(from 0deg, rgba(241, 232, 216, 0.14) 0 0.35deg, transparent 0.35deg 7.5deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  opacity: 0.6;
+}
+.wheel-glint {
+  opacity: 0;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(226, 182, 90, 0) 300deg, rgba(226, 182, 90, 0.75) 356deg, transparent 360deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+.wheel-orb::before,
+.wheel-orb-current::after,
+.wheel-ripple {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.wheel-orb::before {
+  box-shadow: 0 0 22px -2px var(--lamp);
+  opacity: 0.5;
+}
+.wheel-orb-current::after {
+  box-shadow: 0 0 18px 3px rgba(226, 182, 90, 0.45);
+  opacity: 0;
+}
+.wheel-ripple {
+  border: 1px solid var(--lamp);
+  opacity: 0;
+}
+@keyframes current-pulse {
+  from { opacity: 0.15; transform: scale(1); }
+  to { opacity: 0.85; transform: scale(1.08); }
+}
+@keyframes lantern-breathe {
+  from { opacity: 0.2; }
+  to { opacity: 0.9; }
+}
+@keyframes number-float {
+  from { transform: translateY(-1px); }
+  to { transform: translateY(1px); }
+}
+@keyframes ring-turn {
+  to { transform: rotate(360deg); }
+}
+@keyframes ring-glint {
+  0% { opacity: 0; transform: rotate(0deg); }
+  8% { opacity: 1; }
+  60% { opacity: 1; }
+  75%, 100% { opacity: 0; transform: rotate(360deg); }
+}
+@keyframes orb-ripple {
+  from { opacity: 0.9; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+@keyframes depth-ring {
+  from { transform: translateY(6px); }
+  to { transform: translateY(-6px); }
+}
+@keyframes depth-hub {
+  from { transform: translateY(-4px); }
+  to { transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wheel-orb-current::after {
+    animation: current-pulse 1.8s var(--ease-sine) infinite alternate;
+  }
+  .wheel-orb::before {
+    animation: lantern-breathe var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
+  }
+  .wheel-orb-number {
+    animation: number-float var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
+  }
+  .wheel-ticks {
+    animation: ring-turn 180s linear infinite;
+  }
+  .wheel-glint {
+    animation: ring-glint 14s var(--ease-sine) 1.2s infinite;
+  }
+  .wheel-ripple-run {
+    animation: orb-ripple 600ms var(--ease-standard) both;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .wheel-depth-ring {
+      animation: depth-ring linear both;
+      animation-timeline: view();
+    }
+    .wheel-depth-hub {
+      animation: depth-hub linear both;
+      animation-timeline: view();
+    }
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wheel-orb-current::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 18px 3px rgba(226, 182, 90, 0.45);
+    animation: current-pulse 1.8s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+  }
 }
 @media (hover: hover) {
   .wheel-orb:not(.wheel-orb-current):hover {

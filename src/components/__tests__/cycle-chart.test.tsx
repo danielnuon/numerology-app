@@ -4,7 +4,7 @@
 import { forwardRef, type ComponentPropsWithoutRef } from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { CycleChart } from "../cycle-chart";
+import { CycleChart, RETURN_TO_CURRENT_MS } from "../cycle-chart";
 
 // Render Motion components as plain elements, dropping animation props
 jest.mock("motion/react", () => {
@@ -183,5 +183,52 @@ describe("CycleChart (cycle wheel)", () => {
   it("shows the total score below the wheel", () => {
     render(<CycleChart {...defaultProps} />);
     expect(screen.getByText("64")).toBeInTheDocument();
+  });
+
+  describe("returning to the current year", () => {
+    // 2027 is the year after the current one (2026)
+    const awayProps = { ...defaultProps, selectedYear: 2027 };
+
+    // jsdom has no matchMedia; report a touch screen (no hover)
+    beforeAll(() => {
+      window.matchMedia = ((query: string) => ({ matches: false, media: query })) as unknown as typeof window.matchMedia;
+    });
+
+    it("glides back after the wheel has been idle", () => {
+      const onReturnToCurrent = jest.fn();
+      render(<CycleChart {...awayProps} onReturnToCurrent={onReturnToCurrent} />);
+      act(() => jest.advanceTimersByTime(RETURN_TO_CURRENT_MS - 1));
+      expect(onReturnToCurrent).not.toHaveBeenCalled();
+      act(() => jest.advanceTimersByTime(1));
+      expect(onReturnToCurrent).toHaveBeenCalledTimes(1);
+    });
+
+    it("counts idle time from the last interaction", () => {
+      const onReturnToCurrent = jest.fn();
+      render(<CycleChart {...awayProps} onReturnToCurrent={onReturnToCurrent} />);
+      act(() => jest.advanceTimersByTime(RETURN_TO_CURRENT_MS - 1000));
+      fireEvent.pointerDown(document.body);
+      act(() => jest.advanceTimersByTime(RETURN_TO_CURRENT_MS - 1));
+      expect(onReturnToCurrent).not.toHaveBeenCalled();
+      act(() => jest.advanceTimersByTime(1));
+      expect(onReturnToCurrent).toHaveBeenCalledTimes(1);
+    });
+
+    it("waits while a reading is open", () => {
+      const onReturnToCurrent = jest.fn();
+      render(<CycleChart {...awayProps} onReturnToCurrent={onReturnToCurrent} />);
+      act(() => {
+        fireEvent.click(screen.getByRole("button", { name: /Read 2027 in full/ }));
+      });
+      act(() => jest.advanceTimersByTime(RETURN_TO_CURRENT_MS * 3));
+      expect(onReturnToCurrent).not.toHaveBeenCalled();
+    });
+
+    it("stays put when the current year is already selected", () => {
+      const onReturnToCurrent = jest.fn();
+      render(<CycleChart {...defaultProps} onReturnToCurrent={onReturnToCurrent} />);
+      act(() => jest.advanceTimersByTime(RETURN_TO_CURRENT_MS * 3));
+      expect(onReturnToCurrent).not.toHaveBeenCalled();
+    });
   });
 });
