@@ -182,7 +182,7 @@ export function HomeClient() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <main className="flex flex-1 flex-col items-center px-4 py-16 sm:px-8">
+    <main className="safe-gutter flex flex-1 flex-col items-center py-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       {/* Entrance: the title surfaces out of the dark, then each block follows. */}
       <h1 className="kindle title-glow font-display text-5xl sm:text-7xl tracking-[0.14em] text-ink text-center">
         Solini

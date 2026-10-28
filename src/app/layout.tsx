@@ -46,6 +46,8 @@ const notoSerifKhmer = Noto_Serif_Khmer({
 export const viewport: Viewport = {
   themeColor: "#17131C",
   colorScheme: "dark",
+  // Draw under the notch and home indicator; .safe-gutter keeps content clear.
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
