@@ -46,13 +46,14 @@ export function DetailPanel({
 }: DetailPanelProps) {
   const interp = interpretYear(cycleNumber);
   const domain = getLifeArea(columnIndex + 1);
-  
-  // If a specific year is selected (from timeline), show just that year
-  // Otherwise show the grouped years from the pillar
-  const years = selectedYear !== undefined && selectedYear !== null
+
+  // A year picked on the timeline shows just that year. A pillar picked on
+  // the chart stands for every year that shares it, so list the nearest few.
+  const isSingleYear = selectedYear != null;
+  const years = isSingleYear
     ? [selectedYear]
     : getYearsForColumn(birthYear, columnIndex, currentYear);
-    
+
   const symbol = getTierSymbol(interp.tier);
   const isZero = interp.tier === "zero";
 
@@ -74,16 +75,14 @@ export function DetailPanel({
             className="text-xs font-semibold uppercase tracking-widest text-ink-light"
             style={{ fontVariant: "small-caps" }}
           >
-            {selectedYear !== undefined && selectedYear !== null 
-              ? `Year ${selectedYear}` 
-              : domain}
+            {isSingleYear ? `Year ${selectedYear}` : domain}
           </span>
-          {selectedYear === undefined || selectedYear === null ? (
-            <span className="text-sm text-ink-light">{years.join(" · ")}</span>
-          ) : (
+          {isSingleYear ? (
             <span className="text-sm text-ink-light" style={{ fontVariant: "small-caps" }}>
               {domain}
             </span>
+          ) : (
+            <span className="text-sm text-ink-light">{years.join(" · ")}</span>
           )}
         </div>
 
@@ -103,7 +102,6 @@ export function DetailPanel({
           </div>
         </div>
 
-        {/* Description */}
         <p className="text-sm mb-3 text-ink-light">{interp.description}</p>
 
         {/* Guidance (italic) */}

@@ -257,7 +257,7 @@ export function HomeClient() {
               <YearTimeline
                 cycle={result.cycle}
                 birthYear={result.birthYear}
-                currentYear={activeYear}
+                activeYear={activeYear}
                 selectedYear={selectedYear}
                 onSelectYear={handleTimelineSelectYear}
               />

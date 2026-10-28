@@ -4,8 +4,8 @@
  * YearTimeline
  *
  * Horizontal "thread of fate" timeline that displays years from birth year
- * through currentYear + 30. Synchronized with CycleChart for bidirectional
- * selection.
+ * through activeYear + 30. Shares one selected year with CycleChart, so
+ * picking a year here selects its pillar and vice versa.
  */
 
 import { useRef, useEffect, useCallback, ViewTransition } from "react";
@@ -18,7 +18,7 @@ import {
   getTierTextClass,
 } from "@/lib/numerology/chart-helpers";
 
-/** How many years past the current year the timeline extends. */
+/** How many years past the active year the timeline extends. */
 export const TIMELINE_YEARS_AHEAD = 30;
 
 export interface YearTimelineProps {
@@ -26,8 +26,11 @@ export interface YearTimelineProps {
   cycle: number[];
   /** Birth year of the person (cycle anchor). */
   birthYear: number;
-  /** The year considered "now". */
-  currentYear: number;
+  /**
+   * The user's year by birthday timing (see getActiveYear), highlighted as
+   * "now". Before this year's birthday it is still last calendar year.
+   */
+  activeYear: number;
   /** The selected year; there is always one. */
   selectedYear: number;
   /** Callback when a year is selected. */
@@ -37,7 +40,7 @@ export interface YearTimelineProps {
 export function YearTimeline({
   cycle,
   birthYear,
-  currentYear,
+  activeYear,
   selectedYear,
   onSelectYear,
 }: YearTimelineProps) {
@@ -46,7 +49,7 @@ export function YearTimeline({
   const hasCentered = useRef(false);
   const prefersReducedMotion = useReducedMotion();
 
-  const endYear = currentYear + TIMELINE_YEARS_AHEAD;
+  const endYear = activeYear + TIMELINE_YEARS_AHEAD;
   const years = Array.from(
     { length: endYear - birthYear + 1 },
     (_, i) => birthYear + i
@@ -84,15 +87,13 @@ export function YearTimeline({
   // to the ends, Enter/Space select the focused year.
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLButtonElement>, year: number) => {
-      const first = years[0];
-      const last = years[years.length - 1];
       const targets: Record<string, number> = {
-        ArrowRight: Math.min(year + 1, last),
-        ArrowDown: Math.min(year + 1, last),
-        ArrowLeft: Math.max(year - 1, first),
-        ArrowUp: Math.max(year - 1, first),
-        Home: first,
-        End: last,
+        ArrowRight: Math.min(year + 1, endYear),
+        ArrowDown: Math.min(year + 1, endYear),
+        ArrowLeft: Math.max(year - 1, birthYear),
+        ArrowUp: Math.max(year - 1, birthYear),
+        Home: birthYear,
+        End: endYear,
       };
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
@@ -104,7 +105,7 @@ export function YearTimeline({
       event.preventDefault();
       selectAndFocus(next);
     },
-    [years, onSelectYear, selectAndFocus]
+    [birthYear, endYear, onSelectYear, selectAndFocus]
   );
 
   return (
@@ -112,11 +113,10 @@ export function YearTimeline({
       aria-label="Year timeline"
       className="relative w-full overflow-hidden"
     >
-      {/* Timeline container */}
       <div
         ref={containerRef}
-        className="timeline-fade relative flex gap-1 overflow-x-auto scrollbar-hide py-4 px-6 snap-x snap-mandatory"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        className="timeline-fade relative flex gap-1 overflow-x-auto py-4 px-6 snap-x snap-mandatory"
+        style={{ scrollbarWidth: "none" }}
         role="listbox"
         aria-label="Select a year"
       >
@@ -132,17 +132,15 @@ export function YearTimeline({
           const interp = interpretYear(cycleNumber);
           const symbol = getTierSymbol(interp.tier);
           const bgClass = getTierColorClass(interp.tier);
-          const isCurrent = year === currentYear;
+          const isCurrent = year === activeYear;
           const isSelected = selectedYear === year;
-          const isPast = year < currentYear;
-
-          // 12-year cycle boundary
-          const isCycleBoundary = year > birthYear && (year - birthYear) % 12 === 0;
+          const isPast = year < activeYear;
+          // A tick marks where each new 12-year cycle begins after the birth year.
+          const startsNewCycle = year > birthYear && cycleIndex === 0;
 
           return (
             <div key={year} className="relative flex flex-col items-center snap-center">
-              {/* Cycle boundary tick mark */}
-              {isCycleBoundary && (
+              {startsNewCycle && (
                 <div
                   className="absolute top-0 bottom-0 w-px bg-border"
                   aria-hidden="true"
@@ -170,9 +168,7 @@ export function YearTimeline({
                     "relative flex items-center justify-center",
                     "w-10 h-10 rounded-full pressable lamp-orb",
                     "group-hover:scale-110 group-active:scale-95",
-                    // Background
                     bgClass,
-                    // Text
                     "text-ink",
                     // Current year: gold ring (an outline, since the glow owns box-shadow)
                     isCurrent
@@ -182,7 +178,6 @@ export function YearTimeline({
                     .filter(Boolean)
                     .join(" ")}
                 >
-                  {/* Tier symbol */}
                   <span
                     aria-hidden="true"
                     className={[
@@ -204,7 +199,6 @@ export function YearTimeline({
                   )}
                 </span>
 
-                {/* Year label */}
                 <span
                   className={[
                     "mt-1 text-[10px] text-center whitespace-nowrap pressable",
@@ -223,7 +217,6 @@ export function YearTimeline({
           );
         })}
       </div>
-
     </section>
   );
 }

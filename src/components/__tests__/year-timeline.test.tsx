@@ -13,13 +13,13 @@ jest.mock("motion/react", () => ({
 // Sample cycle: [3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8]
 const sampleCycle = [3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8];
 const birthYear = 1997;
-const currentYear = 2026;
+const activeYear = 2026;
 
 const defaultProps = {
   cycle: sampleCycle,
   birthYear,
-  currentYear,
-  selectedYear: currentYear,
+  activeYear,
+  selectedYear: activeYear,
   onSelectYear: jest.fn(),
 };
 
@@ -39,9 +39,9 @@ describe("YearTimeline", () => {
     expect(screen.getByRole("region", { name: "Year timeline" })).toBeInTheDocument();
   });
 
-  it("renders year buttons from birthYear to currentYear + 30", () => {
+  it("renders year buttons from birthYear to activeYear + 30", () => {
     render(<YearTimeline {...defaultProps} />);
-    const endYear = currentYear + 30;
+    const endYear = activeYear + 30;
     const expectedLength = endYear - birthYear + 1;
     const options = screen.getAllByRole("option");
     expect(options).toHaveLength(expectedLength);
@@ -53,9 +53,9 @@ describe("YearTimeline", () => {
     expect(options[0]).toHaveAttribute("aria-label", expect.stringContaining(`Year ${birthYear}`));
   });
 
-  it("renders the end year (currentYear + 30) as the last dot", () => {
+  it("renders the end year (activeYear + 30) as the last dot", () => {
     render(<YearTimeline {...defaultProps} />);
-    const endYear = currentYear + 30;
+    const endYear = activeYear + 30;
     const options = screen.getAllByRole("option");
     expect(options[options.length - 1]).toHaveAttribute("aria-label", expect.stringContaining(`Year ${endYear}`));
   });
@@ -90,7 +90,7 @@ describe("YearTimeline", () => {
 
   it("highlights the current year with a gold ring and names it", () => {
     render(<YearTimeline {...defaultProps} selectedYear={2000} />);
-    const currentYearOption = screen.getByRole("option", { name: new RegExp(`Year ${currentYear}`) });
+    const currentYearOption = screen.getByRole("option", { name: new RegExp(`Year ${activeYear}`) });
     expect(currentYearOption).toHaveAttribute("aria-selected", "false");
     expect(currentYearOption).toHaveAccessibleName(expect.stringContaining("current year"));
     expect(currentYearOption.innerHTML).toContain("outline-gold-deep");
@@ -118,7 +118,7 @@ describe("YearTimeline", () => {
   it("renders current year label in bold", () => {
     render(<YearTimeline {...defaultProps} />);
     // Find the year label for current year
-    const labels = screen.getAllByText(currentYear.toString());
+    const labels = screen.getAllByText(activeYear.toString());
     expect(labels.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -170,7 +170,7 @@ describe("YearTimeline", () => {
     fireEvent.keyDown(option, { key: "Home" });
     expect(onSelectYear).toHaveBeenLastCalledWith(birthYear);
     fireEvent.keyDown(option, { key: "End" });
-    expect(onSelectYear).toHaveBeenLastCalledWith(currentYear + 30);
+    expect(onSelectYear).toHaveBeenLastCalledWith(activeYear + 30);
   });
 
   it("moves selection left with ArrowLeft key", () => {
@@ -211,7 +211,7 @@ describe("YearTimeline", () => {
 
   it("does not go above endYear with ArrowRight on last year", () => {
     const onSelectYear = jest.fn();
-    const endYear = currentYear + 30;
+    const endYear = activeYear + 30;
     render(<YearTimeline {...defaultProps} onSelectYear={onSelectYear} />);
     const option = screen.getByRole("option", { name: new RegExp(`Year ${endYear}`) });
     fireEvent.keyDown(option, { key: "ArrowRight" });
