@@ -20,9 +20,12 @@ import {
   useState,
   useRef,
   useCallback,
+  useEffect,
   useMemo,
   useSyncExternalStore,
   startTransition,
+  addTransitionType,
+  ViewTransition,
 } from "react";
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
@@ -55,6 +58,12 @@ import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
 /** ID for the chart section — used by the widget's "See all 12 years" scroll target. */
 const CHART_SECTION_ID = "cycle-chart-section";
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /** A birth date as day, month and year numbers. */
 type BirthDateParts = StoredBirthDate;
@@ -169,7 +178,6 @@ export function HomeClient({ searchParams }: Props) {
   // agree. null means "the active year" until the user picks something.
   const [pickedYear, setPickedYear] = useState<number | null>(null);
 
-  const resultRef = useRef<HTMLDivElement>(null);
 
   const currentYear = new Date().getFullYear();
   const activeYear = result
@@ -177,15 +185,38 @@ export function HomeClient({ searchParams }: Props) {
     : currentYear;
   const selectedYear = pickedYear ?? activeYear;
 
+  // The form card and the reading card share one place on the page: a
+  // submission blooms the form into the reading, and "Read for someone
+  // else" folds it back. formOpen is true while the form is showing over an
+  // existing reading.
+  const [formOpen, setFormOpen] = useState(false);
+  // True once the reading has arrived by a bloom, so its own page-load
+  // entrance doesn't play a second time.
+  const [bloomed, setBloomed] = useState(false);
+  const readingCardRef = useRef<HTMLDivElement>(null);
+
   // Form submission: localStorage save happens inside BirthDataForm.handleSubmit
   const handleResult = useCallback((r: CycleResultWithYear) => {
-    setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
-    setPickedYear(null);
+    startTransition(() => {
+      addTransitionType("bloom-open");
+      setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
+      setPickedYear(null);
+      setFormOpen(false);
+      setBloomed(true);
+    });
+  }, []);
 
-    // Scroll to result card after React renders. "auto" defers to the CSS
-    // scroll-behavior, which is smooth unless the user prefers reduced motion.
-    requestAnimationFrame(() => {
-      resultRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+  const handleReadAgain = useCallback(() => {
+    startTransition(() => {
+      addTransitionType("bloom-close");
+      setFormOpen(true);
+    });
+  }, []);
+
+  const handleBackToReading = useCallback(() => {
+    startTransition(() => {
+      addTransitionType("bloom-open");
+      setFormOpen(false);
     });
   }, []);
 
@@ -223,9 +254,24 @@ export function HomeClient({ searchParams }: Props) {
     startTransition(() => setPickedYear(year));
   }, [currentYear, result, selectedYear]);
 
-  // Server render and first paint show the form; after hydration the widget
-  // replaces it if a saved date was restored.
-  const showForm = !showWidget;
+  // The reading takes the form's place whenever there is one, unless the
+  // visitor asked for the form again.
+  const showReading = !!result && !formOpen;
+  const showForm = !showReading;
+
+  // The reading opens where the form was, so the page doesn't jump. If the
+  // visitor had scrolled past the top of the form, bring the card's top back
+  // into view; focus moves to the card for keyboard and screen reader users.
+  useEffect(() => {
+    if (!bloomed) return;
+    const card = readingCardRef.current;
+    if (showReading && card) {
+      if (card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start" });
+      card.focus({ preventScroll: true });
+    } else if (!showReading) {
+      document.getElementById("birth-day")?.focus({ preventScroll: true });
+    }
+  }, [bloomed, showReading]);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -262,48 +308,82 @@ export function HomeClient({ searchParams }: Props) {
           />
         )}
 
-        {/* Form card — shown for first-visit, after "Not you?", or when share URL params present */}
+        {/* Form card: first visit, after "Not you?", or "Read for someone else" */}
         {showForm && (
-          <div
-            className="rise glass max-w-[480px] w-full rounded-2xl p-6 sm:p-12"
-            style={{ "--rise-delay": "760ms" } as React.CSSProperties}
-          >
-            {hasShareParams ? (
-              <>
-                <p className="mb-2 text-center font-display text-lg text-gold-deep tracking-[0.04em]">
-                  Someone shared their reading with you
-                </p>
-                <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
-                  Their cycle is below. To see your own, enter your birth
-                  date here.
-                </p>
-              </>
-            ) : (
+          <ViewTransition name="reading-card" share="reading-bloom" default="none">
+            <div
+              className={`${bloomed ? "" : "rise "}glass relative max-w-[480px] w-full rounded-2xl p-6 sm:p-12`}
+              style={{ "--rise-delay": "760ms" } as React.CSSProperties}
+            >
               <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
-                Enter your birth date to see a luck number for every year of
-                your 12-year cycle, read from your birth month, zodiac animal
-                and weekday.
+                {formOpen
+                  ? hasShareParams && !bloomed
+                    ? "Enter your birth date to see your own 12-year cycle."
+                    : "Enter another birth date to read that person's 12-year cycle."
+                  : "Enter your birth date to see a luck number for every year of your 12-year cycle, read from your birth month, zodiac animal and weekday."}
               </p>
-            )}
 
-            <BirthDataForm
-              onResult={handleResult}
-              initialValues={initialValues}
-              newYearRule={newYearRule}
-              onNewYearRuleChange={handleNewYearRuleChange}
-            />
-          </div>
+              <BirthDataForm
+                key={formOpen ? "another" : "first"}
+                onResult={handleResult}
+                initialValues={formOpen ? undefined : initialValues}
+                newYearRule={newYearRule}
+                onNewYearRuleChange={handleNewYearRuleChange}
+              />
+
+              {formOpen && result && (
+                <button
+                  type="button"
+                  onClick={handleBackToReading}
+                  className="pressable mx-auto mt-3 flex min-h-[44px] items-center px-2 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
+                >
+                  Back to the reading
+                </button>
+              )}
+            </div>
+          </ViewTransition>
         )}
 
         {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
-        {result && (
+        {showReading && result && (
           <>
-            <SectionDivider />
+            <ViewTransition name="reading-card" share="reading-bloom" default="none">
             <div
               id={CHART_SECTION_ID}
-              ref={resultRef}
-              className="rise glass w-full max-w-[900px] xl:max-w-[1200px] rounded-2xl p-3 min-[360px]:p-4 sm:p-8 lg:p-10 scroll-mt-8"
+              ref={readingCardRef}
+              tabIndex={-1}
+              aria-labelledby="reading-summary"
+              className={`${bloomed ? "" : "rise "}glass relative w-full max-w-[900px] xl:max-w-[1200px] rounded-2xl p-3 min-[360px]:p-4 sm:p-8 lg:p-10 scroll-mt-8 focus:outline-none`}
+              style={{ "--rise-delay": "760ms" } as React.CSSProperties}
             >
+              {/* A soft light passes once as the reading blooms in */}
+              {bloomed && <div aria-hidden="true" className="reading-bloom-glow" />}
+
+              {/* Whose reading this is, and the way back to the form */}
+              <div className="mx-auto mb-2 flex max-w-[440px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
+                <div id="reading-summary" className="min-w-0">
+                  {hasShareParams && !bloomed && (
+                    <p className="text-xs uppercase tracking-[0.12em] text-gold-deep">
+                      A reading shared with you
+                    </p>
+                  )}
+                  <p className="font-display text-lg tracking-[0.03em] text-ink">
+                    {MONTH_NAMES[result.birthData.gregorianMonth - 1]} {result.birthDay}, {result.birthYear}
+                  </p>
+                  <p className="text-xs text-ink-light">
+                    Year of the {result.birthData.zodiacAnimal} · Born on a{" "}
+                    {WEEKDAY_NAMES[result.birthData.weekday - 1]}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleReadAgain}
+                  className="pressable inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-4 text-sm text-ink-light hover:border-gold hover:text-ink active:scale-[0.97]"
+                >
+                  {hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                </button>
+              </div>
+
               <CycleChart
                 cycle={result.cycle}
                 totalScore={result.totalScore}
@@ -315,6 +395,7 @@ export function HomeClient({ searchParams }: Props) {
                 onReturnToCurrent={handleReturnToCurrent}
               />
             </div>
+            </ViewTransition>
 
             {/* Year Timeline Explorer */}
             <div className="w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle">

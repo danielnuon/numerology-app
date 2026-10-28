@@ -239,10 +239,14 @@ A thin gold arc traces the ring from the birth year to this year.
 **Steps:**
 1. User types or selects birth date → zodiac and weekday auto-derive and fade in below
 2. User clicks "Reveal My Cycle" → button text fades, a subtle ripple expands from the button
-3. The form card gently fades back (opacity 0.6) and the cycle chart section fades in below
+3. The form card blooms into the reading in the same place. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card to the reading's size over 520ms while the form fades out in 320ms and the reading scales up from 0.96. A soft gold glow (`.reading-bloom-glow`) swells and fades inside the card over 900ms. The page does not scroll to the result; it only scrolls if the card's top would sit above the viewport.
 4. Cycle orbs swell in one by one, clockwise from the birth year, with 40ms stagger (400ms, `--ease-enter`)
 5. The gold arc traces the ring from the birth year to this year, and the center shows this year's preview
 6. The total score fades in below the chart: "Your life pattern: Balanced (64)"
+
+**Reading summary:** The top of the reading card names whose reading it is: the birth date ("July 24, 1997") and "Year of the Ox · Born on a Thursday". A share link adds "A reading shared with you" above them.
+
+**Read for someone else:** A button beside the summary ("Read your own" on a share link) folds the reading back into an empty form with the same transition, faster on the way out. The intro reads "Enter another birth date to read that person's 12-year cycle." A "Back to the reading" link returns to the previous reading without re-entering it.
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
 
