@@ -326,7 +326,7 @@ export function CycleChart({
                   type="button"
                   aria-label="Close the reading"
                   onClick={() => setOpen(false)}
-                  className="pressable absolute top-2 right-2 grid size-11 place-items-center rounded-full border border-border bg-parchment/70 text-ink hover:border-gold"
+                  className="pressable absolute top-2 right-2 grid size-11 place-items-center rounded-full border border-border bg-parchment/70 text-ink hover:border-gold active:scale-[0.97]"
                 >
                   <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                     <path d="M4 4l8 8M12 4l-8 8" />
@@ -352,7 +352,7 @@ export function CycleChart({
                   aria-expanded={false}
                   aria-label={`Read ${selectedYear} in full: cycle number ${cycle[selectedIndex]}, ${selected.label}`}
                   onClick={() => setOpen(true)}
-                  className="wheel-hub pressable pointer-events-auto flex aspect-square w-[52cqw] flex-col items-center justify-center gap-0.5 rounded-full px-[6cqw] text-center text-ink hover:brightness-110"
+                  className="wheel-hub pressable pointer-events-auto flex aspect-square w-[52cqw] flex-col items-center justify-center gap-0.5 rounded-full px-[6cqw] text-center text-ink hover:brightness-110 active:scale-[0.97]"
                 >
                   <span className="text-[clamp(0.6rem,3cqw,0.72rem)] uppercase tracking-[0.14em] text-ink-light">
                     {selectedYear}

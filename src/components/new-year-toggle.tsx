@@ -10,7 +10,7 @@
  * between the two New Years.
  */
 
-import { useRef } from "react";
+import { startTransition, useRef, ViewTransition } from "react";
 import type { NewYearRule, ZodiacAnimal } from "@/lib/numerology/zodiac";
 
 interface Props {
@@ -31,13 +31,19 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const choiceMatters = !!animals && animals.khmer !== animals.chinese;
 
+  // A transition, like every selection change, so the outline glides across
+  // and the reading below crossfades instead of jumping.
+  function choose(next: NewYearRule) {
+    startTransition(() => onChange(next));
+  }
+
   // Radio-group keys: arrows move the choice and focus together.
   function handleKeyDown(event: React.KeyboardEvent, index: number) {
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     event.preventDefault();
     const next = (index + 1) % OPTIONS.length;
     optionRefs.current[next]?.focus();
-    onChange(OPTIONS[next].rule);
+    choose(OPTIONS[next].rule);
   }
 
   return (
@@ -63,16 +69,24 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
               aria-checked={selected}
               aria-label={`${option.label} New Year`}
               tabIndex={selected ? 0 : -1}
-              onClick={() => onChange(option.rule)}
+              onClick={() => choose(option.rule)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={[
-                "pressable min-h-[44px] min-w-0 whitespace-nowrap rounded-full px-2 text-sm",
-                selected
-                  ? "bg-gold-deep/[0.12] text-gold-deep shadow-[inset_0_0_0_1px_var(--color-gold-deep)]"
-                  : "text-ink-light hover:text-ink",
+                "pressable relative min-h-[44px] min-w-0 whitespace-nowrap rounded-full px-2 text-sm active:scale-[0.97]",
+                // Ink marks the selection; gold is kept for "now"
+                selected ? "font-medium text-ink" : "text-ink-light hover:text-ink",
               ].join(" ")}
             >
-              {option.label}
+              {/* Selection outline: one shared element that glides between options */}
+              {selected && (
+                <ViewTransition name="new-year-selection" share="auto" default="none">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-full bg-ink/[0.06] ring-1 ring-inset ring-ink"
+                  />
+                </ViewTransition>
+              )}
+              <span className="relative">{option.label}</span>
             </button>
           );
         })}

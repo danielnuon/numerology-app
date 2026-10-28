@@ -12,6 +12,19 @@ describe("NewYearToggle", () => {
     expect(screen.getByRole("radio", { name: /Chinese New Year/ })).toHaveAttribute("aria-checked", "false");
   });
 
+  it("marks the choice with an ink outline, keeping gold for the current year", () => {
+    const { rerender } = render(<NewYearToggle rule="khmer" onChange={jest.fn()} />);
+    const khmer = screen.getByRole("radio", { name: /Khmer New Year/ });
+    const chinese = screen.getByRole("radio", { name: /Chinese New Year/ });
+    expect(khmer.querySelector(".ring-ink")).toBeInTheDocument();
+    expect(chinese.querySelector(".ring-ink")).not.toBeInTheDocument();
+    expect(khmer.className).not.toMatch(/gold/);
+
+    rerender(<NewYearToggle rule="chinese" onChange={jest.fn()} />);
+    expect(khmer.querySelector(".ring-ink")).not.toBeInTheDocument();
+    expect(chinese.querySelector(".ring-ink")).toBeInTheDocument();
+  });
+
   it("reports a pick of the other rule", () => {
     const onChange = jest.fn();
     render(<NewYearToggle rule="khmer" onChange={onChange} />);
