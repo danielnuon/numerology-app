@@ -1,26 +1,117 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from "@testing-library/react";
+import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { HomeClient } from "../home-client";
+import { BIRTH_DATE_STORAGE_KEY } from "@/lib/storage";
 
-beforeAll(() => {
-  // jsdom has no scrolling: the reading scrolls into view and the timeline centers its year.
-  Element.prototype.scrollIntoView = jest.fn();
-  Element.prototype.scrollTo = jest.fn();
+// Render Motion components as plain elements, dropping animation props
+jest.mock("motion/react", () => {
+  const strip = <T extends object>(props: T) => {
+    const rest = { ...props } as Record<string, unknown>;
+    for (const key of ["variants", "initial", "animate", "whileTap", "transition"]) delete rest[key];
+    return rest;
+  };
+  const MotionDiv = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<"div">>((props, ref) => (
+    <div ref={ref} {...strip(props)} />
+  ));
+  MotionDiv.displayName = "MotionDiv";
+  const MotionButton = forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<"button">>(
+    (props, ref) => <button ref={ref} {...strip(props)} />
+  );
+  MotionButton.displayName = "MotionButton";
+  return {
+    motion: { div: MotionDiv, button: MotionButton },
+    MotionConfig: ({ children }: { children: ReactNode }) => <>{children}</>,
+    useReducedMotion: () => false,
+  };
 });
 
-beforeEach(() => localStorage.clear());
-
-function submitDate(day: string, month: string, year: string) {
+function submitBirthDate(day: string, month: string, year: string) {
   fireEvent.change(screen.getByLabelText("Day"), { target: { value: day } });
   fireEvent.change(screen.getByLabelText("Month"), { target: { value: month } });
   fireEvent.change(screen.getByLabelText("Year"), { target: { value: year } });
-  fireEvent.click(screen.getByRole("button", { name: "Reveal my cycle" }));
+  act(() => {
+    fireEvent.submit(screen.getByRole("form", { name: "Birth date form" }));
+  });
 }
 
-describe("HomeClient first visit", () => {
+describe("HomeClient: the form blooms into the reading", () => {
+  beforeAll(() => {
+    // jsdom has no matchMedia, scrollIntoView or scrollTo
+    window.matchMedia = ((query: string) => ({ matches: false, media: query })) as unknown as typeof window.matchMedia;
+    Element.prototype.scrollIntoView = jest.fn();
+    Element.prototype.scrollTo = jest.fn() as never;
+    window.scrollTo = jest.fn() as never;
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    jest.useFakeTimers({ now: new Date(2026, 9, 28) });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("replaces the form with the reading in the same place", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+
+    expect(screen.queryByRole("form", { name: "Birth date form" })).not.toBeInTheDocument();
+    expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
+    expect(screen.getByText(/Year of the Ox · Born on a Thursday/)).toBeInTheDocument();
+    expect(screen.getByRole("tablist", { name: "12-year life cycle" })).toBeInTheDocument();
+  });
+
+  it("folds back to an empty form for someone else, and can return to the reading", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Read for someone else" }));
+    });
+    expect(screen.getByLabelText("Day")).toHaveValue("");
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Back to the reading" }));
+    });
+    expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
+  });
+
+  it("opens a shared link on the reading, with a way to read your own", () => {
+    render(<HomeClient searchParams={{ day: "24", month: "7", year: "1997" }} />);
+
+    expect(screen.getByText("A reading shared with you")).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: "Birth date form" })).not.toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Read your own" }));
+    });
+    expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
+  });
+});
+
+describe("HomeClient: a calm first visit, this year first", () => {
+  beforeAll(() => {
+    window.matchMedia = ((query: string) => ({ matches: false, media: query })) as unknown as typeof window.matchMedia;
+    Element.prototype.scrollIntoView = jest.fn();
+    Element.prototype.scrollTo = jest.fn() as never;
+    window.scrollTo = jest.fn() as never;
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    jest.useFakeTimers({ now: new Date(2026, 9, 28) });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it("asks one question, with the intro folded behind \"What will I see?\"", () => {
     render(<HomeClient searchParams={{}} />);
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
@@ -28,40 +119,31 @@ describe("HomeClient first visit", () => {
     expect(screen.getByText(/a luck number for every year of your 12-year cycle/)).toBeInTheDocument();
   });
 
-  it("folds the form into a summary line and opens on this year's card", () => {
+  it("opens the reading on this year", () => {
     render(<HomeClient searchParams={{}} />);
-    submitDate("24", "07", "1960");
-    expect(screen.queryByRole("heading", { name: "When were you born?" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Year of the Rat · Born on a Sunday/)).toBeInTheDocument();
-    expect(screen.getByText(/Your \d{4} reading/)).toBeInTheDocument();
+    submitBirthDate("24", "7", "1997");
+    expect(screen.getByText("Your 2026 reading")).toBeInTheDocument();
+    expect(screen.getByText(/Life area:/)).toBeInTheDocument();
   });
 
-  it("opens the 12 years with \"See all 12 years\"", () => {
+  it("opens the 12 years on phones with \"See all 12 years\"", () => {
     render(<HomeClient searchParams={{}} />);
-    submitDate("24", "07", "1960");
+    submitBirthDate("24", "7", "1997");
     const toggle = screen.getByRole("button", { name: "See all 12 years" });
-    const section = document.getElementById(toggle.getAttribute("aria-controls")!)!;
+    const wheel = document.getElementById(toggle.getAttribute("aria-controls")!)!;
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(section.className).toMatch(/max-md:hidden/);
+    expect(wheel.className).toMatch(/max-md:hidden/);
+
     fireEvent.click(toggle);
     expect(screen.getByRole("button", { name: "Hide the 12 years" })).toHaveAttribute("aria-expanded", "true");
-    expect(section.className).not.toMatch(/max-md:hidden/);
+    expect(wheel.className).not.toMatch(/max-md:hidden/);
   });
 
-  it("returns to an empty form with \"Change date\" and forgets the saved date", () => {
+  it("lets a returning visitor forget their saved date with \"Not you?\"", () => {
+    localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day: 24, month: 7, year: 1997 }));
     render(<HomeClient searchParams={{}} />);
-    submitDate("24", "07", "1960");
-    fireEvent.click(screen.getByRole("button", { name: "Change date" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not you?" }));
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
-    expect(localStorage.length).toBe(0);
-  });
-});
-
-describe("HomeClient shared reading", () => {
-  it("keeps the form above the sharer's reading", () => {
-    render(<HomeClient searchParams={{ day: "24", month: "7", year: "1960" }} />);
-    expect(screen.getByText("Someone shared their reading with you")).toBeInTheDocument();
-    expect(screen.getByText(/Your \d{4} reading/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Change date" })).not.toBeInTheDocument();
+    expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
   });
 });

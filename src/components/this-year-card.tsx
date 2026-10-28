@@ -3,9 +3,9 @@
 /**
  * ThisYearCard
  *
- * The first thing a reading shows: this year's cycle number, luck tier, life
- * area, and what the tier means, in plain sentences. The full 12-year wheel
- * sits below it. Used for every reading: a fresh submission, a returning
+ * The first thing the reading card shows: this year's cycle number, luck
+ * tier, life area, and what the tier means, in plain sentences. The full
+ * 12-year wheel sits beside or below it. Used for every reading: a fresh submission, a returning
  * visitor's saved date, and a shared link.
  */
 
@@ -39,9 +39,9 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay }: Props) 
   const tierSymbol = getTierSymbol(interpretation.tier);
 
   return (
+    // A lit panel inside the reading card, not a card of its own
     <section
-      className="rise glass w-full rounded-2xl p-6 sm:p-8 text-center"
-      style={{ "--rise-delay": "120ms" } as React.CSSProperties}
+      className="w-full rounded-2xl border border-border bg-gold-deep/[0.04] px-5 py-6 sm:px-8 text-center"
       aria-labelledby="this-year-heading"
     >
       <p className="text-sm uppercase tracking-[0.12em] text-ink-light">

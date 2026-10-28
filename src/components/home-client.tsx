@@ -10,24 +10,27 @@
  * - Returning visitors: reads localStorage on mount and shows their reading
  * - Share URL precedence: a shared link shows that person's chart, not the
  *   visitor's own saved one
- * - "Change date" forgets the saved date and returns to the first-visit form
- *
- * The first visit asks one question, with the intro and the New Year choice
- * folded away. A reading opens on this year's card; on phones the 12-year
- * wheel and timeline wait behind "See all 12 years", and on tablet and
- * desktop they show at once.
+ * - "Not you?" forgets a restored saved date and returns to the first-visit form
  * - The New Year rule (Khmer or Chinese) that turns the animal year: from a
  *   share link (?ny=), else the visitor's remembered choice, else Khmer.
  *   Changing it recomputes the reading in place.
+ *
+ * The first visit asks one question, with the intro and the New Year choice
+ * folded away. The reading opens on this year's reading; on phones the
+ * 12-year wheel and timeline wait behind "See all 12 years", and on tablet
+ * and desktop they show at once.
  */
 
 import {
   useState,
   useRef,
   useCallback,
+  useEffect,
   useMemo,
   useSyncExternalStore,
   startTransition,
+  addTransitionType,
+  ViewTransition,
 } from "react";
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
@@ -58,18 +61,16 @@ import {
 import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
-/** ID for the 12-year section that "See all 12 years" opens. */
-const CYCLE_SECTION_ID = "cycle-chart-section";
+/** ID for the reading card, the place the form blooms into. */
+const CHART_SECTION_ID = "cycle-chart-section";
 
-/** A birth date as the summary line shows it, such as "Jul 24, 1960". */
-function formatBirthDate(year: number, month: number, day: number): string {
-  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+/** ID for the 12-year wheel that "See all 12 years" opens on phones. */
+const CYCLE_SECTION_ID = "cycle-wheel-section";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /** A birth date as day, month and year numbers. */
@@ -178,11 +179,8 @@ export function HomeClient({ searchParams }: Props) {
         : null,
     [birthDate, newYearRule]
   );
-  // The form shows until there is a reading, and stays above a shared
-  // reading so the visitor can enter their own. Submitting folds it into the
-  // one-line summary above the reading.
-  const [formOpen, setFormOpen] = useState(hasShareParams);
-  const showForm = !result || formOpen;
+  // A returning visitor's restored date, which "Not you?" can forget.
+  const isRestoredDate = sessionDate === undefined && storedDate !== null;
 
   // On phones the 12-year wheel and timeline wait behind "See all 12 years".
   const [cycleOpen, setCycleOpen] = useState(false);
@@ -191,7 +189,6 @@ export function HomeClient({ searchParams }: Props) {
   // agree. null means "the active year" until the user picks something.
   const [pickedYear, setPickedYear] = useState<number | null>(null);
 
-  const resultRef = useRef<HTMLDivElement>(null);
 
   const currentYear = new Date().getFullYear();
   const activeYear = result
@@ -199,26 +196,47 @@ export function HomeClient({ searchParams }: Props) {
     : currentYear;
   const selectedYear = pickedYear ?? activeYear;
 
+  // The form card and the reading card share one place on the page: a
+  // submission blooms the form into the reading, and "Read for someone
+  // else" folds it back. formOpen is true while the form is showing over an
+  // existing reading.
+  const [formOpen, setFormOpen] = useState(false);
+  // True once the reading has arrived by a bloom, so its own page-load
+  // entrance doesn't play a second time.
+  const [bloomed, setBloomed] = useState(false);
+  const readingCardRef = useRef<HTMLDivElement>(null);
+
   // Form submission: localStorage save happens inside BirthDataForm.handleSubmit
   const handleResult = useCallback((r: CycleResultWithYear) => {
-    setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
-    setPickedYear(null);
-    setFormOpen(false);
-    setCycleOpen(false);
-
-    // Scroll to result card after React renders. "auto" defers to the CSS
-    // scroll-behavior, which is smooth unless the user prefers reduced motion.
-    requestAnimationFrame(() => {
-      resultRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+    startTransition(() => {
+      addTransitionType("bloom-open");
+      setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
+      setPickedYear(null);
+      setFormOpen(false);
+      setCycleOpen(false);
+      setBloomed(true);
     });
   }, []);
 
-  // "Change date" forgets the saved date and returns to the first-visit form.
+  const handleReadAgain = useCallback(() => {
+    startTransition(() => {
+      addTransitionType("bloom-close");
+      setFormOpen(true);
+    });
+  }, []);
+
+  const handleBackToReading = useCallback(() => {
+    startTransition(() => {
+      addTransitionType("bloom-open");
+      setFormOpen(false);
+    });
+  }, []);
+
+  // "Not you?" forgets the saved date and returns to the first-visit form.
   const handleReset = useCallback(() => {
     clearStoredBirthDate();
     setSessionDate(null);
     setPickedYear(null);
-    setFormOpen(false);
   }, []);
 
   // Switching the New Year rule recomputes the reading and is remembered.
@@ -248,6 +266,25 @@ export function HomeClient({ searchParams }: Props) {
     startTransition(() => setPickedYear(year));
   }, [currentYear, result, selectedYear]);
 
+  // The reading takes the form's place whenever there is one, unless the
+  // visitor asked for the form again.
+  const showReading = !!result && !formOpen;
+  const showForm = !showReading;
+
+  // The reading opens where the form was, so the page doesn't jump. If the
+  // visitor had scrolled past the top of the form, bring the card's top back
+  // into view; focus moves to the card for keyboard and screen reader users.
+  useEffect(() => {
+    if (!bloomed) return;
+    const card = readingCardRef.current;
+    if (showReading && card) {
+      if (card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start" });
+      card.focus({ preventScroll: true });
+    } else if (!showReading) {
+      document.getElementById("birth-day")?.focus({ preventScroll: true });
+    }
+  }, [bloomed, showReading]);
+
   return (
     <MotionConfig reducedMotion="user">
     <main className="safe-gutter flex flex-1 flex-col items-center pt-9 [@media(max-height:700px)]:pt-5 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
@@ -273,23 +310,19 @@ export function HomeClient({ searchParams }: Props) {
       <SectionDivider compact />
 
       <ErrorBoundary>
-        {/* Form card: first visit, after "Change date", or above a shared reading */}
+        {/* Form card: first visit, after "Not you?", or "Read for someone else" */}
         {showForm && (
-          <>
+          <ViewTransition name="reading-card" share="reading-bloom" default="none">
             <div
-              className="rise glass max-w-[480px] w-full rounded-2xl p-6 sm:p-12"
+              className={`${bloomed ? "" : "rise "}glass relative max-w-[480px] w-full rounded-2xl p-6 sm:p-12`}
               style={{ "--rise-delay": "760ms" } as React.CSSProperties}
             >
-              {hasShareParams ? (
-                <>
-                  <p className="mb-2 text-center font-display text-xl text-gold-deep tracking-[0.04em]">
-                    Someone shared their reading with you
-                  </p>
-                  <p className="text-center text-ink-light text-base leading-relaxed">
-                    Their cycle is below. To see your own, enter your birth
-                    date here.
-                  </p>
-                </>
+              {formOpen ? (
+                <p className="text-center text-ink-light text-base leading-relaxed">
+                  {hasShareParams && !bloomed
+                    ? "Enter your birth date to see your own 12-year cycle."
+                    : "Enter another birth date to read that person's 12-year cycle."}
+                </p>
               ) : (
                 <h2 className="text-center font-display text-[1.75rem] leading-tight text-ink tracking-[0.03em] text-balance">
                   When were you born?
@@ -297,80 +330,117 @@ export function HomeClient({ searchParams }: Props) {
               )}
 
               <BirthDataForm
+                key={formOpen ? "another" : "first"}
                 onResult={handleResult}
-                initialValues={initialValues}
+                initialValues={formOpen ? undefined : initialValues}
                 newYearRule={newYearRule}
                 onNewYearRuleChange={handleNewYearRuleChange}
               />
-            </div>
 
-            {!hasShareParams && (
-              <details className="group mt-5 max-w-[480px] w-full text-center">
-                <summary className="pressable mx-auto inline-flex min-h-[44px] cursor-pointer list-none items-center px-2 text-base text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep [&::-webkit-details-marker]:hidden">
-                  What will I see?
-                </summary>
-                <p className="animate-settle-in mt-2 text-base leading-relaxed text-ink-light">
-                  Enter your birth date to see a luck number for every year of
-                  your 12-year cycle, read from your birth month, zodiac animal
-                  and weekday.
-                </p>
-              </details>
-            )}
-          </>
+              {formOpen && result && (
+                <button
+                  type="button"
+                  onClick={handleBackToReading}
+                  className="pressable mx-auto mt-3 flex min-h-[44px] items-center px-2 text-base text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
+                >
+                  Back to the reading
+                </button>
+              )}
+            </div>
+          </ViewTransition>
         )}
 
-        {result && (
+        {/* The intro, word for word, for visitors who want it before they start */}
+        {showForm && !formOpen && (
+          <details className="mt-5 max-w-[480px] w-full text-center">
+            <summary className="pressable mx-auto inline-flex min-h-[44px] cursor-pointer list-none items-center px-2 text-base text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep [&::-webkit-details-marker]:hidden">
+              What will I see?
+            </summary>
+            <p className="animate-settle-in mt-2 text-base leading-relaxed text-ink-light">
+              Enter your birth date to see a luck number for every year of
+              your 12-year cycle, read from your birth month, zodiac animal
+              and weekday.
+            </p>
+          </details>
+        )}
+
+        {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
+        {showReading && result && (
           <>
-            {showForm ? (
-              <SectionDivider />
-            ) : (
-              // The visitor's own date, folded into one line once the form has done its job
-              <p className="rise flex max-w-[480px] w-full flex-wrap items-center justify-center gap-x-2 rounded-2xl border border-border px-4 py-1 text-center text-base text-ink-light">
-                <span>
-                  <span className="text-ink">
-                    {formatBirthDate(result.birthYear, result.birthData.gregorianMonth, result.birthDay)}
-                  </span>
-                  {` · Year of the ${result.birthData.zodiacAnimal} · Born on a ${WEEKDAY_NAMES[result.birthData.weekday - 1]}`}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="pressable inline-flex min-h-[44px] items-center px-1 text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep"
-                >
-                  Change date
-                </button>
-              </p>
-            )}
-
+            <ViewTransition name="reading-card" share="reading-bloom" default="none">
             <div
-              ref={resultRef}
-              className="mt-6 w-full max-w-[900px] xl:max-w-[1200px] scroll-mt-8 lg:grid lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start lg:gap-8"
+              id={CHART_SECTION_ID}
+              ref={readingCardRef}
+              tabIndex={-1}
+              aria-labelledby="reading-summary"
+              className={`${bloomed ? "" : "rise "}glass relative w-full max-w-[900px] xl:max-w-[1200px] rounded-2xl p-3 min-[360px]:p-4 sm:p-8 lg:p-10 scroll-mt-8 focus:outline-none`}
+              style={{ "--rise-delay": "760ms" } as React.CSSProperties}
             >
-              <div className="mx-auto w-full max-w-[480px] lg:sticky lg:top-8">
-                <ThisYearCard
-                  cycle={result.cycle}
-                  birthYear={result.birthYear}
-                  birthMonth={result.birthData.gregorianMonth}
-                  birthDay={result.birthDay}
-                />
+              {/* A soft light passes once as the reading blooms in */}
+              {bloomed && <div aria-hidden="true" className="reading-bloom-glow" />}
 
-                <button
-                  type="button"
-                  aria-expanded={cycleOpen}
-                  aria-controls={CYCLE_SECTION_ID}
-                  onClick={() => setCycleOpen((open) => !open)}
-                  className="pressable mt-4 w-full min-h-[52px] rounded-full border border-border text-base text-ink hover:border-gold-deep active:scale-[0.98] md:hidden"
-                >
-                  {cycleOpen ? "Hide the 12 years" : "See all 12 years"}
-                </button>
+              {/* Whose reading this is, and the way back to the form */}
+              <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
+                <div id="reading-summary" className="min-w-0">
+                  {hasShareParams && !bloomed && (
+                    <p className="text-sm uppercase tracking-[0.12em] text-gold-deep">
+                      A reading shared with you
+                    </p>
+                  )}
+                  <p className="font-display text-lg tracking-[0.03em] text-ink">
+                    {MONTH_NAMES[result.birthData.gregorianMonth - 1]} {result.birthDay}, {result.birthYear}
+                  </p>
+                  <p className="text-sm text-ink-light">
+                    Year of the {result.birthData.zodiacAnimal} · Born on a{" "}
+                    {WEEKDAY_NAMES[result.birthData.weekday - 1]}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3">
+                  <button
+                    type="button"
+                    onClick={handleReadAgain}
+                    className="pressable inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-4 text-sm text-ink-light hover:border-gold hover:text-ink active:scale-[0.97]"
+                  >
+                    {hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                  </button>
+                  {isRestoredDate && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="pressable inline-flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
+                    >
+                      Not you?
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Hidden only on phones until opened; tablet and desktop show it at once */}
-              <div
-                id={CYCLE_SECTION_ID}
-                className={`${cycleOpen ? "animate-settle-in" : "max-md:hidden"} mt-6 lg:mt-0 min-w-0`}
-              >
-                <div className="rise glass w-full rounded-2xl p-3 min-[360px]:p-4 sm:p-8 lg:p-10">
+              {/* This year first; the 12-year wheel beside it from lg, below it otherwise */}
+              <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
+                <div className="mx-auto w-full max-w-[440px]">
+                  <ThisYearCard
+                    cycle={result.cycle}
+                    birthYear={result.birthYear}
+                    birthMonth={result.birthData.gregorianMonth}
+                    birthDay={result.birthDay}
+                  />
+
+                  <button
+                    type="button"
+                    aria-expanded={cycleOpen}
+                    aria-controls={CYCLE_SECTION_ID}
+                    onClick={() => setCycleOpen((open) => !open)}
+                    className="pressable mt-5 mb-2 w-full min-h-[52px] rounded-full border border-border text-base text-ink hover:border-gold-deep active:scale-[0.97] md:hidden"
+                  >
+                    {cycleOpen ? "Hide the 12 years" : "See all 12 years"}
+                  </button>
+                </div>
+
+                {/* Hidden only on phones until opened; tablet and desktop show it at once */}
+                <div
+                  id={CYCLE_SECTION_ID}
+                  className={`${cycleOpen ? "animate-settle-in" : "max-md:hidden"} mt-6 min-w-0 lg:mt-0`}
+                >
                   <CycleChart
                     cycle={result.cycle}
                     totalScore={result.totalScore}
@@ -382,22 +452,26 @@ export function HomeClient({ searchParams }: Props) {
                     onReturnToCurrent={handleReturnToCurrent}
                   />
                 </div>
-
-                {/* Year Timeline Explorer */}
-                <div className="w-full mt-6 scroll-settle">
-                  {/* Remounts when opened on a phone, so it centers this year
-                      once it has a width (it measures nothing while hidden) */}
-                  <YearTimeline
-                    key={cycleOpen ? "open" : "folded"}
-                    cycle={result.cycle}
-                    birthYear={result.birthYear}
-                    activeYear={activeYear}
-                    selectedYear={selectedYear}
-                    onSelectYear={handleTimelineSelectYear}
-                  />
-                </div>
               </div>
             </div>
+            </ViewTransition>
+
+            {/* Year Timeline Explorer, folded on phones with the wheel */}
+            <div
+              className={`${cycleOpen ? "" : "max-md:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
+            >
+              {/* Remounts when opened on a phone, so it centers this year
+                  once it has a width (it measures nothing while hidden) */}
+              <YearTimeline
+                key={cycleOpen ? "open" : "folded"}
+                cycle={result.cycle}
+                birthYear={result.birthYear}
+                activeYear={activeYear}
+                selectedYear={selectedYear}
+                onSelectYear={handleTimelineSelectYear}
+              />
+            </div>
+
 
             <ShareReading
               year={result.birthYear}

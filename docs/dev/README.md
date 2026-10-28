@@ -4,7 +4,7 @@
 
 - **Next.js 16** with App Router and React 19
 - **Tailwind CSS v4** for styling
-- **Motion** (`motion/react`), React `<ViewTransition>` and CSS for animation — see the motion tokens in `docs/design-spec.md`
+- **Motion** (`motion/react`), React `<ViewTransition>` and CSS for animation — see the motion rules in [the design language](../standards/design-language.md#motion)
 - **TypeScript** throughout
 - **Jest 30** + ts-jest for testing
 - **GitHub Actions** for CI
@@ -29,6 +29,7 @@ src/
 docs/
 ├── backlog.md      # Open stories
 ├── decisions/      # Architecture decision records
+├── standards/      # Design language, code, writing and shipping standards
 └── dev/            # This file, architecture, contributing
 ```
 
@@ -36,10 +37,11 @@ docs/
 
 | Doc | Purpose |
 |-----|---------|
+| [standards/](../standards/README.md) | The project standard: design language, code, writing, shipping |
 | [system-overview.md](../system-overview.md) | Domain rules, algorithm, worked examples |
-| [design-spec.md](../design-spec.md) | Visual design, component specs |
+| [design-spec.md](../design-spec.md) | Component specs: layout, states and behavior of each part of the app |
 | [architecture.md](./architecture.md) | Module structure, data flow |
-| [contributing.md](./contributing.md) | Dev setup, conventions, CI |
+| [contributing.md](./contributing.md) | Dev setup, CI, practical tips |
 | [backlog.md](../backlog.md) | Open stories and acceptance criteria |
 | [decisions/](../decisions/) | Architecture decision records |
 
