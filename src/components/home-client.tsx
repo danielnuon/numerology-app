@@ -183,13 +183,13 @@ export function HomeClient() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <main className="safe-gutter flex flex-1 flex-col items-center py-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
+    <main className="safe-gutter flex flex-1 flex-col items-center pt-9 [@media(max-height:700px)]:pt-5 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       {/* Entrance: the title surfaces out of the dark, then each block follows. */}
-      <h1 className="kindle title-glow font-display text-5xl sm:text-7xl tracking-[0.14em] text-ink text-center">
+      <h1 className="kindle title-glow font-display text-[2.75rem] leading-tight sm:text-7xl tracking-[0.14em] text-ink text-center">
         Solini
       </h1>
       <p
-        className="rise mt-4 font-display text-lg text-gold-deep text-center tracking-[0.12em]"
+        className="rise mt-2 sm:mt-4 font-display text-lg text-gold-deep text-center tracking-[0.12em]"
         style={{ "--rise-delay": "500ms" } as React.CSSProperties}
       >
         Khmer Numerology
@@ -201,7 +201,7 @@ export function HomeClient() {
         Your cycle, lit year by year
       </p>
 
-      <SectionDivider />
+      <SectionDivider compact />
 
       <ErrorBoundary>
         {/* Widget for returning visitors — shows after hydration if localStorage has data */}
