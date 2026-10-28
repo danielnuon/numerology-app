@@ -12,6 +12,7 @@
 import { useState } from "react";
 import { buildSharePath, encodeBirthDate } from "@/lib/numerology/url-encoding";
 import { SHARED_READING_TITLE } from "@/lib/site-copy";
+import type { NewYearRule } from "@/lib/numerology/zodiac";
 
 interface Props {
   /** Birth year of the reading being shared. */
@@ -20,6 +21,8 @@ interface Props {
   month: number;
   /** Birth day (1–31). */
   day: number;
+  /** New Year rule the reading uses; the link carries it so recipients match. */
+  rule: NewYearRule;
 }
 
 /** Feedback after an action, read out by screen readers. */
@@ -39,9 +42,9 @@ const ACTION_CLASS = [
   "hover:text-ink hover:border-gold active:opacity-70",
 ].join(" ");
 
-export function ShareReading({ year, month, day }: Props) {
+export function ShareReading({ year, month, day, rule }: Props) {
   const [status, setStatus] = useState<Status>("idle");
-  const sharePath = buildSharePath(year, month, day);
+  const sharePath = buildSharePath(year, month, day, rule);
 
   async function copyLink(url: string) {
     try {

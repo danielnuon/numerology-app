@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { decodeBirthDate } from "@/lib/numerology/url-encoding";
+import { decodeShareSegment, encodeBirthDate } from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
@@ -19,12 +19,12 @@ type Props = {
 
 export default async function OgImage({ params }: Props) {
   const { date } = await params;
-  const decoded = decodeBirthDate(date);
+  const decoded = decodeShareSegment(date);
 
   // Invalid date: show the site's own card.
   if (!decoded) return GenericOgImage();
 
-  const result = computeCycleFromBirthDate(decoded.year, decoded.month, decoded.day);
+  const result = computeCycleFromBirthDate(decoded.year, decoded.month, decoded.day, decoded.rule);
   const totalInterp = interpretTotal(result.totalScore);
 
   // The lit pillar: the cycle year this person is in today.
@@ -151,7 +151,7 @@ export default async function OgImage({ params }: Props) {
             letterSpacing: "0.06em",
           }}
         >
-          {`Born ${date}  ·  Find yours at ${OG_SITE_LABEL}`}
+          {`Born ${encodeBirthDate(decoded.year, decoded.month, decoded.day)}  ·  Find yours at ${OG_SITE_LABEL}`}
         </div>
       </div>
     ),

@@ -9,6 +9,9 @@
  * - Share URL precedence: a shared link shows that person's chart, not the
  *   visitor's own saved one
  * - "Not you?" forgets the saved date and returns to the first-visit form
+ * - The New Year rule (Khmer or Chinese) that turns the animal year: from a
+ *   share link (?ny=), else the visitor's remembered choice, else Khmer.
+ *   Changing it recomputes the reading in place.
  */
 
 import {
@@ -28,14 +31,23 @@ import { YearTimeline } from "@/components/year-timeline";
 import { CurrentYearWidget } from "@/components/current-year-widget";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
+import { NewYearSetting } from "@/components/new-year-setting";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import {
   computeCycleFromBirthDate,
   validateBirthDate,
 } from "@/lib/numerology/derive";
 import {
+  DEFAULT_NEW_YEAR_RULE,
+  isNewYearRule,
+  type NewYearRule,
+} from "@/lib/numerology/zodiac";
+import {
   readStoredBirthDate,
   clearStoredBirthDate,
+  readStoredNewYearRule,
+  saveNewYearRule,
+  type StoredBirthDate,
 } from "@/lib/storage";
 import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
@@ -43,23 +55,21 @@ import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 /** ID for the chart section — used by the widget's "See all 12 years" scroll target. */
 const CHART_SECTION_ID = "cycle-chart-section";
 
-/** Computes a cycle from raw date parts, or null if they don't form a valid birth date. */
-function cycleFromDateParts(
-  year: number,
-  month: number,
-  day: number
-): CycleResultWithYear | null {
-  if (validateBirthDate(year, month, day).length > 0) return null;
-  return computeCycleFromBirthDate(year, month, day);
+/** A birth date as day, month and year numbers. */
+type BirthDateParts = StoredBirthDate;
+
+/** The date parts if they form a valid birth date, else null. */
+function validDateParts(year: number, month: number, day: number): BirthDateParts | null {
+  return validateBirthDate(year, month, day).length > 0 ? null : { year, month, day };
 }
 
 /**
- * Cycle for a returning visitor's saved birth date, or null. The stored date
- * is re-validated because a date saved by an older version may no longer pass.
+ * A returning visitor's saved birth date, or null. The stored date is
+ * re-validated because a date saved by an older version may no longer pass.
  */
-function cycleFromStorage(): CycleResultWithYear | null {
+function dateFromStorage(): BirthDateParts | null {
   const stored = readStoredBirthDate();
-  return stored ? cycleFromDateParts(stored.year, stored.month, stored.day) : null;
+  return stored ? validDateParts(stored.year, stored.month, stored.day) : null;
 }
 
 const subscribeToNothing = () => () => {};
@@ -87,6 +97,11 @@ export function HomeClient() {
   const prefillYear = searchParams.get("year");
 
   const hasShareParams = !!(prefillDay && prefillMonth && prefillYear);
+  // A shared reading keeps the sharer's New Year rule; links without one are Khmer.
+  const prefillRule = searchParams.get("ny");
+  const shareRule: NewYearRule | null = hasShareParams
+    ? isNewYearRule(prefillRule) ? prefillRule : DEFAULT_NEW_YEAR_RULE
+    : null;
 
   const initialValues = hasShareParams
     ? {
@@ -96,14 +111,14 @@ export function HomeClient() {
       }
     : undefined;
 
-  // The result chosen in this visit: from a share link, a form submission, or
-  // null after "Not you?". undefined means nothing has been chosen yet, so a
-  // returning visitor's saved date is shown instead.
-  const [sessionResult, setSessionResult] = useState<
-    CycleResultWithYear | null | undefined
+  // The birth date chosen in this visit: from a share link, a form
+  // submission, or null after "Not you?". undefined means nothing has been
+  // chosen yet, so a returning visitor's saved date is shown instead.
+  const [sessionDate, setSessionDate] = useState<
+    BirthDateParts | null | undefined
   >(() =>
     hasShareParams
-      ? cycleFromDateParts(
+      ? validDateParts(
           parseInt(prefillYear!, 10),
           parseInt(prefillMonth!, 10),
           parseInt(prefillDay!, 10)
@@ -112,14 +127,30 @@ export function HomeClient() {
   );
 
   // A share link takes precedence over the visitor's own saved date.
-  const storedResult = useMemo(
-    () => (isHydrated && !hasShareParams ? cycleFromStorage() : null),
+  const storedDate = useMemo(
+    () => (isHydrated && !hasShareParams ? dateFromStorage() : null),
     [isHydrated, hasShareParams]
   );
 
-  const result = sessionResult === undefined ? storedResult : sessionResult;
+  // New Year rule: picked in this visit (or set by a share link), else the
+  // visitor's remembered choice, else the default.
+  const [chosenRule, setChosenRule] = useState<NewYearRule | null>(shareRule);
+  const storedRule = useMemo(
+    () => (isHydrated ? readStoredNewYearRule() : null),
+    [isHydrated]
+  );
+  const newYearRule = chosenRule ?? storedRule ?? DEFAULT_NEW_YEAR_RULE;
+
+  const birthDate = sessionDate === undefined ? storedDate : sessionDate;
+  const result = useMemo(
+    () =>
+      birthDate
+        ? computeCycleFromBirthDate(birthDate.year, birthDate.month, birthDate.day, newYearRule)
+        : null,
+    [birthDate, newYearRule]
+  );
   // The "welcome back" widget replaces the form only for a restored saved date.
-  const showWidget = sessionResult === undefined && storedResult !== null;
+  const showWidget = sessionDate === undefined && storedDate !== null;
 
   // One selected year shared by the chart and the timeline, so they always
   // agree. null means "the active year" until the user picks something.
@@ -136,7 +167,7 @@ export function HomeClient() {
 
   // Form submission: localStorage save happens inside BirthDataForm.handleSubmit
   const handleResult = useCallback((r: CycleResultWithYear) => {
-    setSessionResult(r);
+    setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
     setPickedYear(null);
     setSelectionSource("timeline");
 
@@ -150,9 +181,15 @@ export function HomeClient() {
   // "Not you?" forgets the saved date and returns to the first-visit form.
   const handleReset = useCallback(() => {
     clearStoredBirthDate();
-    setSessionResult(null);
+    setSessionDate(null);
     setPickedYear(null);
     setSelectionSource("timeline");
+  }, []);
+
+  // Switching the New Year rule recomputes the reading and is remembered.
+  const handleNewYearRuleChange = useCallback((rule: NewYearRule) => {
+    setChosenRule(rule);
+    saveNewYearRule(rule);
   }, []);
 
   // Selection changes run as transitions so <ViewTransition> can animate
@@ -240,7 +277,11 @@ export function HomeClient() {
               </p>
             )}
 
-            <BirthDataForm onResult={handleResult} initialValues={initialValues} />
+            <BirthDataForm
+              onResult={handleResult}
+              initialValues={initialValues}
+              newYearRule={newYearRule}
+            />
           </div>
         )}
 
@@ -276,10 +317,19 @@ export function HomeClient() {
               />
             </div>
 
+            <NewYearSetting
+              rule={newYearRule}
+              year={result.birthYear}
+              month={result.birthData.gregorianMonth}
+              day={result.birthDay}
+              onChange={handleNewYearRuleChange}
+            />
+
             <ShareReading
               year={result.birthYear}
               month={result.birthData.gregorianMonth}
               day={result.birthDay}
+              rule={newYearRule}
             />
           </>
         )}

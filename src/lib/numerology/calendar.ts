@@ -8,8 +8,9 @@
 /**
  * Earliest and latest supported years (inclusive).
  *
- * The range is set by the Chinese New Year table in zodiac.ts: outside it we
- * cannot tell which zodiac animal a January or February birth belongs to.
+ * The range is set by the New Year tables (Chinese New Year in zodiac.ts,
+ * Khmer New Year in khmer-new-year.ts): outside them we cannot tell which
+ * zodiac animal a birth before New Year belongs to.
  * Widen both together.
  */
 export const SUPPORTED_YEAR_MIN = 1900;

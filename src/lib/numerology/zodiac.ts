@@ -1,12 +1,29 @@
 /**
- * Chinese Lunar New Year Lookup Table
+ * Zodiac Animal Lookup
  *
- * Maps years to Chinese New Year dates for zodiac determination.
- * Births before CNY use the previous year's zodiac animal.
+ * Which of the 12 animals a birth date belongs to. The animal year turns at
+ * New Year, and two traditions place that differently:
+ * - Khmer New Year (Moha Sangkran, mid-April), as reckoned in Cambodia.
+ *   This is the default.
+ * - Chinese New Year (late January to February), an option for families
+ *   who count the animal that way.
+ * Births before the chosen New Year belong to the previous year's animal.
  */
 
 import { SUPPORTED_YEAR_MAX, SUPPORTED_YEAR_MIN } from "./calendar";
 import { positiveMod, rotatedCycle } from "./cycle-math";
+import { KHMER_NEW_YEAR_APRIL_DAY } from "./khmer-new-year";
+
+/** Which New Year turns the animal year: Khmer (mid-April) or Chinese (Jan–Feb). */
+export type NewYearRule = "khmer" | "chinese";
+
+/** The reckoning used unless the visitor chooses otherwise. */
+export const DEFAULT_NEW_YEAR_RULE: NewYearRule = "khmer";
+
+/** True for the two supported rule names; guards values read from URLs and storage. */
+export function isNewYearRule(value: unknown): value is NewYearRule {
+  return value === "khmer" || value === "chinese";
+}
 
 export const ZODIAC_ANIMALS = [
   "Rat",
@@ -236,29 +253,38 @@ export const CNY_DATES: Record<number, { month: number; day: number }> = {
   2100: { month: 2, day: 9 },
 };
 
+/** The month and day a Gregorian year's New Year falls on, under a rule. */
+function newYearDate(
+  year: number,
+  rule: NewYearRule
+): { month: number; day: number } | undefined {
+  if (rule === "chinese") return CNY_DATES[year];
+  const aprilDay = KHMER_NEW_YEAR_APRIL_DAY[year];
+  return aprilDay === undefined ? undefined : { month: 4, day: aprilDay };
+}
+
 /**
- * Determines the zodiac year for a given birth date,
- * accounting for the Chinese New Year boundary.
+ * Determines the zodiac year for a given birth date, accounting for the
+ * New Year boundary of the chosen rule.
  *
- * Births before CNY of that year use the previous year's zodiac.
- * Births on or after CNY use the current year's zodiac.
+ * Births before that year's New Year use the previous year's zodiac.
+ * Births on or after it use the current year's zodiac.
  *
- * @returns The effective zodiac year (Gregorian year adjusted for CNY boundary)
+ * @returns The effective zodiac year (Gregorian year adjusted for the boundary)
  */
-export function getZodiacYear(birthDate: Date): number {
+export function getZodiacYear(birthDate: Date, rule: NewYearRule): number {
   const year = birthDate.getFullYear();
   const month = birthDate.getMonth() + 1; // 0-indexed → 1-indexed
   const day = birthDate.getDate();
 
-  const cny = CNY_DATES[year];
-  if (!cny) {
+  const newYear = newYearDate(year, rule);
+  if (!newYear) {
     throw new Error(
       `Year ${year} is outside the supported range (${SUPPORTED_YEAR_MIN}-${SUPPORTED_YEAR_MAX}).`
     );
   }
 
-  // If birth is before CNY, use previous year
-  if (month < cny.month || (month === cny.month && day < cny.day)) {
+  if (month < newYear.month || (month === newYear.month && day < newYear.day)) {
     return year - 1;
   }
 
@@ -280,8 +306,8 @@ function zodiacIndex(zodiacYear: number): number {
 /**
  * Returns the zodiac animal name for a given birth date.
  */
-export function getZodiacAnimal(birthDate: Date): ZodiacAnimal {
-  return ZODIAC_ANIMALS[zodiacIndex(getZodiacYear(birthDate))];
+export function getZodiacAnimal(birthDate: Date, rule: NewYearRule): ZodiacAnimal {
+  return ZODIAC_ANIMALS[zodiacIndex(getZodiacYear(birthDate, rule))];
 }
 
 /**
@@ -297,8 +323,8 @@ export function getZodiacAnimalForYear(year: number): ZodiacAnimal {
  * Returns the zodiac number (1-12) for a given birth date.
  * Rat=1, Ox=2, Tiger=3, ..., Pig=12
  */
-export function getZodiacNumber(birthDate: Date): number {
-  return zodiacIndex(getZodiacYear(birthDate)) + 1;
+export function getZodiacNumber(birthDate: Date, rule: NewYearRule): number {
+  return zodiacIndex(getZodiacYear(birthDate, rule)) + 1;
 }
 
 /**

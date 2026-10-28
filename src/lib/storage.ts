@@ -6,6 +6,7 @@
  */
 
 import { isRealCalendarDate, isSupportedYear } from "./numerology/calendar";
+import { isNewYearRule, type NewYearRule } from "./numerology/zodiac";
 
 // Changing this key would silently drop every returning visitor's saved
 // birth date, so keep it as-is even if the app is renamed.
@@ -97,3 +98,25 @@ export function clearStoredBirthDate(): void {
 
 /** Exported for testing — the raw localStorage key. */
 export const BIRTH_DATE_STORAGE_KEY = STORAGE_KEY;
+
+/** Where the visitor's New Year choice (Khmer or Chinese) is remembered. */
+export const NEW_YEAR_RULE_STORAGE_KEY = "khmer-numerology:new-year";
+
+/** Reads the remembered New Year rule, or null if none (or unreadable). */
+export function readStoredNewYearRule(): NewYearRule | null {
+  try {
+    const value = localStorage.getItem(NEW_YEAR_RULE_STORAGE_KEY);
+    return isNewYearRule(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Remembers the visitor's New Year rule for later visits. */
+export function saveNewYearRule(rule: NewYearRule): void {
+  try {
+    localStorage.setItem(NEW_YEAR_RULE_STORAGE_KEY, rule);
+  } catch {
+    // Silently fail — quota exceeded, private browsing, etc.
+  }
+}

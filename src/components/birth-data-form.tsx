@@ -4,7 +4,7 @@
  * BirthDataForm
  *
  * Collects day, month, and year inputs from the user, auto-derives the
- * weekday and Chinese zodiac animal when all three fields are complete,
+ * weekday and zodiac animal when all three fields are complete,
  * validates the date on submission, and emits the cycle result via an
  * `onResult` callback.
  */
@@ -18,6 +18,7 @@ import {
 } from "@/lib/numerology/derive";
 import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { saveBirthDate } from "@/lib/storage";
+import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 
 const WEEKDAY_NAMES = [
@@ -36,6 +37,8 @@ interface Props {
   onResult: (result: CycleResultWithYear) => void;
   /** Optional initial values for pre-filling the form (e.g., from share URL). */
   initialValues?: { day: string; month: string; year: string };
+  /** Which New Year turns the animal year, for the preview and the result. */
+  newYearRule: NewYearRule;
 }
 
 interface FieldErrors {
@@ -107,7 +110,7 @@ function DateField({
   );
 }
 
-export function BirthDataForm({ onResult, initialValues }: Props) {
+export function BirthDataForm({ onResult, initialValues, newYearRule }: Props) {
   const [day, setDay] = useState(initialValues?.day ?? "");
   const [month, setMonth] = useState(initialValues?.month ?? "");
   const [year, setYear] = useState(initialValues?.year ?? "");
@@ -130,8 +133,8 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
     if (!partsInRange || !isRealCalendarDate(yearNum, monthNum, dayNum)) {
       return null;
     }
-    return deriveBirthData(yearNum, monthNum, dayNum);
-  }, [dayNum, monthNum, yearNum]);
+    return deriveBirthData(yearNum, monthNum, dayNum, newYearRule);
+  }, [dayNum, monthNum, yearNum, newYearRule]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -148,7 +151,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
     }
 
     setErrors({});
-    const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum);
+    const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum, newYearRule);
     saveBirthDate(dayNum, monthNum, yearNum);
     onResult(result);
   }
