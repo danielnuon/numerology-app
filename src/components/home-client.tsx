@@ -4,7 +4,9 @@
  * HomeClient — Client-side home page content
  *
  * Renders the birth date form and cycle result. Supports:
- * - Pre-fill via URL search params (?day=24&month=7&year=1997) for share URL redirects
+ * - Pre-fill via URL search params (?day=24&month=7&year=1997) for share URL
+ *   redirects. The server page reads them and passes them in, so the page
+ *   renders in full on the server and search engines see its content.
  * - Returning visitors: reads localStorage on mount, shows CurrentYearWidget + chart
  * - Share URL precedence: a shared link shows that person's chart, not the
  *   visitor's own saved one
@@ -22,7 +24,6 @@ import {
   useSyncExternalStore,
   startTransition,
 } from "react";
-import { useSearchParams } from "next/navigation";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
@@ -87,18 +88,30 @@ function useIsHydrated(): boolean {
   );
 }
 
-export function HomeClient() {
-  const searchParams = useSearchParams();
+/** The home page's query string values that HomeClient reads. */
+export interface HomeSearchParams {
+  day?: string;
+  month?: string;
+  year?: string;
+  /** New Year rule of a shared reading: "khmer" or "chinese". */
+  ny?: string;
+}
+
+interface Props {
+  searchParams: HomeSearchParams;
+}
+
+export function HomeClient({ searchParams }: Props) {
   const isHydrated = useIsHydrated();
 
   // Pre-fill initial values from URL search params (set by /r/[date] redirect)
-  const prefillDay = searchParams.get("day");
-  const prefillMonth = searchParams.get("month");
-  const prefillYear = searchParams.get("year");
+  const prefillDay = searchParams.day;
+  const prefillMonth = searchParams.month;
+  const prefillYear = searchParams.year;
 
   const hasShareParams = !!(prefillDay && prefillMonth && prefillYear);
   // A shared reading keeps the sharer's New Year rule; links without one are Khmer.
-  const prefillRule = searchParams.get("ny");
+  const prefillRule = searchParams.ny;
   const shareRule: NewYearRule | null = hasShareParams
     ? isNewYearRule(prefillRule) ? prefillRule : DEFAULT_NEW_YEAR_RULE
     : null;
