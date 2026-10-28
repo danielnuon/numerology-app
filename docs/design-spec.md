@@ -246,7 +246,7 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Reading summary:** The top of the reading card names whose reading it is: the birth date ("July 24, 1997") and "Year of the Ox · Born on a Thursday". A share link adds "A reading shared with you" above them.
 
-**Read for someone else:** A quiet underlined text link on the date's line, top right ("Someone else?", or "Read your own" on a share link; the accessible name is "Read for someone else"), styled like "Back to the reading". It folds the reading back into an empty form with the same transition, faster on the way out. The intro reads "Enter another birth date to read that person's 12-year cycle." A "Back to the reading" link returns to the previous reading without re-entering it.
+**Read for someone else:** A quiet underlined text link on the date's line, top right ("Someone else?", or "Read your own" on a share link; the accessible name is "Read for someone else"), styled like "Back to the reading". A restored saved date adds "Not you?" beside it; on phones the two links stack. It folds the reading back into an empty form with the same transition, faster on the way out. The intro reads "Enter another birth date to read that person's 12-year cycle." A "Back to the reading" link returns to the previous reading without re-entering it.
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
 
@@ -280,8 +280,8 @@ Motion tokens, the motion rules, the approved exceptions (the drifting dust and 
 
 | State | Design |
 |-------|--------|
-| First visit (no data) | The title kindles out of the dark over the dusk sky, with the form card centered beneath it; the whole form fits on the first screen of a phone. |
-| Returning visitor (saved data) | Current year widget shows at top before form. Minimal: just the number, tier, and guidance. "View full cycle" link below. "Not you?" in text-secondary. |
+| First visit (no data) | The title kindles out of the dark over the dusk sky, with the form card centered beneath it; the whole form fits on the first screen of a phone. The card asks one question, "When were you born?", with large fields and one solid gold button. The intro waits behind "What will I see?" and the New Year choice rests as one line ("Counted from Khmer New Year", with Change) that opens by itself when the choice changes the animal. Text on the form is 14px or larger. |
+| Any reading (submitted, saved or shared) | The form blooms into the reading card, which opens on this year's reading: number, tier, life area, description and guidance. On phones the wheel and timeline wait behind "See all 12 years"; on tablet they show below it and from `lg` beside it. A restored saved date also offers "Not you?". |
 | Zero year selected | The orb is an unlit niche (`tier-zero`) with its number in `ink-light`, and the ⊙ symbol marks it. Guidance text emphasizes transition and preparation. |
 | Error (invalid date) | The field edge turns ember and the error text appears. Form does not shake or flash — calm even in error. |
 | Narrow screens (12 orbs) | The wheel scales with its container (`cqw`); orbs never go below 44px, and the bloomed reading grows taller than the wheel rather than scrolling inside it. |

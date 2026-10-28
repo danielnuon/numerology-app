@@ -8,9 +8,13 @@
  * (late January to February). Once the date is complete it says whether the
  * choice changes this birth date's animal, which only happens for births
  * between the two New Years.
+ *
+ * Most visitors never need to change it, so it rests as one line naming the
+ * rule with a "Change" button. It opens by itself when the choice changes
+ * this birth date's animal, because that is the only time it matters.
  */
 
-import { startTransition, useRef, ViewTransition } from "react";
+import { startTransition, useId, useRef, useState, ViewTransition } from "react";
 import type { NewYearRule, ZodiacAnimal } from "@/lib/numerology/zodiac";
 
 interface Props {
@@ -30,6 +34,10 @@ const OPTIONS: { rule: NewYearRule; label: string }[] = [
 export function NewYearToggle({ rule, onChange, animals }: Props) {
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const choiceMatters = !!animals && animals.khmer !== animals.chinese;
+  const [opened, setOpened] = useState(false);
+  const expanded = opened || choiceMatters;
+  const panelId = useId();
+  const ruleName = OPTIONS.find((option) => option.rule === rule)!.label;
 
   // A transition, like every selection change, so the outline glides across
   // and the reading below crossfades instead of jumping.
@@ -48,54 +56,73 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
 
   return (
     <div className="mt-5 flex flex-col items-center">
-      <p id="new-year-toggle-label" className="text-center text-xs uppercase tracking-[0.12em] text-ink-light">
-        New Year that starts your animal year
-      </p>
-      <div
-        role="radiogroup"
-        aria-labelledby="new-year-toggle-label"
-        className="mt-2 grid w-full grid-cols-2 gap-1 rounded-full border border-border p-1"
-      >
-        {OPTIONS.map((option, index) => {
-          const selected = option.rule === rule;
-          return (
-            <button
-              key={option.rule}
-              ref={(el) => {
-                optionRefs.current[index] = el;
-              }}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              aria-label={`${option.label} New Year`}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => choose(option.rule)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={[
-                "pressable relative min-h-[44px] min-w-0 whitespace-nowrap rounded-full px-2 text-sm active:scale-[0.97]",
-                // Ink marks the selection; gold is kept for "now"
-                selected ? "font-medium text-ink" : "text-ink-light hover:text-ink",
-              ].join(" ")}
-            >
-              {/* Selection outline: one shared element that glides between options */}
-              {selected && (
-                <ViewTransition name="new-year-selection" share="auto" default="none">
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-full bg-ink/[0.06] ring-1 ring-inset ring-ink"
-                  />
-                </ViewTransition>
-              )}
-              <span className="relative">{option.label}</span>
-            </button>
-          );
-        })}
-      </div>
-      <p className="mt-2 text-center text-xs leading-relaxed text-ink-light" aria-live="polite">
-        {choiceMatters
-          ? `Your birth date falls between the two: Khmer New Year makes you the ${animals.khmer}, Chinese New Year the ${animals.chinese}.`
-          : "Cambodia turns the animal year at Khmer New Year in mid-April. Some families count from Chinese New Year."}
-      </p>
+      {/* When the choice matters the open toggle says it all, so the summary line steps aside */}
+      {!choiceMatters && (
+        <p className="flex flex-wrap items-center justify-center gap-x-2 text-center text-sm text-ink-light">
+          <span>Counted from {ruleName} New Year</span>
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            onClick={() => setOpened((open) => !open)}
+            className="pressable inline-flex min-h-[44px] items-center px-1 text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep"
+          >
+            {expanded ? "Done" : "Change"}
+          </button>
+        </p>
+      )}
+      {expanded && (
+        <div id={panelId} className="animate-settle-in mt-1 flex w-full flex-col items-center">
+          <p id="new-year-toggle-label" className="text-center text-sm text-ink-light">
+            New Year that starts your animal year
+          </p>
+          <div
+            role="radiogroup"
+            aria-labelledby="new-year-toggle-label"
+            className="mt-2 grid w-full grid-cols-2 gap-1 rounded-full border border-border p-1"
+          >
+            {OPTIONS.map((option, index) => {
+              const selected = option.rule === rule;
+              return (
+                <button
+                  key={option.rule}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label={`${option.label} New Year`}
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => choose(option.rule)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  className={[
+                    "pressable relative min-h-[48px] min-w-0 whitespace-nowrap rounded-full px-2 text-base active:scale-[0.97]",
+                    // Ink marks the selection; gold is kept for "now"
+                    selected ? "font-medium text-ink" : "text-ink-light hover:text-ink",
+                  ].join(" ")}
+                >
+                  {/* Selection outline: one shared element that glides between options */}
+                  {selected && (
+                    <ViewTransition name="new-year-selection" share="auto" default="none">
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-full bg-ink/[0.06] ring-1 ring-inset ring-ink"
+                      />
+                    </ViewTransition>
+                  )}
+                  <span className="relative">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-center text-sm leading-relaxed text-ink-light" aria-live="polite">
+            {choiceMatters
+              ? `Your birth date falls between the two: Khmer New Year makes you the ${animals.khmer}, Chinese New Year the ${animals.chinese}.`
+              : "Cambodia turns the animal year at Khmer New Year in mid-April. Some families count from Chinese New Year."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

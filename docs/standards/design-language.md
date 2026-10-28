@@ -53,14 +53,16 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 |------|------|------------------|-------|
 | Display | Marcellus (`font-display`) | Title 36–72px, `tracking-[0.08em]`–`0.14em`, with `.title-glow` | Site and page titles, section headings, tier labels, the total score |
 | Body | Hanken Grotesk (default sans) | 17px, line height 1.65 | Everything else |
-| Label | Hanken Grotesk, uppercase | 12–14px (`text-xs`/`text-sm`), `tracking-[0.12em]`–`0.18em` | Field labels, captions, eyebrow text |
-| Button | Hanken Grotesk 500, uppercase | 14px, `tracking-[0.14em]` | Primary and pill buttons |
+| Label | Hanken Grotesk, uppercase | 14px (`text-sm`), `tracking-[0.12em]`–`0.18em` | Eyebrow text and short captions |
+| Field label | Hanken Grotesk, sentence case | 16px (`text-base`) | Form field labels |
+| Button | Hanken Grotesk 500–600, sentence case | 16–18px (`text-base`/`text-lg`) | Primary and pill buttons |
 | Numbers | Hanken Grotesk, tabular lining figures | Varies | Cycle numbers on the wheel, dates, form fields |
 | Khmer | Noto Serif Khmer | Matches its context | Any Khmer script (in both font stacks) |
 
 - Marcellus draws 0 like the letter O and 11 like "ll", so numbers people must read precisely use the sans face with `tabular-nums`.
 - Guidance and quiet asides may be italic body text. Do not add new typefaces.
 - Keep letter spacing to the values above, so labels and buttons share one rhythm.
+- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px for the wheel's own labels, where space is fixed.
 
 ## Spacing, layout and shape
 
@@ -95,7 +97,8 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 
 **Buttons**
 
-- **Primary** (one per screen at most): `gold-deep` outline pill, uppercase button type, at least 48px tall. On hover it fills with `gold-deep`, text turns `parchment`, and it gains `--shadow-glow`.
+- **Primary** (one per screen at most): a solid `gold-deep` pill with `parchment` text, sentence case, at least 56px tall, with `--shadow-glow`. On hover it lightens to `gold-light`. It is the one filled shape on its screen, so the next step is never in doubt.
+- **Accent**: `gold-deep` outline pill, at least 44px tall, for the main action of a section that is not the screen's next step (Share). On hover it fills with `gold-deep` and text turns `parchment`.
 - **Secondary**: `border` outline pill, `ink-light` text, at least 44px tall. On hover the text turns `ink` and the border `gold`.
 - **Text links**: `ink-light` or `gold-deep` text, underline or color change on hover, dim when pressed.
 
