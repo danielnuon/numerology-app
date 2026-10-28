@@ -117,6 +117,49 @@ describe("CycleChart (cycle wheel)", () => {
     expect(screen.getByRole("button", { name: /Read 2026 in full/ })).toHaveFocus();
   });
 
+  it("folds the reading back on a tap outside it, leaving focus where the tap was", () => {
+    render(
+      <>
+        <CycleChart {...defaultProps} />
+        <button type="button">Elsewhere</button>
+      </>
+    );
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: /Read 2026 in full/ }));
+    });
+    const elsewhere = screen.getByRole("button", { name: "Elsewhere" });
+    elsewhere.focus();
+
+    act(() => {
+      fireEvent.pointerDown(elsewhere);
+    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(elsewhere).toHaveFocus();
+  });
+
+  it("stays open when the tap is inside the reading", () => {
+    render(<CycleChart {...defaultProps} />);
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: /Read 2026 in full/ }));
+    });
+    act(() => {
+      fireEvent.pointerDown(screen.getByRole("heading", { name: /Very strong luck/ }));
+    });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("closes with the close button and returns focus to the centre", () => {
+    render(<CycleChart {...defaultProps} />);
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: /Read 2026 in full/ }));
+    });
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Close the reading" }));
+    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Read 2026 in full/ })).toHaveFocus();
+  });
+
   it("opens the reading when the selected orb is tapped again", () => {
     render(<CycleChart {...defaultProps} />);
     act(() => {
