@@ -73,9 +73,10 @@ body {
  * A dusk sky behind everything; dust motes drift on a canvas above it. */
 .dusk-sky {
   /* Sized to the large viewport so the sky reaches under mobile browser
-   * toolbars (Safari's floats over the page) instead of stopping above them.
-   * The last stretch fades into the page colour, so wherever the browser
-   * ends the layer, there is no visible edge. */
+   * toolbars (Safari's floats over the page). Safari may still clip a fixed
+   * layer at the small viewport, so the fade into the page colour finishes
+   * just above the small viewport's bottom: wherever the layer ends, the
+   * colour beneath it already matches and there is no seam. */
   position: fixed;
   inset: 0 0 auto;
   height: 100vh;
@@ -84,8 +85,11 @@ body {
   pointer-events: none;
   background:
     linear-gradient(to bottom, transparent 82%, var(--color-parchment)),
+    radial-gradient(1200px 600px at 50% -10%, rgba(120, 72, 120, 0.35), transparent 70%);
+  background:
+    linear-gradient(to bottom, transparent calc(100svh - 220px), var(--color-parchment) calc(100svh - 16px)),
     radial-gradient(1200px 600px at 50% -10%, rgba(120, 72, 120, 0.35), transparent 70%),
-    radial-gradient(900px 500px at 50% 95%, rgba(226, 150, 70, 0.14), transparent 70%);
+    radial-gradient(900px 420px at 50% calc(100svh - 200px), rgba(226, 150, 70, 0.14), transparent 70%);
 }
 .dusk-sky canvas {
   position: absolute;

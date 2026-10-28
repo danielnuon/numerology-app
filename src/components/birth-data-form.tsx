@@ -178,7 +178,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
       aria-label="Birth date form"
     >
       {/* Date inputs */}
-      <div className="mt-8 grid grid-cols-[1fr_1fr_1.5fr] gap-3 sm:gap-4">
+      <div className="mt-6 sm:mt-8 grid grid-cols-[1fr_1fr_1.5fr] gap-3 sm:gap-4">
         <DateField
           id="birth-day"
           label="Day"
@@ -227,28 +227,37 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         </p>
       )}
 
-      {/* Auto-derived zodiac and weekday. The slot reserves room for the two
-          chips (stacked on phones) so the button doesn't jump when they appear. */}
-      <div aria-live="polite" className="mt-6 flex min-h-[92px] min-[480px]:min-h-[44px] justify-center">
-        {derived && (
-          <p className="animate-settle-in flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-gold-deep/[0.06] py-1 pl-2 pr-4">
-              <ZodiacIcon animal={derived.zodiacAnimal} className="size-6 text-gold-deep" />
-              <span>
-                Year of the{" "}
-                <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
-              </span>
-            </span>
-            <span className="inline-flex items-center rounded-full border border-border bg-gold-deep/[0.06] px-4 py-1.5">
-              <span>
-                Born on a{" "}
-                <span className="font-display text-base text-gold-deep">
-                  {WEEKDAY_NAMES[derived.weekday]}
+      {/* Auto-derived zodiac and weekday. Takes no space until the date is
+          complete, then the slot opens smoothly (grid rows 0fr → 1fr) so the
+          button glides down rather than jumping. */}
+      <div
+        aria-live="polite"
+        className={[
+          "grid transition-[grid-template-rows] duration-[var(--duration-gentle)] ease-[var(--ease-enter)]",
+          derived ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        ].join(" ")}
+      >
+        <div className="overflow-hidden">
+          {derived && (
+            <p className="animate-settle-in mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-gold-deep/[0.06] py-1 pl-2 pr-4">
+                <ZodiacIcon animal={derived.zodiacAnimal} className="size-6 text-gold-deep" />
+                <span>
+                  Year of the{" "}
+                  <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
                 </span>
               </span>
-            </span>
-          </p>
-        )}
+              <span className="inline-flex items-center rounded-full border border-border bg-gold-deep/[0.06] px-4 py-1.5">
+                <span>
+                  Born on a{" "}
+                  <span className="font-display text-base text-gold-deep">
+                    {WEEKDAY_NAMES[derived.weekday]}
+                  </span>
+                </span>
+              </span>
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Submit */}
