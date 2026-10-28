@@ -373,8 +373,8 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 
 | State | Design |
 |-------|--------|
-| First visit (no data) | Full-width hero with form card centered. Subtle background: a faded kbach pattern at 3% opacity. Tagline: "Uncover the rhythm of your years" in italic Cormorant. |
-| Returning visitor (saved data) | Current year widget shows at top before form. Minimal: just the number, tier, and guidance. "View full cycle" link below. "Not you?" in text-secondary. |
+| First visit (no data) | One question, "When were you born?", with large fields and one solid gold button. The intro waits behind "What will I see?" and the New Year choice rests as one line ("Counted from Khmer New Year · Change") that opens by itself when the choice changes the animal. Nothing below 14px. |
+| Any reading (submitted, saved or shared) | Opens on this year's card: number, tier, life area, description and guidance. On phones the wheel and timeline wait behind "See all 12 years"; on tablet and desktop they show at once. A visitor's own date folds into a one-line summary with "Change date". |
 | Zero year selected | Detail panel background shifts to charcoal (`#4A4039`), text inverts to light. The panel feels like a void. Guidance text emphasizes transition and preparation. |
 | Error (invalid date) | Underline turns sienna, error text fades in. Form does not shake or flash — calm even in error. |
 | Narrow screens (12 orbs) | The wheel scales with its container (`cqw`); orbs never go below 44px, and the bloomed reading grows taller than the wheel rather than scrolling inside it. |

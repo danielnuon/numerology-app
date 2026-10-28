@@ -39,13 +39,13 @@ HomeClient (useEffect on mount)
       +- returns StoredBirthDate | null
           |- null → show BirthDataForm (first-visit state)
           +- valid → computeCycleFromBirthDate() [derive.ts]
-              -> setResult() + setShowWidget(true)
-                 |- CurrentYearWidget (display)
+              -> reading, with the form folded into a one-line summary
+                 |- "Change date" → clearStoredBirthDate(), reset to first-visit
+                 |- ThisYearCard (display)
                  |    |- getYearNumber() [year-lookup.ts]
                  |    |- interpretYear() [interpretation.ts]
-                 |    |- getLifeArea() [year-lookup.ts]
-                 |    |- "View full cycle" → smooth-scroll to #cycle-chart-section
-                 |    +- "Not you?" → clearStoredBirthDate(), reset to first-visit
+                 |    +- getLifeArea() [year-lookup.ts]
+                 +- "See all 12 years" (phones only) → opens #cycle-chart-section
                  +- CycleChart (display) — same as form-submission path
 
 BirthDataForm (on successful submit)
@@ -234,13 +234,8 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |           |- reads searchParams for pre-fill (?day=&month=&year=)
   |           |- <h1> "Khmer Numerology"
   |           |- SectionDivider
-  |           |- (returning visitor, localStorage valid)
-  |           |   +- CurrentYearWidget "use client", year/tier/area/guidance
-  |           |       |- "View full cycle" → scrollIntoView #cycle-chart-section
-  |           |       +- "Not you?" → clearStoredBirthDate, reset to form
-  |           |
   |           +- ErrorBoundary ....... "use client", class component
-  |               |- (first visit or "Not you?")
+  |               |- (first visit, "Change date", or above a shared reading)
   |               |   +- BirthDataForm "use client", day/month/year inputs
   |               |       |- deriveBirthData() via useMemo (zodiac + weekday preview)
   |               |       |- validateBirthDate() on submit
@@ -265,8 +260,8 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
 - **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
 - **Home**: Server component wrapping `HomeClient` in `<Suspense>` (required for `useSearchParams()`).
-- **HomeClient**: Client component holding `CycleResultWithYear | null` state and `showWidget` boolean. On mount, checks share URL params first (precedence), then reads localStorage via `readStoredBirthDate()`. If valid stored data exists, computes cycle and renders both `CurrentYearWidget` and `CycleChart`. Also reads URL search params for pre-fill from share redirects. On form submission, scrolls to the result card via `requestAnimationFrame` + `scrollIntoView`.
-- **CurrentYearWidget**: Client component displaying the current year's cycle number, luck tier, life area domain, and one-sentence guidance. Renders "View full cycle" (smooth-scroll to chart) and "Not you?" (clear localStorage, reset to form) actions. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
+- **HomeClient**: Client component holding the birth date, New Year rule, selected year and two disclosure flags (`formOpen`, `cycleOpen`). Share URL params take precedence over the date saved in localStorage. The first visit shows one question, "When were you born?", with the intro behind a "What will I see?" `<details>`. Once there is a reading, the form folds into a one-line summary with "Change date" (kept open above a shared reading). The reading opens on `ThisYearCard`; below `md` the wheel and timeline wait behind "See all 12 years", and from `md` up they show at once (side by side with the card from `lg`).
+- **ThisYearCard**: Client component showing the active year's cycle number, luck tier, life area, tier description and guidance. Used for every reading: a fresh submission, a saved date and a shared link. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
