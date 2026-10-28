@@ -521,6 +521,53 @@ button:not(:disabled),
   from { opacity: 0; transform: translateY(4px); }
 }
 
+/* === Bloom: the form card becomes the reading ===
+ * One shared card (React <ViewTransition name="reading-card">). Its box eases
+ * to the reading's size while the form fades and the reading blooms in from
+ * slightly smaller; a soft gold light passes through once. Content is
+ * revealed from the top, never squashed. Going back, the reading clears
+ * quickly so the two never ghost over each other. */
+::view-transition-group(.reading-bloom) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-standard);
+}
+::view-transition-old(.reading-bloom),
+::view-transition-new(.reading-bloom) {
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: top center;
+}
+::view-transition-old(.reading-bloom) {
+  animation: 320ms var(--ease-standard) both vt-fade-out;
+}
+::view-transition-new(.reading-bloom) {
+  animation: 520ms var(--ease-enter) both reading-bloom-in;
+  transform-origin: 50% 30%;
+}
+html:active-view-transition-type(bloom-close)::view-transition-old(.reading-bloom) {
+  animation-duration: var(--duration-quick);
+}
+@keyframes reading-bloom-in {
+  from { opacity: 0; transform: scale(0.96); }
+}
+.reading-bloom-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 35%, rgba(226, 182, 90, 0.3), transparent 60%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .reading-bloom-glow {
+    animation: reading-glow 900ms var(--ease-standard) both;
+  }
+}
+@keyframes reading-glow {
+  35% { opacity: 1; }
+}
+
 /* === Reduce Motion ===
  * Nothing moves or scales; changes happen instantly. */
 @media (prefers-reduced-motion: reduce) {
@@ -539,5 +586,10 @@ button:not(:disabled),
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+  /* With no animation the old snapshot would sit over the new view
+   * for a frame or two. Hide it so the swap is a clean cut. */
+  ::view-transition-old(*) {
+    opacity: 0 !important;
   }
 }
