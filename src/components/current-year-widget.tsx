@@ -4,17 +4,16 @@
  * CurrentYearWidget
  *
  * Displays the current year's cycle number, luck tier, life area, and
- * one-sentence guidance for returning visitors whose birth date is stored
+ * what that number means for the life area, for returning visitors whose birth date is stored
  * in localStorage. Includes "See all 12 years" (smooth-scroll) and
  * "Not you?" (clear localStorage, reset to form) actions.
  */
 
-import { interpretYear } from "@/lib/numerology/interpretation";
+import { interpretAreaYear } from "@/lib/numerology/interpretation";
 import { getTierSymbol } from "@/lib/numerology/chart-helpers";
 import {
   getActiveYear,
   getCycleIndex,
-  getLifeArea,
   getYearNumber,
 } from "@/lib/numerology/year-lookup";
 
@@ -38,8 +37,8 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
   const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
   const cycleNumber = getYearNumber(cycle, birthYear, activeYear);
   const cycleIndex = getCycleIndex(birthYear, activeYear);
-  const lifeArea = getLifeArea(cycleIndex + 1); // getLifeArea is 1-indexed
-  const interpretation = interpretYear(cycleNumber);
+  const interpretation = interpretAreaYear(cycleIndex + 1, cycleNumber); // columns are 1-indexed
+  const lifeArea = interpretation.area;
   const tierSymbol = getTierSymbol(interpretation.tier);
 
   function handleViewFullCycle(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -86,14 +85,14 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
         Life area: {lifeArea}
       </p>
 
-      {/* Guidance — one sentence */}
+      {/* What this year's number means for its life area */}
       <p className="mt-4 text-center text-sm text-ink-light italic leading-relaxed">
-        {interpretation.guidance}
+        {interpretation.reading}
       </p>
 
       {/* Screen reader summary */}
       <span className="sr-only">
-        {`Year ${currentYear}: cycle number ${cycleNumber}, ${interpretation.label}, life area ${lifeArea}. ${interpretation.guidance}`}
+        {`Year ${currentYear}: cycle number ${cycleNumber}, ${interpretation.label}, life area ${lifeArea}. ${interpretation.reading}`}
       </span>
 
       {/* Actions */}

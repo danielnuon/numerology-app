@@ -239,3 +239,4 @@ These need real devices or a public URL and can't be automated here.
 - Hero Typography Refinement
 - Roadmap Hygiene: Check Off Completed Stories
 - Lucky Number Year Timing Correction
+- Read each year by life area and number together

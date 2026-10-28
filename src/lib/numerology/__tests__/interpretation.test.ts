@@ -1,5 +1,7 @@
-import { interpretYear, interpretTotal } from "../interpretation";
+import { interpretAreaYear, interpretYear, interpretTotal } from "../interpretation";
 import { YEAR_TIERS, TOTAL_TIERS } from "../interpretation-data";
+import { AREA_READINGS } from "../life-area-data";
+import { computeCycle } from "../calculate";
 
 describe("interpretYear", () => {
   it('returns "zero" tier for cycle number 0', () => {
@@ -141,5 +143,53 @@ describe("data integrity", () => {
       expect(entry.label).toBeTruthy();
       expect(entry.description).toBeTruthy();
     }
+  });
+});
+
+describe("interpretAreaYear", () => {
+  it("reads the same number differently in different life areas", () => {
+    const money = interpretAreaYear(5, 9);
+    const health = interpretAreaYear(8, 9);
+    expect(money.tier).toBe(health.tier);
+    expect(money.area).toBe("Money");
+    expect(health.area).toBe("Health");
+    expect(money.reading).not.toBe(health.reading);
+  });
+
+  it("reads different tiers differently within one life area", () => {
+    const readings = [0, 2, 5, 8, 11].map((n) => interpretAreaYear(5, n).reading);
+    expect(new Set(readings).size).toBe(5);
+  });
+
+  it("keeps the tier label, description and guidance from interpretYear", () => {
+    const { area, reading, ...tier } = interpretAreaYear(1, 10);
+    expect(area).toBe("Self");
+    expect(reading).toBe(AREA_READINGS[1]["very-strong"]);
+    expect(tier).toEqual(interpretYear(10));
+  });
+
+  it("reads the 1997-07-24 worked example year by year", () => {
+    const { cycle } = computeCycle(7, 2, 5);
+    // Column 8 (Health) is the cycle's zero; column 6 (Allies) is its 11
+    expect(interpretAreaYear(8, cycle[7]).reading).toBe(AREA_READINGS[8].zero);
+    expect(interpretAreaYear(6, cycle[5]).reading).toBe(AREA_READINGS[6]["very-strong"]);
+  });
+
+  it("has a distinct, non-empty reading for every area and tier", () => {
+    const all: string[] = [];
+    for (let column = 1; column <= 12; column++) {
+      for (const { tier } of YEAR_TIERS) {
+        const reading = AREA_READINGS[column]?.[tier];
+        expect(reading).toBeTruthy();
+        all.push(reading);
+      }
+    }
+    expect(new Set(all).size).toBe(12 * YEAR_TIERS.length);
+  });
+
+  it("throws for a column outside 1-12 or a number outside 0-11", () => {
+    expect(() => interpretAreaYear(0, 5)).toThrow();
+    expect(() => interpretAreaYear(13, 5)).toThrow();
+    expect(() => interpretAreaYear(5, 12)).toThrow();
   });
 });

@@ -3,13 +3,13 @@
 /**
  * DetailPanel
  *
- * The full reading for one year of the cycle: life area, zodiac animal, tier
- * interpretation and guidance, plus the other years that share its number.
+ * The full reading for one year of the cycle: life area, zodiac animal, what
+ * the year's tier means for that life area and the tier's guidance, plus the
+ * other years that share its number.
  * Shown inside the reading that blooms out of the cycle wheel's center.
  */
 
-import { interpretYear } from "@/lib/numerology/interpretation";
-import { getLifeArea } from "@/lib/numerology/year-lookup";
+import { interpretAreaYear } from "@/lib/numerology/interpretation";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers";
@@ -37,8 +37,7 @@ export function DetailPanel({
   year,
   isCurrent,
 }: DetailPanelProps) {
-  const interp = interpretYear(cycleNumber);
-  const domain = getLifeArea(columnIndex + 1);
+  const interp = interpretAreaYear(columnIndex + 1, cycleNumber);
   const animal = getZodiacAnimalForYear(year);
   // The same number comes round every 12 years
   const otherYears = [year - 12, year + 12].filter((y) => y >= birthYear);
@@ -47,7 +46,7 @@ export function DetailPanel({
     <div className="text-ink">
       <p className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 pr-12 text-xs uppercase tracking-[0.14em] text-ink-light">
         <span className="font-semibold">{year}{isCurrent ? " · Now" : ""}</span>
-        <span>{domain}</span>
+        <span>{interp.area}</span>
       </p>
 
       <div className="mb-3 flex items-center gap-3">
@@ -71,7 +70,7 @@ export function DetailPanel({
         </div>
       </div>
 
-      <p className="mb-3 text-sm text-ink-light">{interp.description}</p>
+      <p className="mb-3 text-sm text-ink-light">{interp.reading}</p>
 
       <p className="text-sm italic border-l-2 pl-3 border-gold/40 text-ink-light">
         {interp.guidance}

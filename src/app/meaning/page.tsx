@@ -90,8 +90,15 @@ export default function MeaningPage() {
       <Section title="The twelve life areas" id="life-areas">
         <p>
           Each year of the cycle speaks to one part of life. The year you were
-          born is Self, the next is Family, and so on around the cycle. So a
-          strong number in your Money year is read as a good year for money.
+          born is Self, the next is Family, and so on around the cycle.
+        </p>
+        <p>
+          A year is read as its number and its area together. The number says
+          how strong the year is, and the area says what that strength
+          applies to. So a 9 in your Money year is read as a good year for
+          earning, while the same 9 in your Health year is read as a year of
+          good energy. This follows the seven-number charts of Cambodia and
+          Thailand, where each number is read in light of the place it falls.
         </p>
         <ol className="space-y-3">
           {Object.entries(LIFE_AREA_MAP).map(([column, area]) => (

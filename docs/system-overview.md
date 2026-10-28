@@ -18,6 +18,8 @@ The system requires three pieces of birth data:
 
 This system uses a non-standard month cycle start. Unlike the standard Khmer New Year system, the month cycle begins at **Margasir** (approximately November–December), not the Gregorian January or the traditional Khmer New Year in April. This shifts all month indexing and is critical to producing correct results.
 
+Margasir is month 1 in the traditional lunar month count that Thai and Khmer seven-number charts use, as opposed to the civil year that starts at Khmer New Year. See [reading-model.md](reading-model.md) for sources.
+
 ## The Three Rows
 
 The calculation constructs three rows of numbers, each 12 columns wide.
@@ -142,9 +144,9 @@ Sum all 12 final values to produce the **total score** — a macro-level evaluat
 
 The total represents a baseline life trajectory. Individual year numbers show micro-level variation; the total shows the macro pattern.
 
-### 12 Life Areas (Optional Layer)
+### 12 Life Areas
 
-Each column position can also map to a life domain, allowing year-by-domain interpretation:
+Each column position maps to a life domain. A year is read as its domain and its number together: the number sets the tier, and the domain says what that strength applies to, so the same number reads differently in different domains (`interpretAreaYear()`, `AREA_READINGS`). See [reading-model.md](reading-model.md) for why, the sources, and the open question of whether these domains match the traditional twelve houses.
 
 | Position | Domain | Position | Domain |
 |----------|--------|----------|--------|
