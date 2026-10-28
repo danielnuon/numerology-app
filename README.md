@@ -8,7 +8,7 @@ Live at [solini.vercel.app](https://solini.vercel.app).
 
 Solini calculates a personal life cycle based on three inputs:
 - **Birth month** (counted from Margasir, the lunar month around November–December)
-- **Birth year** (Chinese zodiac)
+- **Birth year** (zodiac animal, counted from Khmer New Year by default, or Chinese New Year if you prefer)
 - **Birth weekday**
 
 The result is a 12-number cycle representing luck strength for each year of your life, starting from birth and repeating every 12 years.

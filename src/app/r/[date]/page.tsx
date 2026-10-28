@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { decodeBirthDate } from "@/lib/numerology/url-encoding";
+import { decodeShareSegment } from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal } from "@/lib/numerology/interpretation";
 import {
@@ -22,7 +22,7 @@ type Props = {
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { date } = await params;
-  const decoded = decodeBirthDate(date);
+  const decoded = decodeShareSegment(date);
 
   if (!decoded) {
     // Invalid date — return generic metadata (graceful fallback)
@@ -32,7 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const result = computeCycleFromBirthDate(
     decoded.year,
     decoded.month,
-    decoded.day
+    decoded.day,
+    decoded.rule
   );
   const description = sharedReadingDescription(
     result.totalScore,
@@ -64,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function SharePage({ params }: Props) {
   const { date } = await params;
-  const decoded = decodeBirthDate(date);
+  const decoded = decodeShareSegment(date);
 
   if (!decoded) {
     // Invalid date — redirect to home form
@@ -79,6 +80,7 @@ export default async function SharePage({ params }: Props) {
       day={decoded.day}
       month={decoded.month}
       year={decoded.year}
+      rule={decoded.rule}
     />
   );
 }

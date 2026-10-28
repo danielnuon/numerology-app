@@ -2,11 +2,17 @@
  * URL State Encoding
  *
  * Encodes and decodes birth dates for shareable URLs.
- * Uses YYYY-MM-DD format in the URL path (e.g., /r/1997-07-24).
+ * Uses YYYY-MM-DD format in the URL path (e.g., /r/1997-07-24). A reading
+ * counted from Chinese New Year adds a suffix (/r/1997-07-24-cny), so the
+ * recipient sees the same cycle; no suffix means the default Khmer New Year.
  * The computed cycle is never stored — it is always recomputed server-side.
  */
 
 import { isRealCalendarDate, isSupportedYear } from "./calendar";
+import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "./zodiac";
+
+/** Path suffix marking a reading counted from Chinese New Year. */
+const CHINESE_NEW_YEAR_SUFFIX = "-cny";
 
 /** Parsed birth date from a share URL. */
 export interface DecodedBirthDate {
@@ -62,18 +68,54 @@ export function decodeBirthDate(dateStr: string): DecodedBirthDate | null {
   return { year, month, day };
 }
 
+/** A shared reading: the birth date plus the New Year rule it was counted with. */
+export interface DecodedShare extends DecodedBirthDate {
+  rule: NewYearRule;
+}
+
+/**
+ * Encodes a birth date and New Year rule as a share path segment.
+ *
+ * @returns e.g. "1997-07-24" (Khmer New Year) or "1997-07-24-cny"
+ */
+export function encodeShareSegment(
+  year: number,
+  month: number,
+  day: number,
+  rule: NewYearRule
+): string {
+  const suffix = rule === "chinese" ? CHINESE_NEW_YEAR_SUFFIX : "";
+  return `${encodeBirthDate(year, month, day)}${suffix}`;
+}
+
+/**
+ * Decodes a share path segment into a birth date and New Year rule.
+ * Returns null if the date part is invalid or the suffix is unknown.
+ */
+export function decodeShareSegment(segment: string): DecodedShare | null {
+  const isChinese = segment.endsWith(CHINESE_NEW_YEAR_SUFFIX);
+  const dateStr = isChinese
+    ? segment.slice(0, -CHINESE_NEW_YEAR_SUFFIX.length)
+    : segment;
+  const decoded = decodeBirthDate(dateStr);
+  if (!decoded) return null;
+  return { ...decoded, rule: isChinese ? "chinese" : "khmer" };
+}
+
 /**
  * Builds the share URL path for a birth date.
  *
  * @param year - Four-digit Gregorian year
  * @param month - Gregorian month (1-12)
  * @param day - Day of month
+ * @param rule - The New Year rule the reading was counted with
  * @returns URL path, e.g. "/r/1997-07-24"
  */
 export function buildSharePath(
   year: number,
   month: number,
-  day: number
+  day: number,
+  rule: NewYearRule = DEFAULT_NEW_YEAR_RULE
 ): string {
-  return `/r/${encodeBirthDate(year, month, day)}`;
+  return `/r/${encodeShareSegment(year, month, day, rule)}`;
 }

@@ -5,7 +5,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { ShareReading } from "../share-reading";
 
-const props = { year: 1997, month: 7, day: 24 };
+const props = { year: 1997, month: 7, day: 24, rule: "khmer" as const };
 const SHARE_URL = "http://localhost/r/1997-07-24";
 
 function setNavigator(values: { share?: unknown; clipboard?: unknown }) {
@@ -67,5 +67,19 @@ describe("ShareReading", () => {
     const link = screen.getByRole("link", { name: "Download image" });
     expect(link).toHaveAttribute("href", "/r/1997-07-24/opengraph-image");
     expect(link).toHaveAttribute("download", "solini-reading-1997-07-24.png");
+  });
+
+  it("marks a Chinese New Year reading in the link and image", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    setNavigator({ share: undefined, clipboard: { writeText } });
+
+    render(<ShareReading {...props} rule="chinese" />);
+    fireEvent.click(screen.getByRole("button", { name: "Share" }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${SHARE_URL}-cny`));
+    expect(screen.getByRole("link", { name: "Download image" })).toHaveAttribute(
+      "href",
+      "/r/1997-07-24-cny/opengraph-image"
+    );
   });
 });

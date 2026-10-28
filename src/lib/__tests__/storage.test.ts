@@ -3,6 +3,9 @@ import {
   saveBirthDate,
   clearStoredBirthDate,
   BIRTH_DATE_STORAGE_KEY,
+  readStoredNewYearRule,
+  saveNewYearRule,
+  NEW_YEAR_RULE_STORAGE_KEY,
 } from "../storage";
 
 // ---------------------------------------------------------------------------
@@ -250,5 +253,34 @@ describe("round-trip", () => {
     saveBirthDate(24, 7, 1997);
     saveBirthDate(1, 1, 2000);
     expect(readStoredBirthDate()).toEqual({ day: 1, month: 1, year: 2000 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// New Year rule
+// ---------------------------------------------------------------------------
+
+describe("New Year rule", () => {
+  it("returns null when nothing is saved", () => {
+    expect(readStoredNewYearRule()).toBeNull();
+  });
+
+  it("round-trips a saved rule", () => {
+    saveNewYearRule("chinese");
+    expect(readStoredNewYearRule()).toBe("chinese");
+    saveNewYearRule("khmer");
+    expect(readStoredNewYearRule()).toBe("khmer");
+  });
+
+  it("ignores an unknown value", () => {
+    localStorage.setItem(NEW_YEAR_RULE_STORAGE_KEY, "lunar");
+    expect(readStoredNewYearRule()).toBeNull();
+  });
+
+  it("returns null when localStorage throws", () => {
+    localStorageMock.getItem.mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    expect(readStoredNewYearRule()).toBeNull();
   });
 });

@@ -16,7 +16,7 @@ BirthDataForm (input)
       -> deriveBirthData() [derive.ts]
       -> computeCycle() [calculate.ts]
           |- getMonthRow() [months.ts]       -- Margasir-relative month position
-          |- getZodiacRow() [zodiac.ts]      -- CNY-adjusted zodiac animal number
+          |- getZodiacRow() [zodiac.ts]      -- New-Year-adjusted zodiac animal number
           +- buildDayRow() [calculate.ts]    -- weekday value for columns 1-7 only
       -> CycleResultWithYear -> HomeClient state
           -> CycleChart (display)
@@ -86,7 +86,7 @@ Union literal type. Sunday=1 through Saturday=7.
 interface BirthData {
   gregorianMonth: number;   // 1-12, passed through unchanged
   weekday: Weekday;         // 1-7, Sunday=1 ... Saturday=7
-  zodiacNumber: number;     // 1-12, Rat=1 ... Pig=12, CNY-boundary adjusted
+  zodiacNumber: number;     // 1-12, Rat=1 ... Pig=12, New Year boundary adjusted
   zodiacAnimal: ZodiacAnimal; // "Rat" | "Ox" | ... | "Pig"
 }
 ```
@@ -184,9 +184,14 @@ JavaScript `Date.getDay()` returns 0=Sunday through 6=Saturday. The codebase con
 
 Cycle arrays and component state use 0-indexed columns (0-11). However, `LIFE_AREA_MAP` in `year-lookup.ts` is keyed 1-12 (column 1 = "Self", column 12 = "Protection"). The `getLifeArea()` function accepts 1-indexed input. Components bridge this gap by calling `getLifeArea(index + 1)`.
 
-### CNY boundary: January/February zodiac adjustment
+### New Year boundary: which animal a birth before New Year gets
 
-Births before Chinese New Year in a given Gregorian year belong to the previous zodiac year. The `getZodiacYear()` function in `zodiac.ts` looks up the CNY date from a 201-entry table (`CNY_DATES`, covering 1900-2100) and compares the birth month/day against it. If the birth date falls before CNY, the function returns `year - 1`.
+Births before New Year in a given Gregorian year belong to the previous zodiac year. Two rules are supported (`NewYearRule` in `zodiac.ts`):
+
+- `"khmer"` (default): Khmer New Year, Moha Sangkran, 12–15 April. Days come from `KHMER_NEW_YEAR_APRIL_DAY` in `khmer-new-year.ts` (1900–2100), generated from the momentkh library's traditional Khmer astronomical calculation.
+- `"chinese"`: Chinese New Year, from `CNY_DATES` (1900–2100).
+
+`getZodiacYear(date, rule)` returns `year - 1` when the birth falls before that year's New Year. A birth on New Year's day counts as the new year. The rule flows through `deriveBirthData` and `computeCycleFromBirthDate` (default `"khmer"`), is remembered in localStorage (`khmer-numerology:new-year`), and travels in share links as a `-cny` suffix (`/r/1997-02-10-cny`); no suffix means Khmer.
 
 ### Calculation engine isolation
 
@@ -338,7 +343,7 @@ All tests live in `src/lib/numerology/__tests__/`:
 | Test file | Module under test |
 |---|---|
 | `months.test.ts` | `months.ts` -- Margasir month mapping |
-| `zodiac.test.ts` | `zodiac.ts` -- CNY lookup and zodiac resolution |
+| `zodiac.test.ts` | `zodiac.ts` -- Khmer and Chinese New Year lookups and zodiac resolution |
 | `calculate.test.ts` | `calculate.ts` -- `buildDayRow`, `computeCycle`, `computeTotalScore` |
 | `derive.test.ts` | `derive.ts` -- `deriveBirthData`, `validateBirthDate`, `computeCycleFromBirthDate` |
 | `interpretation.test.ts` | `interpretation.ts` -- `interpretYear`, `interpretTotal` |
