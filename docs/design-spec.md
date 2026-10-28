@@ -381,7 +381,7 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 
 ---
 
-## Implementation Guidance for /cook
+## Implementation Guidance
 
 ### Recommended Stack
 | Concern | Recommendation | Why |

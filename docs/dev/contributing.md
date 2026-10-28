@@ -22,7 +22,7 @@ The dev server starts via `next dev` (Next.js 16).
 npm test
 ```
 
-Tests run with Jest 30 + ts-jest in a Node environment (not jsdom). The Jest config lives in `jest.config.ts` and maps the `@/*` path alias to `src/*`.
+Tests run with Jest 30 + ts-jest in a Node environment by default; component tests opt into jsdom per file. The Jest config lives in `jest.config.ts` and maps the `@/*` path alias to `src/*`.
 
 ### Lint
 
@@ -97,7 +97,7 @@ Omitting `await` results in a type error and a runtime failure accessing propert
 
 ### Tests
 
-Co-located in `src/lib/numerology/__tests__/`, named `*.test.ts`. Tests cover boundary values, worked examples from the numerology spec, and data integrity checks.
+Calculation tests live in `src/lib/numerology/__tests__/` (`*.test.ts`) and run in Node. They cover boundary values, worked examples from the numerology spec, and data integrity checks. Component tests live in `src/components/__tests__/` (`*.test.tsx`) and opt into jsdom with a `/** @jest-environment jsdom */` docblock at the top of the file.
 
 ### Styling
 
@@ -112,7 +112,7 @@ Use these tokens via Tailwind classes (e.g., `text-ink`, `bg-parchment`). Do not
 
 #### WCAG contrast constraints on design tokens
 
-Not all tokens are safe for all contexts. The following rules apply (adopted Cycle 7 after /real caught contrast failures in form labels and focus ring):
+Not all tokens are safe for all contexts. The following rules apply (adopted after QA caught contrast failures in form labels and the focus ring):
 
 | Token | Contrast on manuscript | Safe for informational text? |
 |-------|----------------------|------------------------------|
@@ -162,7 +162,7 @@ Both are applied to the `<html>` element as CSS variable classes and composed in
 ## Commit Conventions
 
 - Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
-- Include `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` when AI-assisted
+- Include a `Co-Authored-By:` trailer when AI-assisted
 - Commit doc updates (e.g., roadmap checkbox changes) in the same commit as the code they describe -- not as a separate commit
 
 ---
@@ -171,7 +171,7 @@ Both are applied to the `<html>` element as CSS variable classes and composed in
 
 - Local npm 11 generates `package-lock.json` with lockfileVersion 3. CI uses `npm install` (not `npm ci`) to handle version divergence gracefully.
 - If `package-lock.json` is dirty after any operation, commit it before pushing.
-- During QA (`/real`), do **not** run `npm install`. Use `npm ls` for read-only dependency inspection.
+- While verifying or QA-ing a change, do **not** run `npm install`. Use `npm ls` for read-only dependency inspection.
 
 ---
 
@@ -200,7 +200,7 @@ When QA needs to verify an error boundary's fallback UI without modifying source
 })()
 ```
 
-**Why:** The Jest test suite runs in Node without jsdom — React class components cannot be unit tested in this project. The fiber traversal approach triggers the visual fallback without modifying production code, and without needing `throw` to propagate through the component tree.
+**Why:** The fiber traversal approach shows the visual fallback in a running app without modifying production code, and without needing `throw` to propagate through the component tree. (A jsdom component test is the better option for automated coverage; see Tests above.)
 
 **Note:** `componentDidCatch` will NOT fire when using this approach (it only fires during real React render exceptions). Verify console logging by code inspection, not by checking browser console output after a simulated trigger.
 
@@ -210,9 +210,9 @@ When QA needs to verify an error boundary's fallback UI without modifying source
 
 When QA-testing any URL-based feature (share links, deep links, encoded routes), always verify the URL format against the encoding spec or existing unit tests **before** filing a bug.
 
-**Convention:** Before testing a URL-encoded route in `/real`, check `src/lib/numerology/__tests__/` or the relevant encoding module to confirm the expected format.
+**Convention:** Before testing a URL-encoded route in the browser, check `src/lib/numerology/__tests__/` or the relevant encoding module to confirm the expected format.
 
-**Why this matters:** During the Current Year Widget cycle, `/real` navigated to `/r/24-07-1997` (DD-MM-YYYY). The share URL spec (`decodeBirthDate`) requires `YYYY-MM-DD`. The mismatch caused `decodeBirthDate` to return null — which correctly triggered `redirect("/")` — but was misread as a share redirect bug. This spawned a false `/cook fix` cycle before investigation revealed the QA test input was wrong.
+**Why this matters:** During the Current Year Widget work, QA navigated to `/r/24-07-1997` (DD-MM-YYYY). The share URL spec (`decodeBirthDate`) requires `YYYY-MM-DD`. The mismatch caused `decodeBirthDate` to return null — which correctly triggered `redirect("/")` — but was misread as a share redirect bug. This spawned a false bug-fix cycle before investigation revealed the QA test input was wrong.
 
 **When it applies:** Any feature involving URL encoding, route params, or encoded identifiers. Check the format spec first; test with a valid example URL before concluding the feature is broken.
 
