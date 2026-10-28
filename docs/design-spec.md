@@ -1,5 +1,7 @@
 # Design Spec: Khmer Numerology App
 
+> This file specifies Solini's components: their layout, states and behavior. The rules every component follows (palette, type, spacing, iconography, interaction states, motion and its approved exceptions, accessibility) are defined in [the design language](./standards/design-language.md), which wins if the two disagree. Token values live in `src/app/globals.css` and `src/lib/motion.ts`.
+
 ## Design Brief
 - **Feature:** Full application visual identity and component system
 - **User:** Visitors exploring their Khmer numerology life cycle
@@ -61,8 +63,15 @@ The design should feel like a digitized sacred text — not a theme park replica
 **Key principle:** No sidebar. Content flows vertically like a scroll. Each section is a "page" of the manuscript separated by generous whitespace and subtle ornamental dividers (lotus line or kbach border).
 
 ### Responsive Strategy
-| Breakpoint | Layout Change |
-|------------|---------------|
+| Width | Layout |
+|-------|--------|
+| Desktop (1280px+) | The cycle card widens to 1200px; generous margins around every section |
+| Tablet (768–1279px) | The cycle card stays centered at up to 900px; the timeline scrolls sideways with snap |
+| Mobile (320–767px) | 16px gutters; the wheel scales with its container (`cqw`) and orbs never drop below 44px; the reading grows taller than the wheel instead of scrolling inside it |
+
+Every screen is checked at 320, 768 and 1280px (see [the shipping checklist](./standards/shipping.md#definition-of-done)).
+
+------------|---------------|
 | Desktop (1280px+) | Full-width sections, cycle chart spans 12 columns inline, generous margins (120px+) |
 | Tablet (768–1279px) | Reduced margins, cycle chart stays inline but tighter, timeline becomes swipeable |
 | Mobile (<768px) | Cycle chart wraps to 2 rows of 6 or becomes a vertical list. Timeline becomes a vertical scroll. Compatibility stacks vertically. |
@@ -71,63 +80,7 @@ The design should feel like a digitized sacred text — not a theme park replica
 
 ## Visual System
 
-### Color Palette — "Temple Lantern"
-A night temple lit by lanterns. The token names in `globals.css` are kept from the earlier parchment palette, so "parchment" is the page and "ink" the text.
-
-| Role | Token | Value | Usage |
-|------|-------|-------|-------|
-| Background | `parchment` | `#17131C` | Page — deep violet-black night, under a dusk gradient |
-| Surface | `manuscript` | `#221C28` | Cards, at 72% over the sky with a 14px backdrop blur (`.glass`) |
-| Surface Alt | `manuscript-alt` | `#2B2431` | Subtle separation |
-| Text Primary | `ink` | `#F1E8D8` | Body text — warm candle white (15:1) |
-| Text Secondary | `ink-light` | `#B4A894` | Labels, captions (7.8:1 on the page, 7.1:1 on cards) |
-| Text Tertiary | `ink-faint` | `#85796B` | Placeholders and decoration only (4.3:1) |
-| Accent Gold | `gold` | `#C99A3E` | Decorative gold — diamonds, hairlines |
-| Accent Gold Deep | `gold-deep` | `#E2B65A` | Gold that carries meaning — focus ring, current year, primary button, total score (9.7:1) |
-| Border | `border` | `#3B3242` | Card edges and dividers |
-
-**Luck tier colors** are the color of each tier's lantern light. Wheel orbs, the wheel's center and reading, and timeline dots are lit by their tier (`data-tier` sets `--lamp`; `.wheel-orb`, `.wheel-hub`, `.wheel-reading`, `.lamp-orb` apply it), and tier symbols take the solid color:
-| Tier | Value | Usage |
-|------|-------|-------|
-| Very Strong (10–11) | `#BFE0A5` | Pale sage light — brightest |
-| Strong (7–9) | `#A9CC93` | Sage light |
-| Moderate (4–6) | `#E2B65A` | Lamp gold |
-| Weak (1–3) | `#D98A62` | Ember — also used for form errors (6.8:1) |
-| Zero (reset) | `#0E0B11` | An unlit niche, darker than the page; its symbol stays faint |
-
-**Atmosphere:** `LanternSky` draws 38 specks of dust drifting slowly upward through the light (20–60 s to cross the screen, with a slow flicker). It pauses while the tab is hidden and is drawn once, still, with Reduce Motion. Behind the dust, three soft lantern glows (`.sky-glow`) rise more slowly than the page as it scrolls: about 0.4× for the dusk and lantern glows and 0.15× for the ember glow, over the first 1300px. A CSS scroll-driven animation moves them with `transform` only, so the compositor does the work. They stay still with Reduce Motion or where scroll-driven animation is unsupported.
-
-**Non-color indicators** (for accessibility):
-- Very Strong: filled circle (●) + upward arrow
-- Strong: three-quarter circle (◕)
-- Moderate: half circle (◑)
-- Weak: quarter circle (◔) + downward arrow
-- Zero: empty circle with dot (⊙) — the reset symbol
-
-### Typography — "Inscribed, Not Typed"
-
-**Display font:** `Marcellus` — an inscriptional serif, like lettering cut into a temple lintel. Used for the title, cycle numbers, tier labels, the total score and form digits (`font-display`, also `font-serif`).
-
-**Body font:** `Hanken Grotesk` — a calm grotesque that stays crisp as light text on a dark page, where a thin serif would shimmer.
-
-**Khmer:** `Noto Serif Khmer` is in both stacks for Khmer script.
-
-| Element | Font | Size | Letter Spacing |
-|---------|------|------|----------------|
-| Site Title | Marcellus | 48–72px | 0.14em, with a soft gold glow |
-| Subtitle | Marcellus, gold-deep | 18px | 0.12em |
-| Body | Hanken Grotesk | 17px / 1.65 | 0 |
-| Caption/Label | Hanken Grotesk, uppercase | 12–14px | 0.08–0.18em |
-| Cycle Number | Marcellus | 32px, tabular | 0 |
-| Button | Hanken Grotesk 500, uppercase | 14px | 0.14em |
-
-**Key rule:** All text should feel like it was written with intention, not generated. High line-height (1.7 for body) gives breathing room — like text on a palm-leaf page with generous spacing between lines.
-
-### Spacing — "Temple Proportions"
-**Base unit:** 8px
-**Scale:** 4, 8, 16, 24, 32, 48, 64, 96, 128
-
-Generous spacing everywhere. Sections separated by 96–128px. Cards have 32–48px padding. The design should breathe. Cramped = anxious. Spacious = serene.
+Color (the "Temple Lantern" palette and tier light), typography, spacing, shape and iconography are defined in [the design language](./standards/design-language.md). The sections below cover only what is specific to this layout.
 
 ### Decorative Elements (Minimal, Purposeful)
 
@@ -137,17 +90,11 @@ Generous spacing everywhere. Sections separated by 96–128px. Cards have 32–4
 ──────────── ◇ ────────────
 ```
 
-**Card borders:** Thin `1px` border in `#D5CBBA` with `2px` rounded corners (barely rounded — like hand-cut paper, not bubble UI). Optional: a subtle double-line border for primary cards (like a manuscript frame).
+**Cards:** Frosted glass (`.glass`): the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`, with `rounded-2xl` corners.
 
-**Background texture:** A very subtle paper grain using CSS — `background-image` with a noise SVG at 3–5% opacity. Should feel like paper when you look closely, invisible when you don't. Alternatively, a single repeating `<svg>` pattern of tiny dots at 2% opacity.
+**Background:** The dusk sky (`.dusk-sky`): soft lantern glows that rise slowly as the page scrolls, with drifting dust (`LanternSky`) above them. See the approved exceptions in the design language.
 
-**Gold accents:** Used ONLY for:
-- The current year highlight in the cycle chart
-- The total score display
-- Section heading ornaments
-- Active/selected states
-
-Never for buttons, links, or large surfaces. Gold is sacred — overuse cheapens it.
+**Gold accents:** `gold-deep` marks the current year, the primary action, the total score and headings on companion pages; decorative `gold` is for the ◇ diamond and hairlines. Never for "selected" (that is the ink outline) or large surfaces. Gold is sacred — overuse cheapens it.
 
 ---
 
@@ -181,7 +128,7 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Bloom (the full reading):** Tapping the center, or the selected orb again, opens the full reading over the wheel: number, tier, animal, description, guidance and the other years that share the number. It grows out of the center with a shared-element view transition and folds back the same way. On narrow screens it grows taller than the wheel instead of scrolling inside it.
 
-**Current year:** Gold-deep edge, a warmer glow and a gold-deep corner dot. No looping animation.
+**Current year:** Gold-deep edge, a warmer glow, a gold-deep corner dot and a soft gold halo that breathes (the current-year pulse, an approved exception in the design language). After 9s idle the selection returns here.
 
 **States:**
 | State | Description |
@@ -228,11 +175,11 @@ A thin gold arc traces the ring from the birth year to this year.
 ╚══════════════════════════════════════╝
 ```
 
-**Input styling:** Underline-only input (no box border). Text appears to be written onto the page. On focus, the underline transitions to gold. Placeholder text in `#A89F8F`.
+**Input styling:** Lit wells (`.lantern-input`): a solid dark field with a 1px `border` edge, centered tabular figures, at least 56px tall. Day, month and year fields move on when filled and overwrite when typed into again. On focus the edge turns `gold-deep` with a soft glow; on error it turns ember (`tier-weak`). Placeholders use `ink-faint`. Browser autofill is repainted to match.
 
-**Button:** Outlined (not filled). Border in `#2C2417`, text in `#2C2417`, uppercase, 0.08em letter-spacing. On hover (mouse only), fills with `#2C2417` and text turns `#FFFDF7`; pressed scales to 0.98. Transition: `--duration-quick` with `--ease-standard`. The button should feel like pressing a seal, not clicking a web button.
+**Button:** The primary button: a `gold-deep` outline pill, uppercase, `tracking-[0.14em]`, at least 48px tall. On hover (mouse only) it fills with `gold-deep`, text turns `parchment` and it gains `--shadow-glow`; pressed scales to 0.97. Transition: `--duration-quick` with `--ease-standard`. The button should feel like pressing a seal, not clicking a web button.
 
-**Card:** `#FFFDF7` background, `1px` border `#D5CBBA`, subtle `box-shadow: 0 1px 3px rgba(44, 36, 23, 0.08)`. Max-width: 480px.
+**Card:** A `.glass` card, `rounded-2xl`, at most 480px wide.
 
 ### Year Detail Panel
 **Type:** Expandable card below cycle chart
@@ -255,7 +202,7 @@ A thin gold arc traces the ring from the birth year to this year.
 └─────────────────────────────────────────┘
 ```
 
-**Guidance text** in italic Cormorant Garamond — like a handwritten annotation in the margin of a manuscript.
+**Guidance text** in italic body text with a faint gold rule at its left edge — like an annotation in the margin of a manuscript.
 
 ### Year Timeline
 **Type:** Horizontal scrollable track
@@ -281,27 +228,7 @@ A thin gold arc traces the ring from the birth year to this year.
 **Type:** Decorative horizontal rule
 **Purpose:** Separate manuscript "pages"
 
-```css
-/* CSS approach */
-.divider {
-  border: none;
-  border-top: 1px solid #D5CBBA;
-  position: relative;
-  margin: 96px auto;
-  max-width: 600px;
-}
-.divider::after {
-  content: '◇';
-  position: absolute;
-  top: -0.6em;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #F5F0E8;
-  padding: 0 16px;
-  color: #B8860B;
-  font-size: 14px;
-}
-```
+`SectionDivider` (`src/components/ui/section-divider.tsx`): a hairline that fades out at both ends, in the `border` color, with a small `gold` ◇ at its center. `compact` tightens its margins on the landing page.
 
 ---
 
@@ -319,7 +246,7 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
 
-**Error state:** Inline validation. The date input underline turns sienna (`#A0522D`), error text fades in below in the same color. No modals, no toasts.
+**Error state:** Inline validation. The field's edge turns ember (`tier-weak`) and the error text appears below it in the same color, announced with `role="alert"`. No modals, no toasts.
 
 ### Year Selection on the Wheel
 **Trigger:** User clicks/taps an orb
@@ -339,33 +266,9 @@ A thin gold arc traces the ring from the birth year to this year.
 
 ---
 
-## Motion and Interaction Tokens
+## Motion and Interaction
 
-Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves are Material 3's; Apple publishes no numeric curves, and these sit close to its no-overshoot springs.
-
-| Token | Value | Use |
-|-------|-------|-----|
-| `--duration-press` | 100ms | Pressed feedback |
-| `--duration-quick` | 150ms | Hover, focus, color changes |
-| `--duration-standard` | 250ms | Selection change, panel content swap |
-| `--duration-gentle` | 400ms | Entrances (cycle reveal) |
-| `--ease-enter` | `cubic-bezier(0.05, 0.7, 0.1, 1)` | Things arriving |
-| `--ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Things changing in place |
-| `--ease-exit` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | Things leaving |
-| `--shadow-card` / `--shadow-raised` | see globals.css | Resting card / raised surfaces |
-
-**Rules**
-- Looks interactive if and only if it is: every control has a pointer cursor, hover (mouse only), a gold-deep focus ring and a pressed state. Static cards have none of these.
-- One meaning per visual: gold-deep = now, ink outline = selected, focus ring = keyboard.
-- Interface motion explains a change; movement stays at 10px or less. Continuous motion is limited to two ambient places, both slow, opacity- and transform-only, and stopped by Reduce Motion:
-  - the dust and lantern glows in the sky;
-  - the living wheel. The current year's number pulses with a soft gold halo (1.8s each way). Every number's light breathes at its own pace (5–8.6s) while the numbers float about 1px. A glint travels the ring every 14s, and a fine tick ring turns once every 3 minutes. A tapped number sends out one ring. When scrolling, a scroll-driven `view()` timeline shifts the ring and the center up to 6px apart for depth.
-- Return to now: when the wheel rests on another year, it glides back to the current year after 9s without any tap, key, scroll or wheel anywhere on the page (`RETURN_TO_CURRENT_MS`). It never does so while a reading is open, while a mouse hovers the wheel, or while keyboard focus is inside it.
-- Entrance: the title "kindles" out of the dark (blur and letter-spacing settle, 1.6s), then the subtitle and first card follow (`.rise` with `--rise-delay`).
-- Selection changes run inside `startTransition`, so React `<ViewTransition>` animates the selection outline (shared element) and panel crossfade natively. This covers the wheel, the timeline and the New Year toggle; each marks its choice with an ink outline that glides to the new option.
-- Pressed state: every pill, button and orb scales to 0.97 (`PRESS.scale` in Motion, `active:scale-[0.97]` in CSS). Inline text links dim instead.
-- Sections marked `.scroll-settle` settle in on scroll via CSS scroll-driven animation where supported; elsewhere they simply appear.
-- Reduce Motion: nothing moves or scales; changes are instant.
+Motion tokens, the motion rules, the approved exceptions (the drifting dust and rising glows, the living wheel, return to now) and the shared interaction states are defined in [the design language](./standards/design-language.md#motion). The interaction patterns above describe how they apply to each component.
 
 ---
 
@@ -373,68 +276,30 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 
 | State | Design |
 |-------|--------|
-| First visit (no data) | Full-width hero with form card centered. Subtle background: a faded kbach pattern at 3% opacity. Tagline: "Uncover the rhythm of your years" in italic Cormorant. |
+| First visit (no data) | The title kindles out of the dark over the dusk sky, with the form card centered beneath it; the whole form fits on the first screen of a phone. |
 | Returning visitor (saved data) | Current year widget shows at top before form. Minimal: just the number, tier, and guidance. "View full cycle" link below. "Not you?" in text-secondary. |
-| Zero year selected | Detail panel background shifts to charcoal (`#4A4039`), text inverts to light. The panel feels like a void. Guidance text emphasizes transition and preparation. |
-| Error (invalid date) | Underline turns sienna, error text fades in. Form does not shake or flash — calm even in error. |
+| Zero year selected | The orb is an unlit niche (`tier-zero`) with its number in `ink-light`, and the ⊙ symbol marks it. Guidance text emphasizes transition and preparation. |
+| Error (invalid date) | The field edge turns ember and the error text appears. Form does not shake or flash — calm even in error. |
 | Narrow screens (12 orbs) | The wheel scales with its container (`cqw`); orbs never go below 44px, and the bloomed reading grows taller than the wheel rather than scrolling inside it. |
 
 ---
 
 ## Implementation Guidance
 
-### Recommended Stack
-| Concern | Recommendation | Why |
-|---------|---------------|-----|
-| Framework | Next.js (App Router) | SSR for OG images, file-based routing, React Server Components for performance |
-| Components | shadcn/ui (modified) | Accessible primitives, easy to reskin with the manuscript aesthetic |
-| Styling | Tailwind CSS | Utility-first pairs well with design tokens; easy to enforce spacing scale |
-| Fonts | Google Fonts: Cormorant Garamond + Noto Serif Khmer | Free, high-quality, variable weight support |
-| Animation | Motion (`motion/react`) + React `<ViewTransition>` + CSS | Stagger for cycle reveal and press springs (Motion); selection glide and panel crossfade (native view transitions); hover and scroll-driven reveals (CSS) |
-| Icons | Lucide (minimal usage) | Only for UI chrome (language toggle, share button). Cultural symbols should be Unicode/SVG, not icon library. |
-| Charts | Custom SVG/CSS (no chart library) | The cycle chart is too bespoke for Recharts/D3. CSS Grid + styled divs is simpler and more controllable. |
+### Stack
+| Concern | Choice | Why |
+|---------|--------|-----|
+| Framework | Next.js 16 (App Router), React 19 | Server rendering for search engines and share previews; file-based routing |
+| Styling | Tailwind CSS 4 with tokens in `globals.css` | Utilities over tokens keep every component on the same palette and scale |
+| Fonts | `next/font/google`: Marcellus, Hanken Grotesk, Noto Serif Khmer | Self-hosted, no layout shift |
+| Animation | Motion (`motion/react`), React `<ViewTransition>` and CSS | Stagger and press springs (Motion); selection glide and the bloom (native view transitions); hover, ambient and scroll-driven motion (CSS) |
+| Icons | `ZodiacIcon` and small inline SVGs | Custom line art in one weight; no icon library |
+| Charts | Custom elements and CSS | The cycle wheel is too bespoke for a chart library |
 
 ### Key Patterns
-- **Paper texture:** CSS `background-image` with inline SVG noise pattern at low opacity, or a single small PNG texture repeated. Keep file size under 5KB.
-- **Gold glow:** `box-shadow: 0 0 12px rgba(184, 134, 11, 0.25)` — subtle, never garish.
 - **Cycle wheel:** orbs absolutely placed on a square size container (`@container`), positions from a polar helper, so the wheel scales with no media queries.
-- **Stagger animation:** Motion (`motion/react`) `variants` with `staggerChildren: 0.04` on the parent.
-- **Underline inputs:** `border: none; border-bottom: 1px solid #D5CBBA; background: transparent;` with `focus:border-color: #B8860B` transition.
+- **Stagger animation:** Motion `variants` with `staggerChildren: 0.04` on the parent.
 - **Scroll snap timeline:** `overflow-x: auto; scroll-snap-type: x mandatory;` with each year dot as `scroll-snap-align: center`.
-- **Dark inversion for zero state:** CSS class toggle that swaps `background` and `color` on the detail panel. Use CSS transitions, not conditional rendering.
-- **prefers-reduced-motion:** `<MotionConfig reducedMotion="user">` at the root, plus one global CSS rule that collapses animations, transitions, smooth scrolling and view transitions.
+- **Reduced motion:** `<MotionConfig reducedMotion="user">` at the root, plus one global CSS rule that collapses animations, transitions, smooth scrolling and view transitions.
 
-### Tailwind Config Extensions
-```js
-colors: {
-  parchment: '#F5F0E8',
-  manuscript: '#FFFDF7',
-  'manuscript-alt': '#EDE7DB',
-  ink: '#2C2417',
-  'ink-light': '#7A6F5F',
-  'ink-faint': '#A89F8F',
-  gold: '#B8860B',
-  'gold-light': '#D4A843',
-  border: '#D5CBBA',
-  'border-light': '#E8E0D2',
-  'tier-very-strong': '#5B7744',
-  'tier-strong': '#7A9B6B',
-  'tier-moderate': '#B8860B',
-  'tier-weak': '#A0522D',
-  'tier-zero': '#4A4039',
-},
-fontFamily: {
-  serif: ['Cormorant Garamond', 'Noto Serif Khmer', 'Georgia', 'serif'],
-}
-```
-
-### Accessibility Checklist
-- [ ] All tier colors pass WCAG AA against parchment background (verify `#5B7744`, `#7A9B6B`, `#A0522D` on `#F5F0E8`)
-- [ ] Ink text (`#2C2417`) on parchment (`#F5F0E8`): contrast ratio ~11:1 (passes AAA)
-- [x] Gold accent (`#B8860B`) on parchment is 2.87:1, so it is decorative only; meaning uses gold-deep `#86620A` (4.92:1)
-- [ ] Gold text on charcoal (`#4A4039`): verify contrast for zero-state panel
-- [ ] Every tier has a non-color symbol (●, ◕, ◑, ◔, ⊙)
-- [x] Focus ring: 2px solid gold-deep with 2px offset (4.9:1 on parchment)
-- [ ] All animations respect `prefers-reduced-motion`
-- [ ] Cycle wheel orbs keyboard navigable as tablist
-- [ ] Timeline scrollable via keyboard (arrow keys)
+Accessibility requirements are part of [the design language](./standards/design-language.md#accessibility) and the [shipping checklist](./standards/shipping.md#definition-of-done).
