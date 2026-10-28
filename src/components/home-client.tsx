@@ -24,6 +24,7 @@ import {
   useSyncExternalStore,
   startTransition,
 } from "react";
+import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
@@ -333,7 +334,10 @@ export function HomeClient({ searchParams }: Props) {
 
       <p className="mt-16 max-w-[480px] text-center text-xs leading-relaxed text-ink-light">
         Solini follows a Khmer numerology tradition. A reading is a lantern
-        for reflection, not a prediction or advice.
+        for reflection, not a prediction or advice.{" "}
+        <Link href="/about" className="underline underline-offset-4 decoration-border hover:text-gold-deep">
+          About the tradition
+        </Link>
       </p>
     </main>
     </MotionConfig>
