@@ -71,7 +71,7 @@ describe("CycleChart (cycle wheel)", () => {
     expect(first).toHaveAccessibleName("2021, Self, cycle number 3, Weak luck, Year of the Ox");
   });
 
-  it("previews the selected year in the centre without a tap", () => {
+  it("previews the selected year in the center without a tap", () => {
     render(<CycleChart {...defaultProps} />);
     const panel = screen.getByRole("tabpanel");
     expect(panel).toHaveAttribute("aria-labelledby", "pillar-5");
@@ -99,7 +99,7 @@ describe("CycleChart (cycle wheel)", () => {
     expect(defaultProps.onSelectPillar).toHaveBeenLastCalledWith(0);
   });
 
-  it("blooms the full reading from the centre, and folds it back with Escape", () => {
+  it("blooms the full reading from the center, and folds it back with Escape", () => {
     render(<CycleChart {...defaultProps} />);
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: /Read 2026 in full/ }));
@@ -159,7 +159,7 @@ describe("CycleChart (cycle wheel)", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("closes with the close button and returns focus to the centre", () => {
+  it("closes with the close button and returns focus to the center", () => {
     render(<CycleChart {...defaultProps} />);
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: /Read 2026 in full/ }));

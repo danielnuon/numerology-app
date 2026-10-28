@@ -5,7 +5,7 @@
  *
  * The full reading for one year of the cycle: life area, zodiac animal, tier
  * interpretation and guidance, plus the other years that share its number.
- * Shown inside the reading that blooms out of the cycle wheel's centre.
+ * Shown inside the reading that blooms out of the cycle wheel's center.
  */
 
 import { interpretYear } from "@/lib/numerology/interpretation";

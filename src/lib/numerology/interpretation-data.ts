@@ -63,7 +63,7 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     description:
       "A quieter year for fortune. Progress can feel slower and setbacks more frequent.",
     guidance:
-      "Favour patience and small, steady steps over bold moves, and look after your energy and resources.",
+      "Favor patience and small, steady steps over bold moves, and look after your energy and resources.",
     min: 1,
     max: 3,
   },
@@ -81,7 +81,7 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     tier: "strong",
     label: "Strong luck",
     description:
-      "A favourable year. Tradition reads it as a time when effort tends to bear fruit.",
+      "A favorable year. Tradition reads it as a time when effort tends to bear fruit.",
     guidance:
       "A good year to act on the plans you have been preparing.",
     min: 7,
@@ -121,9 +121,9 @@ export const TOTAL_TIERS: readonly TotalTierEntry[] = [
   },
   {
     tier: "strong",
-    label: "Strong / favourable cycle",
+    label: "Strong / favorable cycle",
     description:
-      "Your cycle as a whole leans favourable, with conditions that broadly support growth.",
+      "Your cycle as a whole leans favorable, with conditions that broadly support growth.",
     min: 68,
     max: Infinity,
   },

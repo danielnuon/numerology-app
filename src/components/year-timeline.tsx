@@ -55,7 +55,7 @@ export function YearTimeline({
     (_, i) => birthYear + i
   );
 
-  // Keep the selected year centred. The first centring is instant so the
+  // Keep the selected year centered. The first centring is instant so the
   // page doesn't scroll on load; later ones glide unless motion is reduced.
   useEffect(() => {
     const container = containerRef.current;
