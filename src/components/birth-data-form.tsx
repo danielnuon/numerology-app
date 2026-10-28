@@ -6,13 +6,15 @@
  * Collects day, month, and year inputs from the user, auto-derives the
  * weekday and zodiac animal when all three fields are complete,
  * validates the date on submission, and emits the cycle result via an
- * `onResult` callback.
+ * `onResult` callback. Also holds the Khmer/Chinese New Year toggle, since
+ * it decides the animal the preview and the reading use.
  */
 
 import { useState, useMemo } from "react";
 import {
   deriveBirthData,
   validateBirthDate,
+  zodiacAnimalByRule,
   computeCycleFromBirthDate,
   type CycleResultWithYear,
 } from "@/lib/numerology/derive";
@@ -20,6 +22,7 @@ import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { saveBirthDate } from "@/lib/storage";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
+import { NewYearToggle } from "@/components/new-year-toggle";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -39,6 +42,8 @@ interface Props {
   initialValues?: { day: string; month: string; year: string };
   /** Which New Year turns the animal year, for the preview and the result. */
   newYearRule: NewYearRule;
+  /** Called when the visitor switches the New Year rule. */
+  onNewYearRuleChange: (rule: NewYearRule) => void;
 }
 
 interface FieldErrors {
@@ -110,7 +115,12 @@ function DateField({
   );
 }
 
-export function BirthDataForm({ onResult, initialValues, newYearRule }: Props) {
+export function BirthDataForm({
+  onResult,
+  initialValues,
+  newYearRule,
+  onNewYearRuleChange,
+}: Props) {
   const [day, setDay] = useState(initialValues?.day ?? "");
   const [month, setMonth] = useState(initialValues?.month ?? "");
   const [year, setYear] = useState(initialValues?.year ?? "");
@@ -135,6 +145,13 @@ export function BirthDataForm({ onResult, initialValues, newYearRule }: Props) {
     }
     return deriveBirthData(yearNum, monthNum, dayNum, newYearRule);
   }, [dayNum, monthNum, yearNum, newYearRule]);
+
+  // The animal under each rule, once the date is complete, so the toggle can
+  // say whether the choice matters for this birth date.
+  const animalsByRule = useMemo(
+    () => (derived ? zodiacAnimalByRule(yearNum, monthNum, dayNum) : null),
+    [derived, yearNum, monthNum, dayNum]
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -262,6 +279,12 @@ export function BirthDataForm({ onResult, initialValues, newYearRule }: Props) {
           )}
         </div>
       </div>
+
+      <NewYearToggle
+        rule={newYearRule}
+        onChange={onNewYearRuleChange}
+        animals={animalsByRule}
+      />
 
       {/* Submit */}
       <div className="mt-6">
