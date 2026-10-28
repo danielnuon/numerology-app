@@ -43,7 +43,7 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
   return (
     <div className="mt-5 flex flex-col items-center">
       <p id="new-year-toggle-label" className="text-center text-xs uppercase tracking-[0.12em] text-ink-light">
-        Animal year starts at
+        New Year that starts your animal year
       </p>
       <div
         role="radiogroup"
@@ -61,6 +61,7 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
               type="button"
               role="radio"
               aria-checked={selected}
+              aria-label={`${option.label} New Year`}
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(option.rule)}
               onKeyDown={(e) => handleKeyDown(e, index)}
@@ -72,8 +73,6 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
               ].join(" ")}
             >
               {option.label}
-              {/* Dropped visually on the narrowest phones so each option fits on one line. */}
-              <span className="max-[359px]:sr-only"> New Year</span>
             </button>
           );
         })}

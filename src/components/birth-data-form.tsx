@@ -10,7 +10,7 @@
  * it decides the animal the preview and the reading use.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   deriveBirthData,
   validateBirthDate,
@@ -58,6 +58,41 @@ function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+/**
+ * The field's new digits after an edit. Typing into a full field starts it
+ * over with the typed digit, so a filled date can be corrected without
+ * clearing it first. Pasting keeps the first digits that fit.
+ */
+function nextFieldValue(
+  previous: string,
+  raw: string,
+  typed: string | null,
+  maxLength: number
+): string {
+  const digits = digitsOnly(raw);
+  if (digits.length <= maxLength) return digits;
+  // The typed text, or (where the browser doesn't report it) what was added
+  // after the existing digits.
+  const typedDigits = typed
+    ? digitsOnly(typed)
+    : digits.startsWith(previous) ? digits.slice(previous.length) : "";
+  if (previous.length === maxLength && typedDigits) return typedDigits.slice(0, maxLength);
+  return digits.slice(0, maxLength);
+}
+
+/**
+ * Whether a field is complete, so focus can move on. A day starting 4-9 or a
+ * month starting 2-9 can't take a second digit, so it is complete at one.
+ */
+export function isFieldComplete(value: string, maxLength: number, maxFirstDigit?: number): boolean {
+  if (value.length >= maxLength) return true;
+  return (
+    maxFirstDigit !== undefined &&
+    value.length === 1 &&
+    Number(value) > maxFirstDigit
+  );
+}
+
 interface DateFieldProps {
   id: string;
   label: string;
@@ -68,6 +103,13 @@ interface DateFieldProps {
   value: string;
   error?: string;
   onChange: (digits: string) => void;
+  /** Largest first digit that still allows a second one (3 for days, 1 for months). */
+  maxFirstDigit?: number;
+  inputRef?: React.Ref<HTMLInputElement>;
+  /** Called when an edit completes the field, to move focus on. */
+  onComplete?: () => void;
+  /** Called on Backspace in an empty field, to move focus back. */
+  onBackspaceEmpty?: () => void;
   className?: string;
 }
 
@@ -81,6 +123,10 @@ function DateField({
   value,
   error,
   onChange,
+  maxFirstDigit,
+  inputRef,
+  onComplete,
+  onBackspaceEmpty,
   className = "",
 }: DateFieldProps) {
   const errorId = `error-${id.replace("birth-", "")}`;
@@ -98,10 +144,33 @@ function DateField({
         inputMode="numeric"
         pattern="[0-9]*"
         autoComplete={autoComplete}
-        maxLength={maxLength}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(digitsOnly(e.target.value))}
+        ref={inputRef}
+        onChange={(e) => {
+          const native = e.nativeEvent as InputEvent;
+          const typed = native.data ?? null;
+          const next = nextFieldValue(value, e.target.value, typed, maxLength);
+          onChange(next);
+          // Move on only after typing or pasting, never after deleting.
+          const inserted = native.inputType
+            ? native.inputType.startsWith("insert")
+            : digitsOnly(e.target.value).length > value.length;
+          if (inserted && isFieldComplete(next, maxLength, maxFirstDigit)) {
+            onComplete?.();
+          }
+        }}
+        onFocus={(e) => {
+          // Select the contents so typing replaces them. Deferred because
+          // iOS Safari drops a selection made during the focus event.
+          const input = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (document.activeElement === input) input.setSelectionRange(0, input.value.length);
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Backspace" && value === "") onBackspaceEmpty?.();
+        }}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
         className="lantern-input pressable"
@@ -126,6 +195,9 @@ export function BirthDataForm({
   const [year, setYear] = useState(initialValues?.year ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const dayRef = useRef<HTMLInputElement>(null);
+  const monthRef = useRef<HTMLInputElement>(null);
+  const yearRef = useRef<HTMLInputElement>(null);
 
   // Parse current field values as numbers (NaN if empty/invalid)
   const dayNum = parseInt(day, 10);
@@ -205,6 +277,9 @@ export function BirthDataForm({
           placeholder="DD"
           maxLength={2}
           autoComplete="bday-day"
+          maxFirstDigit={3}
+          inputRef={dayRef}
+          onComplete={() => monthRef.current?.focus()}
           value={day}
           error={errors.day}
           onChange={(digits) => {
@@ -218,6 +293,10 @@ export function BirthDataForm({
           placeholder="MM"
           maxLength={2}
           autoComplete="bday-month"
+          maxFirstDigit={1}
+          inputRef={monthRef}
+          onComplete={() => yearRef.current?.focus()}
+          onBackspaceEmpty={() => dayRef.current?.focus()}
           value={month}
           error={errors.month}
           onChange={(digits) => {
@@ -231,6 +310,8 @@ export function BirthDataForm({
           placeholder="YYYY"
           maxLength={4}
           autoComplete="bday-year"
+          inputRef={yearRef}
+          onBackspaceEmpty={() => monthRef.current?.focus()}
           value={year}
           error={errors.year}
           onChange={(digits) => {
