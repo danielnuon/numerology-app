@@ -197,36 +197,47 @@ body {
 [data-tier="weak"] { --lamp: rgba(205, 110, 70, 0.45); }
 [data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); }
 
-.lamp {
-  box-shadow:
-    inset 0 -40px 40px -30px var(--lamp),
-    inset 0 0 0 1px rgba(241, 232, 216, 0.08);
+/* === Cycle wheel ===
+ * Twelve lantern orbs on a ring, each lit from within by its tier's light.
+ * The current year has a gold edge and a warmer glow. */
+.wheel-orb {
+  background:
+    radial-gradient(circle at 50% 65%, var(--lamp) 0, transparent 70%),
+    #1d1823;
+  box-shadow: 0 0 18px -4px var(--lamp), inset 0 0 0 1px rgba(241, 232, 216, 0.09);
 }
-.lamp-current {
-  box-shadow:
-    inset 0 -50px 50px -30px var(--lamp),
-    0 0 0 1.5px var(--color-gold-deep),
-    var(--shadow-glow);
+.wheel-orb[data-tier="zero"] {
+  background: var(--color-tier-zero);
+}
+.wheel-orb-current {
+  box-shadow: 0 0 0 1.5px var(--color-gold-deep), 0 0 30px -2px rgba(226, 182, 90, 0.55);
 }
 @media (hover: hover) {
-  .lamp:hover {
-    box-shadow:
-      inset 0 -56px 48px -30px var(--lamp),
-      inset 0 0 0 1px rgba(241, 232, 216, 0.14),
-      var(--shadow-raised);
-  }
-  .lamp-current:hover {
-    box-shadow:
-      inset 0 -64px 56px -30px var(--lamp),
-      0 0 0 1.5px var(--color-gold-deep),
-      0 0 48px -4px rgba(226, 182, 90, 0.5);
+  .wheel-orb:not(.wheel-orb-current):hover {
+    box-shadow: 0 0 26px -2px var(--lamp), inset 0 0 0 1px rgba(241, 232, 216, 0.2);
   }
 }
 
-/* The detail panel carries a soft wash of the selected tier's light */
-.lamp-panel {
-  box-shadow: inset 0 -70px 70px -60px var(--lamp);
-  transition: box-shadow var(--duration-gentle) var(--ease-standard);
+/* The centre of the wheel and the reading that blooms from it */
+.wheel-hub {
+  background:
+    radial-gradient(circle at 50% 75%, var(--lamp), transparent 70%),
+    rgba(23, 19, 28, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(241, 232, 216, 0.08);
+}
+.wheel-reading {
+  background:
+    radial-gradient(120% 70% at 50% 110%, var(--lamp), transparent 70%),
+    #1c1722;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+}
+
+/* The gold arc traces the cycle from the birth year to this year */
+@keyframes trace-arc {
+  from { stroke-dashoffset: var(--arc-length); }
+}
+.wheel-arc {
+  animation: trace-arc 1.6s var(--ease-enter) 0.3s both;
 }
 
 /* A small orb of the same light for the timeline dots */
