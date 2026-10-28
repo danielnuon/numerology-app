@@ -32,7 +32,6 @@ import { YearTimeline } from "@/components/year-timeline";
 import { CurrentYearWidget } from "@/components/current-year-widget";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
-import { NewYearSetting } from "@/components/new-year-setting";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import {
   computeCycleFromBirthDate,
@@ -285,6 +284,7 @@ export function HomeClient({ searchParams }: Props) {
               onResult={handleResult}
               initialValues={initialValues}
               newYearRule={newYearRule}
+              onNewYearRuleChange={handleNewYearRuleChange}
             />
           </div>
         )}
@@ -320,13 +320,6 @@ export function HomeClient({ searchParams }: Props) {
               />
             </div>
 
-            <NewYearSetting
-              rule={newYearRule}
-              year={result.birthYear}
-              month={result.birthData.gregorianMonth}
-              day={result.birthDay}
-              onChange={handleNewYearRuleChange}
-            />
 
             <ShareReading
               year={result.birthYear}
