@@ -67,7 +67,7 @@ If the columns move to the traditional houses, the readings for the hard houses 
 
 ## Birth weekday: is one day luckier?
 
-The family this system comes from holds that birth weekday matters to luck: Monday leans unfavorable and Thursday favorable, though neither is the extreme. Three candidate scales, with how each fits:
+The family this system comes from holds that birth weekday matters to luck: Tuesday leans unfavorable and Thursday favorable, though neither is the extreme. Three candidate scales, with how each fits:
 
 | Day | Planet [1] | Thai benefic or malefic [10] | Planet strength [10] | Chart number [3] |
 |---|---|---|---|---|
@@ -79,17 +79,17 @@ The family this system comes from holds that birth weekday matters to luck: Mond
 | Friday | Venus | Benefic | 21 | 6 |
 | Saturday | Saturn | Malefic | 10 | 7 |
 
-- **Benefic or malefic (documented).** Thai astrology counts the Moon as benefic, so Monday would be a good day. This contradicts the family's Monday.
-- **Planet strength (documented).** Thai astrology gives each planet a strength: Sun 6, Mars 8, Saturn 10, Moon 15, Mercury 17, Jupiter 19, Venus 21. Ranked this way, Thursday is second from the top, which fits. Monday sits in the middle, which fits only loosely.
-- **Chart number (inference).** Ranked by the day's own number, Monday (2) is near the bottom and Thursday (5) near the top, and neither is the extreme, which fits both of the family's points. This ranking would also make Saturday the luckiest day, while Thai sources treat Saturn as the hardest planet [11] and a Cambodian color tradition gives Saturday the color of sadness [12].
+- **Benefic or malefic (documented).** Thai astrology counts Mars as malefic and Jupiter as benefic, which fits in direction. But it is a two-way split with no middle, so it can't say that neither day is the extreme.
+- **Planet strength (documented).** Thai astrology gives each planet a strength: Sun 6, Mars 8, Saturn 10, Moon 15, Mercury 17, Jupiter 19, Venus 21. Ranked this way, Tuesday is second from the bottom and Thursday second from the top, which fits both of the family's points exactly.
+- **Chart number (inference).** Ranked by the day's own number, Tuesday (3) sits below the middle and Thursday (5) above it, which fits in direction. This ranking would also make Saturday the luckiest day, while Thai sources treat Saturn as the hardest planet [11] and a Cambodian color tradition gives Saturday the color of sadness [12].
 
 **Inference.** Solini's arithmetic doesn't favor any weekday. Across all 144 month and animal combinations, every weekday averages the same total (66), the same number of 10s and 11s (2) and the same number of zeros (1). The weekday only changes which years get which numbers, and how widely totals spread. Wednesday births never total 52, and Friday and Saturday births swing the most. So if the family reads some weekdays as luckier, that is a separate layer on top of the chart, not something the chart computes.
 
 **The Khmer account (documented).** In a 2014 Radio Free Asia Khmer feature, Khmer cultural researcher Vay Vibol retells how each day's deity was made: the Sun from 6 sages, the Moon from 15 goddesses, Mars from 8 buffalo heads, Mercury from 17 elephant heads, Jupiter from 19 sages, Venus from 21 cow heads and Saturn from 10 tiger heads [13]. These counts are the planet strengths in the table above, so the strength scale is Khmer tradition as well as Thai. The same feature calls Tuesday "not very good", calls Monday a soft, gentle day, and calls Thursday the royal teacher's day, good for work, with those born on it suited to study, teaching and medicine. It gives no overall luck ranking.
 
-**Decision.** The family follows the Khmer account, so if Solini ever ranks birth weekdays, it uses the planet strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Thursday near the top, as the family holds. It places Monday in the middle rather than on the low side, and that difference is still open.
+**Decision.** The family follows the Khmer account, so if Solini ever ranks birth weekdays, it uses the planet strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Tuesday near the bottom and Thursday near the top, with neither at the extreme, which matches the family's account. The RFA feature's own notes agree: Tuesday "not very good", Thursday the royal teacher's day.
 
-**Character.** The family also holds that people born on Monday are stubborn. None of the Khmer sources found says so. The RFA feature calls Monday gentle, and popular Khmer horoscope columns give stubbornness to Tuesday or Saturday births instead [14][15]. Those columns disagree with each other and cite no tradition, so they aren't used here.
+**Character.** The family also holds that people born on Tuesday are stubborn. The RFA feature says people born on Tuesday are impatient and quick to fight [13], and popular Khmer horoscope columns call Tuesday births "a little stubborn" [14]. Those columns cite no tradition and disagree with each other elsewhere (one gives stubbornness to Saturday instead [15]), so they count only as support for the RFA account.
 
 ## Questions only the family can answer
 
@@ -97,7 +97,7 @@ The family this system comes from holds that birth weekday matters to luck: Mond
 2. Is "higher number, better year" how the family reads it? The outside sources read numbers as planets, not as a scale.
 3. Does the family chart use the lunar birth month or the Gregorian one? Solini approximates the lunar month with the Gregorian month (`months.ts`), so a birth in late November or early December can land a month off.
 4. Do the five columns with no weekday value (8 to 12) get read any differently?
-5. The Khmer planet strengths put Monday in the middle of the seven days. Does the family read Monday births as lower than that? See "Birth weekday" above.
+5. Which birth day does the family read as luckiest, and which as least lucky? The Khmer planet strengths predict Friday and Sunday. See "Birth weekday" above.
 
 ## Sources
 
