@@ -155,7 +155,6 @@ export function HomeClient() {
   // One selected year shared by the chart and the timeline, so they always
   // agree. null means "the active year" until the user picks something.
   const [pickedYear, setPickedYear] = useState<number | null>(null);
-  const [selectionSource, setSelectionSource] = useState<"chart" | "timeline">("timeline");
 
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -169,7 +168,6 @@ export function HomeClient() {
   const handleResult = useCallback((r: CycleResultWithYear) => {
     setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
     setPickedYear(null);
-    setSelectionSource("timeline");
 
     // Scroll to result card after React renders. "auto" defers to the CSS
     // scroll-behavior, which is smooth unless the user prefers reduced motion.
@@ -183,7 +181,6 @@ export function HomeClient() {
     clearStoredBirthDate();
     setSessionDate(null);
     setPickedYear(null);
-    setSelectionSource("timeline");
   }, []);
 
   // Switching the New Year rule recomputes the reading and is remembered.
@@ -193,25 +190,19 @@ export function HomeClient() {
   }, []);
 
   // Selection changes run as transitions so <ViewTransition> can animate
-  // the selection outline and detail panel between states.
+  // the selection ring and the wheel's centre between states.
   const handleTimelineSelectYear = useCallback((year: number) => {
-    startTransition(() => {
-      setPickedYear(year);
-      setSelectionSource("timeline");
-    });
+    startTransition(() => setPickedYear(year));
   }, []);
 
-  // Picking a pillar stays within the 12-year cycle that is already selected,
-  // so moving between pillars never jumps the timeline to another decade.
+  // Picking an orb stays within the 12-year cycle that is already selected,
+  // so moving around the wheel never jumps the timeline to another decade.
   const handleChartSelectPillar = useCallback((columnIndex: number) => {
     if (!result) return;
     const cycleStart = selectedYear - getCycleIndex(result.birthYear, selectedYear);
     let year = cycleStart + columnIndex;
     if (year > currentYear + TIMELINE_YEARS_AHEAD) year -= 12;
-    startTransition(() => {
-      setPickedYear(year);
-      setSelectionSource("chart");
-    });
+    startTransition(() => setPickedYear(year));
   }, [currentYear, result, selectedYear]);
 
   // Server render and first paint show the form; after hydration the widget
@@ -301,7 +292,6 @@ export function HomeClient() {
                 birthMonth={result.birthData.gregorianMonth}
                 birthDay={result.birthDay}
                 selectedYear={selectedYear}
-                showSingleYear={selectionSource === "timeline"}
                 onSelectPillar={handleChartSelectPillar}
               />
             </div>

@@ -24,7 +24,7 @@ BirthDataForm (input)
               |- interpretYear() [interpretation.ts]
               |- interpretTotal() [interpretation.ts]
               |- getLifeArea() [year-lookup.ts]
-              +- DetailPanel (selected pillar)
+              +- DetailPanel (reading that blooms from the wheel centre)
                   |- getYearsForColumn() [chart-helpers.ts]
                   |- getTierSymbol() [chart-helpers.ts]
                   |- interpretYear() [interpretation.ts]
@@ -178,7 +178,7 @@ JavaScript `Date.getDay()` returns 0=Sunday through 6=Saturday. The codebase con
 
 ### Modulo-12 semantics: zero is valid
 
-`sum % 12` produces values 0-11. Zero IS a valid cycle value representing "Reset / unstable" -- it is not treated as an error or sentinel. The interpretation engine has an explicit `zero` tier (min: 0, max: 0) with its own label, description, and guidance. The chart renders zero-tier pillars with a distinct charcoal background (`bg-tier-zero`) and a CSS breathing animation.
+`sum % 12` produces values 0-11. Zero IS a valid cycle value representing "Reset / unstable" -- it is not treated as an error or sentinel. The interpretation engine has an explicit `zero` tier (min: 0, max: 0) with its own label, description, and guidance. The wheel renders zero-tier orbs as unlit charcoal niches (`--color-tier-zero`).
 
 ### Column indexing: mixed 0-indexed and 1-indexed
 
@@ -245,8 +245,8 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |               |
   |               +- (conditional, after submit OR localStorage load)
   |                   |- SectionDivider
-  |                   +- CycleChart .. "use client", 12-column pillar grid
-  |                       |- 12x motion.button (pillars, respects reduced motion)
+  |                   +- CycleChart .. "use client", cycle wheel of 12 orbs
+  |                       |- 12x motion.button (orbs, respects reduced motion)
   |                       |- DetailPanel "use client", AnimatePresence slide-down
   |                       +- Total score summary bar
   |
@@ -265,8 +265,8 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **CurrentYearWidget**: Client component displaying the current year's cycle number, luck tier, life area domain, and one-sentence guidance. Renders "View full cycle" (smooth-scroll to chart) and "Not you?" (clear localStorage, reset to form) actions. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
-- **CycleChart**: Renders 12 pillars as a `grid-cols-6 md:grid-cols-12` grid. Each pillar is a `<motion.button>` with role="tab". Supports keyboard navigation (ArrowLeft/ArrowRight). Highlights the current year column with a gold border and dot. Renders `DetailPanel` when a pillar is selected. Shows total score summary with `interpretTotal()`.
-- **DetailPanel**: Displays years for the column, tier symbol, label, description, and italic guidance text. Acts as the chart's tab panel; content crossfades via React `<ViewTransition update="panel-swap">` when selection changes inside a transition.
+- **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The centre is the tab panel: a preview of the selected year (the current year on load). Tapping the centre or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
+- **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
 ## Styling Architecture

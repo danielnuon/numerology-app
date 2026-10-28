@@ -35,14 +35,11 @@ The design should feel like a digitized sacred text — not a theme park replica
 │                                             │
 ├─────────────────────────────────────────────┤
 │                                             │
-│     ┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐             │
-│     │3│6│9│5│8│⑪│2│○│2│4│6│8│             │ ← cycle chart (12 columns)
-│     └─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘             │    like a row of temple pillars
-│                                             │
-│     ╔═══════════════════════════╗            │
-│     ║  Year Detail Panel        ║            │ ← interpretation card
-│     ║  Number · Tier · Guidance ║            │
-│     ╚═══════════════════════════╝            │
+│              3   6                          │
+│          8           9                      │ ← cycle wheel: 12 lantern orbs,
+│        6    ( 11 )     5                    │    this year's preview in the
+│          4  Allies   8                      │    centre; tap it to bloom the
+│            2  0  2⑪                         │    full reading over the wheel
 │                                             │
 ├─────────────────────────────────────────────┤
 │                                             │
@@ -89,7 +86,7 @@ A night temple lit by lanterns. The token names in `globals.css` are kept from t
 | Accent Gold Deep | `gold-deep` | `#E2B65A` | Gold that carries meaning — focus ring, current year, primary button, total score (9.7:1) |
 | Border | `border` | `#3B3242` | Card edges and dividers |
 
-**Luck tier colors** are the colour of each tier's lantern light. Pillars, timeline dots and the detail panel are lit from below by their tier (`data-tier` sets `--lamp`; `.lamp`, `.lamp-orb`, `.lamp-panel` apply it), and tier symbols take the solid colour:
+**Luck tier colors** are the colour of each tier's lantern light. Wheel orbs, the wheel's centre and reading, and timeline dots are lit by their tier (`data-tier` sets `--lamp`; `.wheel-orb`, `.wheel-hub`, `.wheel-reading`, `.lamp-orb` apply it), and tier symbols take the solid colour:
 | Tier | Value | Usage |
 |------|-------|-------|
 | Very Strong (10–11) | `#BFE0A5` | Pale sage light — brightest |
@@ -157,48 +154,53 @@ Never for buttons, links, or large surfaces. Gold is sacred — overuse cheapens
 ## Components
 
 ### Cycle Chart (The Centerpiece)
-**Type:** Horizontal 12-column grid
+**Type:** Cycle wheel ("Bloom")
 **Purpose:** Display the 12-number life cycle — the core output
 
-**Design:** 12 vertical "pillars" arranged in a row, reminiscent of a temple colonnade. Each pillar:
-- Contains the cycle number at center (large, bold, `Cormorant Garamond` 32px)
-- Background subtly tinted by luck tier color at 15–20% opacity (the pillar "glows")
-- Base shows the life area label in small caps
-- Top shows the tier symbol (●, ◕, ◑, ◔, ⊙)
+**Design:** The 12 numbers sit on a ring as lantern orbs, starting at the top with the birth year and running clockwise, like a zodiac dial. Each orb:
+- Shows its cycle number in the sans face (Hanken Grotesk, medium, tabular). Marcellus draws 0 like a letter O and 11 like "ll", so it is not used for numbers on the wheel
+- Is lit from within by its tier's lantern light (`.wheel-orb`, `data-tier` sets `--lamp`); zero is an unlit niche
+- Has its zodiac animal just outside it (`ZodiacIcon`, read from `getZodiacAnimalForYear`), gold for the selected year
+
+A thin gold arc traces the ring from the birth year to this year.
 
 ```
-  ●     ◕     ●     ◑     ◕     ●     ◔     ⊙     ◔     ◑     ◕     ◕
-┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐
-│   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │
-│ 3 │ │ 6 │ │ 9 │ │ 5 │ │ 8 │ │11 │ │ 2 │ │ 0 │ │ 2 │ │ 4 │ │ 6 │ │ 8 │
-│   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │ │   │
-└───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘
-Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
+              🐂
+          8   3   6
+      🐀              🐅
+     6     2026 · NOW     9
+          ALLIES
+    4      11           5
+       Very strong luck
+     2      🐎 Horse     8
+          READ MORE
+          0   2  (11)
 ```
 
-**Current year pillar:** 2px gold-deep border and a gold-deep corner dot. Not raised: raising reads as pressed or selected.
+**Centre (the preview):** The selected year's year, life area, number, tier label and animal, with "Read more". It shows on load for the current year, so the reading is visible without a tap.
+
+**Bloom (the full reading):** Tapping the centre, or the selected orb again, opens the full reading over the wheel: number, tier, animal, description, guidance and the other years that share the number. It grows out of the centre with a shared-element view transition and folds back the same way. On narrow screens it grows taller than the wheel instead of scrolling inside it.
+
+**Current year:** Gold-deep edge, a warmer glow and a gold-deep corner dot. No looping animation.
 
 **States:**
 | State | Description |
 |-------|-------------|
-| Default | Pillar with tinted background, number, tier symbol, area label |
-| Hover | Pillar lifts 2px with a raised shadow (mouse only), cursor pointer |
-| Pressed | Settles back and scales to 0.97 on a no-bounce spring |
-| Selected | 2px ink outline that glides between pillars (view transition); detail panel content crossfades |
-| Zero | Pillar background is charcoal (`#4A4039`), number rendered in light text. No looping animation |
-
-**Interaction:** Pillars behave like tabs. One is always selected (the current year on load), tapping the selected pillar again does nothing, and the detail panel beneath is its tab panel.
-
-**Mobile (< 768px):** Two rows of 6 pillars, or a horizontally scrollable single row with snap points.
+| Default | Orb lit by its tier, number at centre |
+| Hover | Glow brightens (mouse only), cursor pointer |
+| Pressed | Scales to 0.97 on a no-bounce spring |
+| Selected | 2px ink ring that glides between orbs (view transition); the centre crossfades |
+| Zero | Charcoal orb, number in light text |
 
 **Accessibility:**
-- Each pillar is a `<button>` with `role="tab"` in a `tablist`
-- `aria-label`: "Year 2024, cycle number 8, strong luck, Health domain"
-- Keyboard: arrow keys navigate between pillars, Enter/Space selects
-- One Tab stop for the group (roving tabindex); arrows move focus and selection together, Home/End jump to the ends
-- Focus ring: 2px gold-deep outline with 2px offset
+- Each orb is a `<button>` with `role="tab"` in a `tablist`; the centre is the tab panel
+- `aria-label`: "2026, Allies, cycle number 11, Very strong luck, Year of the Horse, current year"
+- One Tab stop for the group (roving tabindex); arrows move focus and selection together around the wheel, Home/End jump to the ends
+- Enter or Space on the selected orb, or on the centre, opens the reading; focus moves to its close button, and Escape or Close returns focus to the centre
+- While the reading is open the ring behind it is `inert`
+- Orbs are at least 44px; focus ring is a 2px gold-deep outline
 
-**Implementation hint:** CSS Grid for the 12-column layout. Each pillar is a flex-column. Tier colors via CSS custom properties. Selection outline glides via React `<ViewTransition>`; entrance stagger via Motion; hover/press via CSS transitions.
+**Implementation hint:** Orbs are absolutely placed on a square that is a size container, so sizes use `cqw`. The ring and the tab panel share one grid cell. Selection ring and bloom use React `<ViewTransition>`; entrance stagger via Motion; Reduce Motion turns both off.
 
 ### Birth Data Form
 **Type:** Centered parchment card
@@ -311,28 +313,28 @@ Self  Fam   Move  Home  Money Ally  Rel   Health Stat  Opp   Karma Prot
 1. User types or selects birth date → zodiac and weekday auto-derive and fade in below
 2. User clicks "Reveal My Cycle" → button text fades, a subtle ripple expands from the button
 3. The form card gently fades back (opacity 0.6) and the cycle chart section fades in below
-4. Cycle pillars animate in one by one, left to right, with 40ms stagger — each pillar rises 8px and fades in (400ms, `--ease-enter`)
-5. After all 12 pillars render, the current year pillar glows gold (border + shadow animate in)
+4. Cycle orbs swell in one by one, clockwise from the birth year, with 40ms stagger (400ms, `--ease-enter`)
+5. The gold arc traces the ring from the birth year to this year, and the centre shows this year's preview
 6. The total score fades in below the chart: "Your life pattern: Balanced (64)"
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
 
 **Error state:** Inline validation. The date input underline turns sienna (`#A0522D`), error text fades in below in the same color. No modals, no toasts.
 
-### Pillar Selection
-**Trigger:** User clicks/taps a cycle pillar
+### Year Selection on the Wheel
+**Trigger:** User clicks/taps an orb
 **Steps:**
-1. Previously selected pillar loses gold border (200ms fade)
-2. Newly selected pillar gains gold border (200ms fade) and lifts 2px
-3. Detail panel content crossfades (old fades out in 150ms, new settles in over 250ms)
-4. If timeline is visible, the corresponding year dot scrolls into view
+1. The selection ring glides to the new orb and its animal turns gold
+2. The centre preview crossfades (old fades out in 150ms, new settles in over 250ms)
+3. The timeline selects the same year
+4. Tapping the centre (or the selected orb again) blooms the full reading over the wheel
 
 ### Timeline Scrubbing
 **Trigger:** User clicks a year dot on the timeline or drags/scrolls
 **Steps:**
 1. Selected dot gains gold fill
-2. Corresponding cycle pillar gains selection state
-3. Detail panel updates
+2. Corresponding orb on the wheel gains the selection ring
+3. The wheel's centre updates
 4. 12-year cycle boundaries shown with subtle vertical tick marks
 
 ---
@@ -350,7 +352,7 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 | `--ease-enter` | `cubic-bezier(0.05, 0.7, 0.1, 1)` | Things arriving |
 | `--ease-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Things changing in place |
 | `--ease-exit` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | Things leaving |
-| `--shadow-card` / `--shadow-raised` | see globals.css | Resting card / hovered pillar |
+| `--shadow-card` / `--shadow-raised` | see globals.css | Resting card / raised surfaces |
 
 **Rules**
 - Looks interactive if and only if it is: every control has a pointer cursor, hover (mouse only), a gold-deep focus ring and a pressed state. Static cards have none of these.
@@ -371,7 +373,7 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 | Returning visitor (saved data) | Current year widget shows at top before form. Minimal: just the number, tier, and guidance. "View full cycle" link below. "Not you?" in text-secondary. |
 | Zero year selected | Detail panel background shifts to charcoal (`#4A4039`), text inverts to light. The panel feels like a void. Guidance text emphasizes transition and preparation. |
 | Error (invalid date) | Underline turns sienna, error text fades in. Form does not shake or flash — calm even in error. |
-| Mobile overflow (12 pillars) | Horizontally scrollable with gradient fade on edges indicating more content. Snap scroll to pillar boundaries. |
+| Narrow screens (12 orbs) | The wheel scales with its container (`cqw`); orbs never go below 44px, and the bloomed reading grows taller than the wheel rather than scrolling inside it. |
 
 ---
 
@@ -391,7 +393,7 @@ Defined in `src/app/globals.css` (CSS) and `src/lib/motion.ts` (Motion). Curves 
 ### Key Patterns
 - **Paper texture:** CSS `background-image` with inline SVG noise pattern at low opacity, or a single small PNG texture repeated. Keep file size under 5KB.
 - **Gold glow:** `box-shadow: 0 0 12px rgba(184, 134, 11, 0.25)` — subtle, never garish.
-- **Pillar grid:** `display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px;` — simple and responsive.
+- **Cycle wheel:** orbs absolutely placed on a square size container (`@container`), positions from a polar helper, so the wheel scales with no media queries.
 - **Stagger animation:** Motion (`motion/react`) `variants` with `staggerChildren: 0.04` on the parent.
 - **Underline inputs:** `border: none; border-bottom: 1px solid #D5CBBA; background: transparent;` with `focus:border-color: #B8860B` transition.
 - **Scroll snap timeline:** `overflow-x: auto; scroll-snap-type: x mandatory;` with each year dot as `scroll-snap-align: center`.
@@ -430,5 +432,5 @@ fontFamily: {
 - [ ] Every tier has a non-color symbol (●, ◕, ◑, ◔, ⊙)
 - [x] Focus ring: 2px solid gold-deep with 2px offset (4.9:1 on parchment)
 - [ ] All animations respect `prefers-reduced-motion`
-- [ ] Cycle pillars keyboard navigable as tablist
+- [ ] Cycle wheel orbs keyboard navigable as tablist
 - [ ] Timeline scrollable via keyboard (arrow keys)
