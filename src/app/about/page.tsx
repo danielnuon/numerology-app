@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SectionDivider } from "@/components/ui/section-divider";
-import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
+import { InfoPage, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { YEAR_TIERS } from "@/lib/numerology/interpretation-data";
-import { LIFE_AREA_MAP } from "@/lib/numerology/year-lookup";
 import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME } from "@/lib/site-copy";
 
 export const metadata: Metadata = {
@@ -14,71 +13,11 @@ export const metadata: Metadata = {
   twitter: { title: ABOUT_TITLE, description: ABOUT_DESCRIPTION },
 };
 
-/** The worked example from the system spec: born Thursday 24 July 1997, Year of the Ox. */
-const EXAMPLE = computeCycleFromBirthDate(1997, 7, 24);
-
-const EXAMPLE_ROWS: { label: string; values: (number | null)[] }[] = [
-  { label: "Month, counted from Mikasar", values: EXAMPLE.rows.month },
-  { label: "Animal (Ox)", values: EXAMPLE.rows.zodiac },
-  {
-    label: "Weekday (Thursday), first seven columns only",
-    values: Array.from({ length: 12 }, (_, i) => EXAMPLE.rows.day[i] ?? null),
-  },
-];
-
-/** One row of the worked example: a caption, then twelve small cells. */
-function NumberRow({
-  label,
-  values,
-  highlight = false,
-}: {
-  label: string;
-  values: (number | null)[];
-  highlight?: boolean;
-}) {
-  return (
-    <div className="mt-4">
-      <p className="text-xs uppercase tracking-[0.12em] text-ink-light">{label}</p>
-      <div className="mt-1.5 grid grid-cols-12 gap-0.5 sm:gap-1">
-        {values.map((value, i) => (
-          <span
-            key={i}
-            className={[
-              "flex h-8 items-center justify-center rounded-md border text-xs tabular-nums sm:h-10 sm:text-sm",
-              highlight
-                ? "border-gold-deep text-gold-deep font-display text-sm sm:text-base"
-                : "border-border text-ink",
-            ].join(" ")}
-          >
-            {value ?? "·"}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="w-full max-w-[640px]">
-      <h2 className="font-display text-2xl text-gold-deep tracking-[0.04em] sm:text-3xl">{title}</h2>
-      <div className="mt-4 space-y-4 text-ink-light leading-relaxed">{children}</div>
-    </section>
-  );
-}
+const MORE_LINK = "text-gold-deep underline underline-offset-4 decoration-gold-deep/40 hover:decoration-gold-deep";
 
 export default function AboutPage() {
   return (
-    <main className="safe-gutter flex flex-1 flex-col items-center pt-9 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
-      <p className="text-xs uppercase text-ink-light tracking-[0.18em]">
-        <Link href="/" className="hover:text-gold-deep">
-          Solini
-        </Link>
-      </p>
-      <h1 className="title-glow mt-3 text-center font-display text-4xl leading-tight text-ink tracking-[0.08em] sm:text-6xl">
-        A lantern for your twelve years
-      </h1>
-
+    <InfoPage title="A lantern for your twelve years">
       <SectionDivider compact />
 
       <Section title="The tradition">
@@ -123,24 +62,11 @@ export default function AboutPage() {
         </ul>
         <p>
           Each column is added up and divided by 12. The remainder, from 0
-          to 11, is that year&apos;s number. For someone born on Thursday 24
-          July 1997:
-        </p>
-
-        <div className="glass rounded-2xl p-3 min-[360px]:p-4 sm:p-6" aria-label="Worked example for 24 July 1997">
-          {EXAMPLE_ROWS.map((row) => (
-            <NumberRow key={row.label} label={row.label} values={row.values} />
-          ))}
-          <NumberRow label="The cycle: each column's sum, divided by 12" values={EXAMPLE.cycle} highlight />
-          <p className="mt-4 text-sm text-ink">
-            Total score {EXAMPLE.totalScore}, the sum of all twelve numbers.
-          </p>
-        </div>
-
-        <p>
-          The first number is for the year you were born, the second for the
-          year after, and so on. Each year runs from one birthday to the next,
-          and after twelve years the cycle starts again.
+          to 11, is that year&apos;s number.{" "}
+          <Link href="/how-it-works" className={MORE_LINK}>
+            See it worked through, step by step
+          </Link>
+          .
         </p>
       </Section>
 
@@ -148,22 +74,23 @@ export default function AboutPage() {
 
       <Section title="Reading the numbers">
         <p>Tradition groups the numbers into five kinds of year:</p>
-        <dl className="space-y-3">
+        <ul className="space-y-1">
           {YEAR_TIERS.map((tier) => (
-            <div key={tier.tier}>
-              <dt className="text-ink">
-                <span className="font-display text-gold-deep tabular-nums">
-                  {tier.min === tier.max ? tier.min : `${tier.min}–${tier.max}`}
-                </span>{" "}
-                · {tier.label}
-              </dt>
-              <dd className="text-sm">{tier.description}</dd>
-            </div>
+            <li key={tier.tier} className="text-ink">
+              <span className="font-display text-gold-deep tabular-nums">
+                {tier.min === tier.max ? tier.min : `${tier.min}–${tier.max}`}
+              </span>{" "}
+              · {tier.label}
+            </li>
           ))}
-        </dl>
+        </ul>
         <p>
-          Each year of the cycle also belongs to a life area:{" "}
-          {Object.values(LIFE_AREA_MAP).join(", ")}.
+          Each year of the cycle also belongs to one of twelve life areas,
+          from Self to Protection.{" "}
+          <Link href="/meaning" className={MORE_LINK}>
+            What each number and life area means
+          </Link>
+          .
         </p>
       </Section>
 
@@ -178,12 +105,10 @@ export default function AboutPage() {
         </ul>
       </Section>
 
-      <Link
-        href="/"
-        className="pressable mt-16 inline-flex min-h-[48px] items-center rounded-full border border-gold-deep px-8 text-sm font-medium uppercase tracking-[0.14em] text-gold-deep hover:bg-gold-deep hover:text-parchment"
-      >
-        See your cycle
-      </Link>
-    </main>
+      <div className="mt-16">
+        <PillLink href="/">See your cycle</PillLink>
+      </div>
+      <MorePages current="/about" />
+    </InfoPage>
   );
 }
