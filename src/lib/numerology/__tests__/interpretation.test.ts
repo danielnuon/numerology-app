@@ -98,7 +98,7 @@ describe("interpretTotal", () => {
   it('returns "strong" tier for total score 68 (lower boundary)', () => {
     const result = interpretTotal(68);
     expect(result.tier).toBe("strong");
-    expect(result.label).toBe("Strong / favourable cycle");
+    expect(result.label).toBe("Strong / favorable cycle");
   });
 
   it('returns "strong" tier for total score 132 (high value)', () => {

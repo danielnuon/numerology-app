@@ -11,7 +11,7 @@ import { getActiveYear, getCycleIndex } from "./year-lookup";
 
 /**
  * Circle symbols that fill up as luck increases, so the tier reads without
- * relying on colour alone. Zero gets a distinct dotted circle because it is
+ * relying on color alone. Zero gets a distinct dotted circle because it is
  * its own outcome, not the bottom of the scale.
  */
 const TIER_SYMBOLS: Record<YearTier, string> = {
@@ -24,7 +24,7 @@ const TIER_SYMBOLS: Record<YearTier, string> = {
 
 /**
  * Tailwind background classes per tier. Zero uses the full-strength charcoal
- * token per the design spec; the others use a light /15 tint of their colour.
+ * token per the design spec; the others use a light /15 tint of their color.
  * Written out in full so Tailwind's class scanner can find them.
  */
 const TIER_BACKGROUNDS: Record<YearTier, string> = {
@@ -36,7 +36,7 @@ const TIER_BACKGROUNDS: Record<YearTier, string> = {
 };
 
 /**
- * Tailwind text classes for tier symbols: each takes the colour of its
+ * Tailwind text classes for tier symbols: each takes the color of its
  * tier's lantern light. Zero is unlit, so its symbol stays faint.
  */
 const TIER_TEXT_COLORS: Record<YearTier, string> = {
@@ -61,7 +61,7 @@ export function getTierColorClass(tier: string): string {
   return TIER_BACKGROUNDS[isYearTier(tier) ? tier : "zero"];
 }
 
-/** Returns the Tailwind text colour class for a tier's symbol. Unknown tiers fall back to zero. */
+/** Returns the Tailwind text color class for a tier's symbol. Unknown tiers fall back to zero. */
 export function getTierTextClass(tier: string): string {
   return TIER_TEXT_COLORS[isYearTier(tier) ? tier : "zero"];
 }

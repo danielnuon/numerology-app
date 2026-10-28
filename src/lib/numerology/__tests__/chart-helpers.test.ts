@@ -73,7 +73,7 @@ describe("getTierColorClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("getTierTextClass", () => {
-  it("gives each lit tier the text colour of its light", () => {
+  it("gives each lit tier the text color of its light", () => {
     expect(getTierTextClass("very-strong")).toBe("text-tier-very-strong");
     expect(getTierTextClass("strong")).toBe("text-tier-strong");
     expect(getTierTextClass("moderate")).toBe("text-tier-moderate");

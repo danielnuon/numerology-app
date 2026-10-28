@@ -8,8 +8,8 @@
  * A gold arc traces the cycle from the birth year to this year.
  *
  * The orbs behave like tabs: one is always selected, arrow keys move focus
- * and selection together, and the centre of the wheel (the tab panel) shows a
- * short preview of the selected year. Tapping the centre, or the selected
+ * and selection together, and the center of the wheel (the tab panel) shows a
+ * short preview of the selected year. Tapping the center, or the selected
  * orb again, blooms the full reading out over the wheel with a native view
  * transition; Escape, the close button or a tap outside it folds it back.
  */
@@ -129,7 +129,7 @@ export function CycleChart({
   const selectedAnimal = getZodiacAnimalForYear(selectedYear);
   const totalInterp = interpretTotal(totalScore);
 
-  // Move focus into the reading when it opens and back to the centre when it
+  // Move focus into the reading when it opens and back to the center when it
   // closes, so keyboard and screen reader users stay where they were.
   // Layout effects run inside the commit, while passive effects wait for the
   // bloom's view transition to finish, which some browsers delay or never do.
@@ -376,7 +376,7 @@ export function CycleChart({
           ))}
         </div>
 
-        {/* Tab panel: a preview in the centre, or the full reading over the wheel */}
+        {/* Tab panel: a preview in the center, or the full reading over the wheel */}
         <div
           id="cycle-detail-panel"
           role="tabpanel"
@@ -459,7 +459,7 @@ export function CycleChart({
       <p className="mt-3 text-center text-xs text-ink-light">
         {readingOpen
           ? "Tap outside the reading to close it and choose another year."
-          : "Tap a number to choose a year, then the centre to read it in full."}
+          : "Tap a number to choose a year, then the center to read it in full."}
       </p>
 
       {/* Total score summary */}

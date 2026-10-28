@@ -77,9 +77,9 @@ body {
 .dusk-sky {
   /* Sized to the large viewport so the sky reaches under mobile browser
    * toolbars (Safari's floats over the page). Safari may still clip a fixed
-   * layer at the small viewport, so the fade into the page colour finishes
+   * layer at the small viewport, so the fade into the page color finishes
    * just above the small viewport's bottom: wherever the layer ends, the
-   * colour beneath it already matches and there is no seam. */
+   * color beneath it already matches and there is no seam. */
   position: fixed;
   inset: 0 0 auto;
   height: 100vh;
@@ -88,7 +88,7 @@ body {
   pointer-events: none;
   overflow: clip;
 }
-/* The fade into the page colour sits above the glows, the dust above both. */
+/* The fade into the page color sits above the glows, the dust above both. */
 .dusk-sky::after {
   content: "";
   position: absolute;
@@ -169,7 +169,7 @@ body {
 }
 
 /* === Form fields ===
- * A lit well: a solid surface (so autofill can be matched exactly), centred
+ * A lit well: a solid surface (so autofill can be matched exactly), centered
  * lining figures in the body face, a gold glow on focus, ember on error. */
 .lantern-input {
   --field-bg: #1A1520;
@@ -219,7 +219,7 @@ body {
     0 0 0 3px rgba(217, 138, 98, 0.16);
 }
 /* Safari and Chrome paint autofilled fields pale yellow. Cover it with the
- * field colour (an inset shadow is the only paint that sits above it) and
+ * field color (an inset shadow is the only paint that sits above it) and
  * hold their background change off indefinitely. */
 .lantern-input:-webkit-autofill,
 .lantern-input:-webkit-autofill:hover,
@@ -395,7 +395,7 @@ body {
   }
 }
 
-/* The centre of the wheel and the reading that blooms from it */
+/* The center of the wheel and the reading that blooms from it */
 .wheel-hub {
   background:
     radial-gradient(circle at 50% 75%, var(--lamp), transparent 70%),

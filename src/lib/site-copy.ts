@@ -46,3 +46,17 @@ export const ABOUT_TITLE = "About Solini — the Khmer numerology tradition behi
 /** About page search snippet and link-preview description. */
 export const ABOUT_DESCRIPTION =
   "Where Solini's 12-year cycle comes from, how it is worked out from your birth month, zodiac animal and weekday, and how to read the numbers.";
+
+/** "How your cycle is made" page title. */
+export const HOW_IT_WORKS_TITLE = "How your cycle is made — Solini";
+
+/** "How your cycle is made" search snippet and link-preview description. */
+export const HOW_IT_WORKS_DESCRIPTION =
+  "Follow a 12-year Khmer numerology cycle being worked out step by step: three starting numbers, three rows, and each column's sum.";
+
+/** "What the numbers mean" page title. */
+export const MEANING_TITLE = "What the numbers mean — Solini";
+
+/** "What the numbers mean" search snippet and link-preview description. */
+export const MEANING_DESCRIPTION =
+  "What each number from 0 to 11 means in a Khmer numerology cycle, the twelve life areas, and how to read the total score.";

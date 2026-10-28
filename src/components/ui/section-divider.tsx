@@ -1,6 +1,6 @@
 /**
  * A hairline that fades out at both ends, with a small gold diamond at its
- * centre. "compact" is for the landing page, where the hero and the form card
+ * center. "compact" is for the landing page, where the hero and the form card
  * must share the first screen of a phone.
  */
 export function SectionDivider({ compact = false }: { compact?: boolean }) {

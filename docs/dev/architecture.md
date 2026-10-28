@@ -24,7 +24,7 @@ BirthDataForm (input)
               |- interpretYear() [interpretation.ts]
               |- interpretTotal() [interpretation.ts]
               |- getLifeArea() [year-lookup.ts]
-              +- DetailPanel (reading that blooms from the wheel centre)
+              +- DetailPanel (reading that blooms from the wheel center)
                   |- getYearsForColumn() [chart-helpers.ts]
                   |- getTierSymbol() [chart-helpers.ts]
                   |- interpretYear() [interpretation.ts]
@@ -211,6 +211,10 @@ Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the 
 
 Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
 
+### Analytics: Vercel, cookieless, with redacted URLs
+
+`SiteAnalytics` (`src/components/site-analytics.tsx`, rendered once in the root layout) loads Vercel Web Analytics and Speed Insights. Neither sets cookies, so there is no consent banner. Both report the page URL, and a birth date can appear in it twice (`/r/YYYY-MM-DD` and `?day=&month=&year=`), so both use `redactEvent()` from `src/lib/analytics.ts` as `beforeSend`: it drops the query and hash and rewrites any share path to `/r/[date]`, or drops the event if the URL can't be parsed. It is a client component because a server component can't pass the `beforeSend` function down. Collection also has to be enabled per project in the Vercel dashboard (Analytics and Speed Insights tabs); on Hobby both are free and pause at their limits instead of billing.
+
 ### Interpretation data is separated from logic
 
 `interpretation-data.ts` holds all tier definitions (labels, descriptions, guidance text, score ranges) as exported const arrays. `interpretation.ts` contains the lookup logic. This separation enables future i18n by swapping the data module without touching the lookup functions.
@@ -265,7 +269,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **CurrentYearWidget**: Client component displaying the current year's cycle number, luck tier, life area domain, and one-sentence guidance. Renders "View full cycle" (smooth-scroll to chart) and "Not you?" (clear localStorage, reset to form) actions. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
-- **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The centre is the tab panel: a preview of the selected year (the current year on load). Tapping the centre or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
+- **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
@@ -321,7 +325,7 @@ A CSS pseudo-element (`::before`) on `.paper-texture` applies an inline SVG frac
 
 The app respects `prefers-reduced-motion` at two levels:
 - **CSS**: `@media (prefers-reduced-motion: reduce)` in `globals.css` disables `.animate-breathe`.
-- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to centre the selected year without smooth scrolling. A global CSS rule collapses CSS animations, transitions, smooth scrolling and view transitions.
+- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling. A global CSS rule collapses CSS animations, transitions, smooth scrolling and view transitions.
 
 ## Testing Conventions
 

@@ -203,7 +203,7 @@ export function HomeClient({ searchParams }: Props) {
   }, []);
 
   // Selection changes run as transitions so <ViewTransition> can animate
-  // the selection ring and the wheel's centre between states.
+  // the selection ring and the wheel's center between states.
   const handleTimelineSelectYear = useCallback((year: number) => {
     startTransition(() => setPickedYear(year));
   }, []);
@@ -334,6 +334,25 @@ export function HomeClient({ searchParams }: Props) {
               day={result.birthDay}
               rule={newYearRule}
             />
+
+            {/* Companion pages: this reading worked out, and what it means */}
+            <nav
+              aria-label="Understand this reading"
+              className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm"
+            >
+              <Link
+                href={`/how-it-works?day=${result.birthDay}&month=${result.birthData.gregorianMonth}&year=${result.birthYear}&ny=${newYearRule}`}
+                className="text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+              >
+                How this cycle is made
+              </Link>
+              <Link
+                href="/meaning"
+                className="text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+              >
+                What the numbers mean
+              </Link>
+            </nav>
           </>
         )}
       </ErrorBoundary>
