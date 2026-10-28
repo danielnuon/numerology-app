@@ -44,5 +44,8 @@ describe("prefers-reduced-motion CSS rules", () => {
     expect(cssContent).toMatch(
       /@media\s*\(prefers-reduced-motion:\s*no-preference\)\s*\{\s*\.scroll-settle/
     );
+    expect(cssContent).toMatch(
+      /@media\s*\(prefers-reduced-motion:\s*no-preference\)\s*\{\s*\.sky-glow/
+    );
   });
 });

@@ -70,7 +70,8 @@ body {
 }
 
 /* === Lantern atmosphere ===
- * A dusk sky behind everything; dust motes drift on a canvas above it. */
+ * A dusk sky behind everything: lantern glows that rise as the page
+ * scrolls, and dust motes drifting on a canvas above them. */
 .dusk-sky {
   /* Sized to the large viewport so the sky reaches under mobile browser
    * toolbars (Safari's floats over the page). Safari may still clip a fixed
@@ -83,17 +84,72 @@ body {
   height: 100lvh;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(to bottom, transparent 82%, var(--color-parchment)),
-    radial-gradient(1200px 600px at 50% -10%, rgba(120, 72, 120, 0.35), transparent 70%);
-  background:
-    linear-gradient(to bottom, transparent calc(100svh - 220px), var(--color-parchment) calc(100svh - 16px)),
-    radial-gradient(1200px 600px at 50% -10%, rgba(120, 72, 120, 0.35), transparent 70%),
-    radial-gradient(900px 420px at 50% calc(100svh - 200px), rgba(226, 150, 70, 0.14), transparent 70%);
+  overflow: clip;
+}
+/* The fade into the page colour sits above the glows, the dust above both. */
+.dusk-sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, transparent 82%, var(--color-parchment));
+  background: linear-gradient(to bottom, transparent calc(100svh - 220px), var(--color-parchment) calc(100svh - 16px));
+}
+
+/* Lantern glows. Each is a plain gradient in a box no bigger than its light,
+ * so it is painted once and then only slid by the compositor. */
+.sky-glow {
+  --drift: 0px;
+  position: absolute;
+  background: radial-gradient(closest-side, var(--glow), transparent);
+}
+.sky-glow-dusk {
+  --drift: 520px;
+  --glow: rgba(120, 72, 120, 0.35);
+  left: calc(50% - 840px);
+  top: calc(-10% - 420px);
+  width: 1680px;
+  height: 840px;
+}
+/* Starts below the fold and rises into view as the page scrolls */
+.sky-glow-lantern {
+  --drift: 520px;
+  --glow: rgba(226, 170, 90, 0.12);
+  left: calc(30% - 532px);
+  top: calc(100svh + 260px - 266px);
+  width: 1064px;
+  height: 532px;
+}
+.sky-glow-ember {
+  --drift: 200px;
+  --glow: rgba(226, 150, 70, 0.14);
+  left: calc(50% - 630px);
+  top: calc(100svh - 200px - 294px);
+  width: 1260px;
+  height: 588px;
+}
+
+/* Parallax: the glows rise more slowly than the page as it scrolls (about
+ * 0.4x and 0.15x over the first 1300px), giving the sky depth. Driven by the
+ * scroll position on the compositor, with no script; where scroll-driven
+ * animation is unsupported, or Reduce Motion is on, the sky stays still. */
+@keyframes glow-rise {
+  to { transform: translate3d(0, calc(var(--drift) * -1), 0); }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sky-glow {
+      will-change: transform;
+      animation: glow-rise linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 1300px;
+    }
+  }
 }
 .dusk-sky canvas {
   position: absolute;
   inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
 }
