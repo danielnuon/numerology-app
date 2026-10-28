@@ -12,6 +12,8 @@
 import { ViewTransition } from "react";
 import { interpretYear } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
+import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
+import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import {
   getTierSymbol,
   getTierTextClass,
@@ -78,9 +80,19 @@ export function DetailPanel({
             {isSingleYear ? `Year ${selectedYear}` : domain}
           </span>
           {isSingleYear ? (
-            <span className="text-sm text-ink-light" style={{ fontVariant: "small-caps" }}>
-              {domain}
-            </span>
+            <>
+              <span className="text-sm text-ink-light" style={{ fontVariant: "small-caps" }}>
+                {domain}
+              </span>
+              {/* The animal that rules this calendar year */}
+              <span className="ml-auto inline-flex items-center gap-1.5 self-center text-sm text-ink-light">
+                <ZodiacIcon
+                  animal={getZodiacAnimalForYear(selectedYear)}
+                  className="size-6 self-center text-gold-deep"
+                />
+                Year of the {getZodiacAnimalForYear(selectedYear)}
+              </span>
+            </>
           ) : (
             <span className="text-sm text-ink-light">{years.join(" · ")}</span>
           )}

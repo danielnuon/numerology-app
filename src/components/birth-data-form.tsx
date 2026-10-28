@@ -18,6 +18,7 @@ import {
 } from "@/lib/numerology/derive";
 import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { saveBirthDate } from "@/lib/storage";
+import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -226,20 +227,24 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
         </p>
       )}
 
-      {/* Auto-derived zodiac and weekday. The slot keeps its height so the
-          button doesn't jump when the line appears. */}
-      <div aria-live="polite" className="mt-6 flex min-h-[44px] justify-center">
+      {/* Auto-derived zodiac and weekday. The slot reserves room for the two
+          chips (stacked on phones) so the button doesn't jump when they appear. */}
+      <div aria-live="polite" className="mt-6 flex min-h-[92px] min-[480px]:min-h-[44px] justify-center">
         {derived && (
-          <p className="animate-settle-in inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-border bg-gold-deep/[0.06] px-5 py-2 text-sm text-ink-light">
-            <span>
-              Year of the{" "}
-              <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
+          <p className="animate-settle-in flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-gold-deep/[0.06] py-1 pl-2 pr-4">
+              <ZodiacIcon animal={derived.zodiacAnimal} className="size-6 text-gold-deep" />
+              <span>
+                Year of the{" "}
+                <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
+              </span>
             </span>
-            <span aria-hidden="true" className="text-xs text-gold">◇</span>
-            <span>
-              Born on a{" "}
-              <span className="font-display text-base text-gold-deep">
-                {WEEKDAY_NAMES[derived.weekday]}
+            <span className="inline-flex items-center rounded-full border border-border bg-gold-deep/[0.06] px-4 py-1.5">
+              <span>
+                Born on a{" "}
+                <span className="font-display text-base text-gold-deep">
+                  {WEEKDAY_NAMES[derived.weekday]}
+                </span>
               </span>
             </span>
           </p>
