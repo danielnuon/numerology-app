@@ -5,10 +5,11 @@ import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
 import { getActiveYear, getLifeArea } from "@/lib/numerology/year-lookup";
 import { OG_COLORS, OG_SITE_LABEL, pillarColors } from "@/lib/og-theme";
+import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
 import GenericOgImage from "../../opengraph-image";
 
 export const alt =
-  "A 12-year Khmer numerology reading from Solini: one luck number for each year, with this year lit and the cycle's total score.";
+  "A 12-year Khmer numerology reading from Solini: one luck number for each year, the birth animal, this year lit and the cycle's total score.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -32,6 +33,7 @@ export default async function OgImage({ params }: Props) {
   const litColumn = getCurrentYearColumn(decoded.year, currentYear, decoded.month, decoded.day);
   const litInterp = interpretYear(result.cycle[litColumn]);
   const litArea = getLifeArea(litColumn + 1);
+  const animal = result.birthData.zodiacAnimal;
 
   return new ImageResponse(
     (
@@ -47,6 +49,23 @@ export default async function OgImage({ params }: Props) {
           fontFamily: "Georgia, serif",
         }}
       >
+        {/* Birth animal, drawn like the in-app icon: gold strokes on a 32-unit grid */}
+        <svg
+          width="56"
+          height="56"
+          viewBox="0 0 32 32"
+          fill="none"
+          stroke={OG_COLORS.goldDeep}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ marginBottom: 12 }}
+        >
+          {ZODIAC_ICON_PATHS[animal].map((d) => (
+            <path key={d} d={d} />
+          ))}
+        </svg>
+
         <div
           style={{
             display: "flex",
@@ -68,7 +87,7 @@ export default async function OgImage({ params }: Props) {
             marginBottom: 36,
           }}
         >
-          A 12-year Khmer numerology reading
+          {`A 12-year Khmer numerology reading  ·  Year of the ${animal}`}
         </div>
 
         {/* Cycle pillars, with this year's pillar lit */}
