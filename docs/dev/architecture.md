@@ -211,6 +211,10 @@ Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the 
 
 Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
 
+### Analytics: Vercel, cookieless, with redacted URLs
+
+`SiteAnalytics` (`src/components/site-analytics.tsx`, rendered once in the root layout) loads Vercel Web Analytics and Speed Insights. Neither sets cookies, so there is no consent banner. Both report the page URL, and a birth date can appear in it twice (`/r/YYYY-MM-DD` and `?day=&month=&year=`), so both use `redactEvent()` from `src/lib/analytics.ts` as `beforeSend`: it drops the query and hash and rewrites any share path to `/r/[date]`, or drops the event if the URL can't be parsed. It is a client component because a server component can't pass the `beforeSend` function down. Collection also has to be enabled per project in the Vercel dashboard (Analytics and Speed Insights tabs); on Hobby both are free and pause at their limits instead of billing.
+
 ### Interpretation data is separated from logic
 
 `interpretation-data.ts` holds all tier definitions (labels, descriptions, guidance text, score ranges) as exported const arrays. `interpretation.ts` contains the lookup logic. This separation enables future i18n by swapping the data module without touching the lookup functions.
