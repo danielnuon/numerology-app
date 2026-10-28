@@ -106,6 +106,73 @@ body {
   }
 }
 
+/* === Form fields ===
+ * A lit well: a solid surface (so autofill can be matched exactly), centred
+ * lining figures in the body face, a gold glow on focus, ember on error. */
+.lantern-input {
+  --field-bg: #1A1520;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 clamp(0.25rem, 2vw, 0.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  background-color: var(--field-bg);
+  color: var(--color-ink);
+  caret-color: var(--color-gold-deep);
+  font-family: var(--font-sans);
+  font-size: clamp(1.125rem, 5vw, 1.375rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.04em;
+  text-align: center;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.lantern-input::placeholder {
+  color: var(--color-ink-faint);
+}
+@media (min-width: 400px) {
+  .lantern-input {
+    letter-spacing: 0.08em;
+  }
+  .lantern-input::placeholder {
+    letter-spacing: 0.12em;
+  }
+}
+@media (hover: hover) {
+  .lantern-input:hover {
+    border-color: color-mix(in srgb, var(--color-gold-deep) 35%, var(--color-border));
+  }
+}
+.lantern-input:focus {
+  border-color: var(--color-gold-deep);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(226, 182, 90, 0.16),
+    0 0 24px -6px rgba(226, 182, 90, 0.55);
+}
+.lantern-input[aria-invalid="true"] {
+  border-color: var(--color-tier-weak);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(217, 138, 98, 0.16);
+}
+/* Safari and Chrome paint autofilled fields pale yellow. Cover it with the
+ * field colour (an inset shadow is the only paint that sits above it) and
+ * hold their background change off indefinitely. */
+.lantern-input:-webkit-autofill,
+.lantern-input:-webkit-autofill:hover,
+.lantern-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  -webkit-box-shadow: 0 0 0 100px var(--field-bg) inset;
+  box-shadow: 0 0 0 100px var(--field-bg) inset;
+  caret-color: var(--color-gold-deep);
+  transition: background-color 99999s ease-out 0s;
+}
+.lantern-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px var(--field-bg) inset, 0 0 0 3px rgba(226, 182, 90, 0.16);
+  box-shadow: 0 0 0 100px var(--field-bg) inset, 0 0 0 3px rgba(226, 182, 90, 0.16);
+}
+
 /* Frosted card over the sky */
 .glass {
   background: color-mix(in srgb, var(--color-manuscript) 72%, transparent);
