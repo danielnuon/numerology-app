@@ -39,3 +39,10 @@ export function sharedReadingDescription(
 ): string {
   return `Total score ${totalScore}: ${totalLabel}. See this 12-year cycle, then find your own in seconds.`;
 }
+
+/** About page title. */
+export const ABOUT_TITLE = "About Solini — the Khmer numerology tradition behind it";
+
+/** About page search snippet and link-preview description. */
+export const ABOUT_DESCRIPTION =
+  "Where Solini's 12-year cycle comes from, how it is worked out from your birth month, zodiac animal and weekday, and how to read the numbers.";
