@@ -456,7 +456,7 @@ export function CycleChart({
         </div>
       </div>
 
-      <p className="mt-3 text-center text-xs text-ink-light">
+      <p className="mt-3 text-center text-sm text-ink-light">
         {readingOpen
           ? "Tap outside the reading to close it and choose another year."
           : "Tap a number to choose a year, then the center to read it in full."}

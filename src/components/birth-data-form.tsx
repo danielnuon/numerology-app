@@ -134,7 +134,7 @@ function DateField({
     <div className={`flex flex-col min-w-0 ${className}`}>
       <label
         htmlFor={id}
-        className="mb-2 text-center text-xs uppercase tracking-[0.12em] text-ink-light"
+        className="mb-2 text-center text-base text-ink-light"
       >
         {label}
       </label>
@@ -176,7 +176,7 @@ function DateField({
         className="lantern-input pressable"
       />
       {error && (
-        <p id={errorId} role="alert" className="mt-2 text-xs text-tier-weak">
+        <p id={errorId} role="alert" className="mt-2 text-sm text-tier-weak">
           {error}
         </p>
       )}
@@ -323,7 +323,7 @@ export function BirthDataForm({
 
       {/* General date error (e.g. future date, invalid calendar date) */}
       {errors.date && (
-        <p role="alert" className="mt-3 text-center text-xs text-tier-weak">
+        <p role="alert" className="mt-3 text-center text-sm text-tier-weak">
           {errors.date}
         </p>
       )}
@@ -372,16 +372,17 @@ export function BirthDataForm({
         <button
           type="submit"
           className={[
-            "w-full rounded-full border border-gold-deep text-gold-deep",
-            "py-3 px-6 min-h-[48px]",
-            "text-sm font-medium uppercase tracking-[0.14em]",
-            "bg-transparent hover:bg-gold-deep hover:text-parchment hover:shadow-[var(--shadow-glow)]",
-            "pressable active:scale-[0.97] active:bg-gold-deep active:text-parchment",
+            // The one filled shape on the card, so the next step is obvious
+            "w-full rounded-full bg-gold-deep text-parchment",
+            "py-3 px-6 min-h-[56px]",
+            "text-lg font-semibold tracking-[0.02em]",
+            "shadow-[var(--shadow-glow)] hover:bg-gold-light",
+            "pressable active:scale-[0.97]",
           ].join(" ")}
         >
-          Reveal My Cycle
+          Reveal my cycle
         </button>
-        <p className="mt-3 text-center text-xs text-ink-light">
+        <p className="mt-3 text-center text-sm text-ink-light">
           Free, no sign-up. Your birth date stays in this browser.
         </p>
       </div>

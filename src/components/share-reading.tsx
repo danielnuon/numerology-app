@@ -87,7 +87,7 @@ export function ShareReading({ year, month, day, rule }: Props) {
           onClick={handleShare}
           className={[
             "pressable inline-flex items-center justify-center min-h-[44px] px-6 rounded-full",
-            "border border-gold-deep text-gold-deep text-sm font-medium uppercase tracking-[0.14em]",
+            "border border-gold-deep text-gold-deep text-base font-medium",
             "hover:bg-gold-deep hover:text-parchment hover:shadow-[var(--shadow-glow)]",
             "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
           ].join(" ")}
@@ -103,10 +103,10 @@ export function ShareReading({ year, month, day, rule }: Props) {
         </a>
       </div>
 
-      <p role="status" className="mt-3 min-h-[1.25rem] text-xs text-ink-light">
+      <p role="status" className="mt-3 min-h-[1.25rem] text-sm text-ink-light">
         {STATUS_TEXT[status]}
       </p>
-      <p className="mt-1 text-xs text-ink-light">
+      <p className="mt-1 text-sm text-ink-light">
         The link shows this birth date to anyone who opens it.
       </p>
     </section>

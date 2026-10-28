@@ -7,13 +7,18 @@
  * - Pre-fill via URL search params (?day=24&month=7&year=1997) for share URL
  *   redirects. The server page reads them and passes them in, so the page
  *   renders in full on the server and search engines see its content.
- * - Returning visitors: reads localStorage on mount, shows CurrentYearWidget + chart
+ * - Returning visitors: reads localStorage on mount and shows their reading
  * - Share URL precedence: a shared link shows that person's chart, not the
  *   visitor's own saved one
- * - "Not you?" forgets the saved date and returns to the first-visit form
+ * - "Not you?" forgets a restored saved date and returns to the first-visit form
  * - The New Year rule (Khmer or Chinese) that turns the animal year: from a
  *   share link (?ny=), else the visitor's remembered choice, else Khmer.
  *   Changing it recomputes the reading in place.
+ *
+ * The first visit asks one question, with the intro and the New Year choice
+ * folded away. The reading opens on this year's reading; on phones the
+ * 12-year wheel and timeline wait behind "See all 12 years", and on tablet
+ * and desktop they show at once.
  */
 
 import {
@@ -33,7 +38,7 @@ import { SectionDivider } from "@/components/ui/section-divider";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
-import { CurrentYearWidget } from "@/components/current-year-widget";
+import { ThisYearCard } from "@/components/this-year-card";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
@@ -56,8 +61,11 @@ import {
 import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
-/** ID for the chart section — used by the widget's "See all 12 years" scroll target. */
+/** ID for the reading card, the place the form blooms into. */
 const CHART_SECTION_ID = "cycle-chart-section";
+
+/** ID for the 12-year wheel that "See all 12 years" opens on phones. */
+const CYCLE_SECTION_ID = "cycle-wheel-section";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -171,8 +179,11 @@ export function HomeClient({ searchParams }: Props) {
         : null,
     [birthDate, newYearRule]
   );
-  // The "welcome back" widget replaces the form only for a restored saved date.
-  const showWidget = sessionDate === undefined && storedDate !== null;
+  // A returning visitor's restored date, which "Not you?" can forget.
+  const isRestoredDate = sessionDate === undefined && storedDate !== null;
+
+  // On phones the 12-year wheel and timeline wait behind "See all 12 years".
+  const [cycleOpen, setCycleOpen] = useState(false);
 
   // One selected year shared by the chart and the timeline, so they always
   // agree. null means "the active year" until the user picks something.
@@ -202,6 +213,7 @@ export function HomeClient({ searchParams }: Props) {
       setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
       setPickedYear(null);
       setFormOpen(false);
+      setCycleOpen(false);
       setBloomed(true);
     });
   }, []);
@@ -286,28 +298,18 @@ export function HomeClient({ searchParams }: Props) {
       >
         Khmer Numerology
       </p>
-      <p
-        className="rise mt-1 text-xs uppercase text-ink-light text-center tracking-[0.18em]"
-        style={{ "--rise-delay": "620ms" } as React.CSSProperties}
-      >
-        Your cycle, lit year by year
-      </p>
+      {result && (
+        <p
+          className="rise mt-1 text-sm uppercase text-ink-light text-center tracking-[0.16em]"
+          style={{ "--rise-delay": "620ms" } as React.CSSProperties}
+        >
+          Your cycle, lit year by year
+        </p>
+      )}
 
       <SectionDivider compact />
 
       <ErrorBoundary>
-        {/* Widget for returning visitors — shows after hydration if localStorage has data */}
-        {showWidget && result && (
-          <CurrentYearWidget
-            cycle={result.cycle}
-            birthYear={result.birthYear}
-            birthMonth={result.birthData.gregorianMonth}
-            birthDay={result.birthDay}
-            onReset={handleReset}
-            chartSectionId={CHART_SECTION_ID}
-          />
-        )}
-
         {/* Form card: first visit, after "Not you?", or "Read for someone else" */}
         {showForm && (
           <ViewTransition name="reading-card" share="reading-bloom" default="none">
@@ -315,13 +317,17 @@ export function HomeClient({ searchParams }: Props) {
               className={`${bloomed ? "" : "rise "}glass relative max-w-[480px] w-full rounded-2xl p-6 sm:p-12`}
               style={{ "--rise-delay": "760ms" } as React.CSSProperties}
             >
-              <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
-                {formOpen
-                  ? hasShareParams && !bloomed
+              {formOpen ? (
+                <p className="text-center text-ink-light text-base leading-relaxed">
+                  {hasShareParams && !bloomed
                     ? "Enter your birth date to see your own 12-year cycle."
-                    : "Enter another birth date to read that person's 12-year cycle."
-                  : "Enter your birth date to see a luck number for every year of your 12-year cycle, read from your birth month, zodiac animal and weekday."}
-              </p>
+                    : "Enter another birth date to read that person's 12-year cycle."}
+                </p>
+              ) : (
+                <h2 className="text-center font-display text-[1.75rem] leading-tight text-ink tracking-[0.03em] text-balance">
+                  When were you born?
+                </h2>
+              )}
 
               <BirthDataForm
                 key={formOpen ? "another" : "first"}
@@ -335,13 +341,27 @@ export function HomeClient({ searchParams }: Props) {
                 <button
                   type="button"
                   onClick={handleBackToReading}
-                  className="pressable mx-auto mt-3 flex min-h-[44px] items-center px-2 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
+                  className="pressable mx-auto mt-3 flex min-h-[44px] items-center px-2 text-base text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
                 >
                   Back to the reading
                 </button>
               )}
             </div>
           </ViewTransition>
+        )}
+
+        {/* The intro, word for word, for visitors who want it before they start */}
+        {showForm && !formOpen && (
+          <details className="mt-5 max-w-[480px] w-full text-center">
+            <summary className="pressable mx-auto inline-flex min-h-[44px] cursor-pointer list-none items-center px-2 text-base text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep [&::-webkit-details-marker]:hidden">
+              What will I see?
+            </summary>
+            <p className="animate-settle-in mt-2 text-base leading-relaxed text-ink-light">
+              Enter your birth date to see a luck number for every year of
+              your 12-year cycle, read from your birth month, zodiac animal
+              and weekday.
+            </p>
+          </details>
         )}
 
         {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
@@ -360,46 +380,90 @@ export function HomeClient({ searchParams }: Props) {
               {bloomed && <div aria-hidden="true" className="reading-bloom-glow" />}
 
               {/* Whose reading this is, and the way back to the form */}
-              <div className="mx-auto mb-2 flex max-w-[440px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
+              <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
                 <div id="reading-summary" className="min-w-0">
                   {hasShareParams && !bloomed && (
-                    <p className="text-xs uppercase tracking-[0.12em] text-gold-deep">
+                    <p className="text-sm uppercase tracking-[0.12em] text-gold-deep">
                       A reading shared with you
                     </p>
                   )}
                   <p className="font-display text-lg tracking-[0.03em] text-ink">
                     {MONTH_NAMES[result.birthData.gregorianMonth - 1]} {result.birthDay}, {result.birthYear}
                   </p>
-                  <p className="text-xs text-ink-light">
+                  <p className="text-sm text-ink-light">
                     Year of the {result.birthData.zodiacAnimal} · Born on a{" "}
                     {WEEKDAY_NAMES[result.birthData.weekday - 1]}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleReadAgain}
-                  className="pressable inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-4 text-sm text-ink-light hover:border-gold hover:text-ink active:scale-[0.97]"
-                >
-                  {hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
-                </button>
+                <div className="flex flex-wrap items-center gap-x-3">
+                  <button
+                    type="button"
+                    onClick={handleReadAgain}
+                    className="pressable inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-4 text-sm text-ink-light hover:border-gold hover:text-ink active:scale-[0.97]"
+                  >
+                    {hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                  </button>
+                  {isRestoredDate && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="pressable inline-flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
+                    >
+                      Not you?
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <CycleChart
-                cycle={result.cycle}
-                totalScore={result.totalScore}
-                birthYear={result.birthYear}
-                birthMonth={result.birthData.gregorianMonth}
-                birthDay={result.birthDay}
-                selectedYear={selectedYear}
-                onSelectPillar={handleChartSelectPillar}
-                onReturnToCurrent={handleReturnToCurrent}
-              />
+              {/* This year first; the 12-year wheel beside it from lg, below it otherwise */}
+              <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
+                <div className="mx-auto w-full max-w-[440px]">
+                  <ThisYearCard
+                    cycle={result.cycle}
+                    birthYear={result.birthYear}
+                    birthMonth={result.birthData.gregorianMonth}
+                    birthDay={result.birthDay}
+                  />
+
+                  <button
+                    type="button"
+                    aria-expanded={cycleOpen}
+                    aria-controls={CYCLE_SECTION_ID}
+                    onClick={() => setCycleOpen((open) => !open)}
+                    className="pressable mt-5 mb-2 w-full min-h-[52px] rounded-full border border-border text-base text-ink hover:border-gold-deep active:scale-[0.97] md:hidden"
+                  >
+                    {cycleOpen ? "Hide the 12 years" : "See all 12 years"}
+                  </button>
+                </div>
+
+                {/* Hidden only on phones until opened; tablet and desktop show it at once */}
+                <div
+                  id={CYCLE_SECTION_ID}
+                  className={`${cycleOpen ? "animate-settle-in" : "max-md:hidden"} mt-6 min-w-0 lg:mt-0`}
+                >
+                  <CycleChart
+                    cycle={result.cycle}
+                    totalScore={result.totalScore}
+                    birthYear={result.birthYear}
+                    birthMonth={result.birthData.gregorianMonth}
+                    birthDay={result.birthDay}
+                    selectedYear={selectedYear}
+                    onSelectPillar={handleChartSelectPillar}
+                    onReturnToCurrent={handleReturnToCurrent}
+                  />
+                </div>
+              </div>
             </div>
             </ViewTransition>
 
-            {/* Year Timeline Explorer */}
-            <div className="w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle">
+            {/* Year Timeline Explorer, folded on phones with the wheel */}
+            <div
+              className={`${cycleOpen ? "" : "max-md:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
+            >
+              {/* Remounts when opened on a phone, so it centers this year
+                  once it has a width (it measures nothing while hidden) */}
               <YearTimeline
+                key={cycleOpen ? "open" : "folded"}
                 cycle={result.cycle}
                 birthYear={result.birthYear}
                 activeYear={activeYear}
@@ -419,17 +483,17 @@ export function HomeClient({ searchParams }: Props) {
             {/* Companion pages: this reading worked out, and what it means */}
             <nav
               aria-label="Understand this reading"
-              className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm"
+              className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-base"
             >
               <Link
                 href={`/how-it-works?day=${result.birthDay}&month=${result.birthData.gregorianMonth}&year=${result.birthYear}&ny=${newYearRule}`}
-                className="text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+                className="inline-flex min-h-[44px] items-center text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
               >
                 How this cycle is made
               </Link>
               <Link
                 href="/meaning"
-                className="text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+                className="inline-flex min-h-[44px] items-center text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
               >
                 What the numbers mean
               </Link>
@@ -438,7 +502,7 @@ export function HomeClient({ searchParams }: Props) {
         )}
       </ErrorBoundary>
 
-      <p className="mt-16 max-w-[480px] text-center text-xs leading-relaxed text-ink-light">
+      <p className="mt-16 max-w-[480px] text-center text-sm leading-relaxed text-ink-light">
         Solini follows a Khmer numerology tradition. A reading is a lantern
         for reflection, not a prediction or advice.{" "}
         <Link href="/about" className="underline underline-offset-4 decoration-border hover:text-gold-deep">
