@@ -85,7 +85,11 @@ The family this system comes from holds that birth weekday matters to luck: Mond
 
 **Inference.** Solini's arithmetic doesn't favor any weekday. Across all 144 month and animal combinations, every weekday averages the same total (66), the same number of 10s and 11s (2) and the same number of zeros (1). The weekday only changes which years get which numbers, and how widely totals spread. Wednesday births never total 52, and Friday and Saturday births swing the most. So if the family reads some weekdays as luckier, that is a separate layer on top of the chart, not something the chart computes.
 
-**For the family.** Two answers would tell the scales apart. Which day is the best, and which is the worst? Friday best and Sunday worst points to planet strength. Saturday best points to the chart number. Saturday or Sunday among the worst, with Monday good, points to benefic and malefic.
+**The Khmer account (documented).** In a 2014 Radio Free Asia Khmer feature, Khmer cultural researcher Vay Vibol retells how each day's deity was made: the Sun from 6 sages, the Moon from 15 goddesses, Mars from 8 buffalo heads, Mercury from 17 elephant heads, Jupiter from 19 sages, Venus from 21 cow heads and Saturn from 10 tiger heads [13]. These counts are the planet strengths in the table above, so the strength scale is Khmer tradition as well as Thai. The same feature calls Tuesday "not very good", calls Monday a soft, gentle day, and calls Thursday the royal teacher's day, good for work, with those born on it suited to study, teaching and medicine. It gives no overall luck ranking.
+
+**Decision.** The family follows the Khmer account, so if Solini ever ranks birth weekdays, it uses the planet strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Thursday near the top, as the family holds. It places Monday in the middle rather than on the low side, and that difference is still open.
+
+**Character.** The family also holds that people born on Monday are stubborn. None of the Khmer sources found says so. The RFA feature calls Monday gentle, and popular Khmer horoscope columns give stubbornness to Tuesday or Saturday births instead [14][15]. Those columns disagree with each other and cite no tradition, so they aren't used here.
 
 ## Questions only the family can answer
 
@@ -93,7 +97,7 @@ The family this system comes from holds that birth weekday matters to luck: Mond
 2. Is "higher number, better year" how the family reads it? The outside sources read numbers as planets, not as a scale.
 3. Does the family chart use the lunar birth month or the Gregorian one? Solini approximates the lunar month with the Gregorian month (`months.ts`), so a birth in late November or early December can land a month off.
 4. Do the five columns with no weekday value (8 to 12) get read any differently?
-5. Which birth weekday is luckiest and which is least lucky? See "Birth weekday" above.
+5. The Khmer planet strengths put Monday in the middle of the seven days. Does the family read Monday births as lower than that? See "Birth weekday" above.
 
 ## Sources
 
@@ -109,5 +113,8 @@ The family this system comes from holds that birth weekday matters to luck: Mond
 10. "เทวดานพเคราะห์ประจำวันเกิด" (the planetary deities of the birth days), Thairath. https://www.thairath.co.th/horoscope/belief/2581801
 11. "เลข 7" (the number 7 in Thai astrology), Thairath. https://www.thairath.co.th/horoscope/belief/2944519
 12. "The Seven Colors of Cambodian Tradition", The Better Cambodia. https://thebettercambodia.com/the-seven-colors-of-cambodian-tradition
+13. Kaev Pech Metta, "អត្ថន័យនៃឈ្មោះថ្ងៃទាំង៧" (the meaning of the names of the seven days), Radio Free Asia Khmer, April 22, 2014. https://www.rfa.org/khmer/news/meaning-of-7days-name-04222014050015.html
+14. San Sarin, "តើអ្នកកើតថ្ងៃណាចូលមើលលក្ខណៈពិតរបស់អ្នកត្រឹមត្រូវឬទេ ?" (which day were you born?), Koh Santepheap Daily, March 18, 2020. https://kohsantepheapdaily.com.kh/article/1050964.html
+15. San Sarin, "ចរិតនិស្ស័យនិងជោគវាសនានៃអ្នកកើតថ្ងៃទាំង៧" (character and fate of those born on the seven days), Koh Santepheap Daily, August 28, 2018. https://kohsantepheapdaily.com.kh/article/694314.html
 
-Sources 3, 4, 6, 7 and 8 are practitioners, not scholars. They're cited for how the method is done in practice, and the main claims rest on sources 1, 2 and 5. We found no published Khmer-language description of the twelve-column variant Solini uses.
+Sources 3, 4, 6, 7 and 8 are practitioners, not scholars. They're cited for how the method is done in practice, and the main claims rest on sources 1, 2, 5 and 13. Sources 14 and 15 are popular horoscope columns, cited only to show what they say. We found no published Khmer-language description of the twelve-column variant Solini uses.
