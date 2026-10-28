@@ -26,7 +26,7 @@ Before this change, every reading came from the tier alone. The area was a label
 
 ### Every reading is for a value in a place
 
-**Documented.** In an undated seven-number manuscript from Wat Tha Phut, Nakhon Pathom, published in the Sirindhorn Anthropology Centre's manuscript database, predictions are given for each planet in each house ("if [planet] is [house]…"). None are given for a number alone, and the text doesn't read sums as strength [2]. A practitioner's guide reads a number by the houses it falls in across the rows: "good meeting good is read as good; two bad and one good is read as bad" [4]. Another practitioner describes a reading as combining the meanings of the houses into one story [6].
+**Documented.** In an undated seven-number manuscript from Wat Tha Phut, Nakhon Pathom, published in the manuscripts database of the Sirindhorn anthropology research institute in Bangkok (SAC, ศูนย์มานุษยวิทยาสิรินธร), predictions are given for each planet in each house ("if [planet] is [house]…"). None are given for a number alone, and the text doesn't read sums as strength [2]. A practitioner's guide reads a number by the houses it falls in across the rows: "good meeting good is read as good; two bad and one good is read as bad" [4]. Another practitioner describes a reading as combining the meanings of the houses into one story [6].
 
 **Inference.** Reading area and number together is the documented practice, and reading the number alone is not. That is the main reason for this change.
 
@@ -75,7 +75,7 @@ If the columns move to the traditional houses, the readings for the hard houses 
 ## Sources
 
 1. Poonnatree Jiaviriyaboonya, "The influences of Thai divination on Cambodian fortune-telling practice", *Diogenes* 65(4), 2024. https://www.cambridge.org/core/journals/diogenes/article/influences-of-thai-divination-on-cambodian-fortunetelling-practice/BE787C048BF52C17B31B3F096D16598A
-2. Dokrak Payakasri (transcription and editing), สมุดไทยเรื่อง พระตำรับเลขเจ็ดตัว (Thai manuscript on the seven-number method), Wat Tha Phut, Nakhon Pathom; Sirindhorn Anthropology Centre manuscripts database. https://manuscripts.sac.or.th/article-download.php?id=28
+2. Dokrak Payakasri (transcription and editing), สมุดไทยเรื่อง พระตำรับเลขเจ็ดตัว (Thai manuscript on the seven-number method), Wat Tha Phut, Nakhon Pathom; SAC manuscripts database. https://manuscripts.sac.or.th/article-download.php?id=28
 3. "การตั้งดวง เลข 7 ตัว 9 ฐาน" (setting up a seven-number, nine-base chart), practitioner blog, 2010. http://7dara.blogspot.com/2010/08/7-9.html
 4. "หลักการพยากรณ์แบบเลข 7 ตัว" (principles of seven-number prediction), practitioner blog, 2009. http://seehorasat.blogspot.com/2009/06/7.html
 5. "Thai lunar calendar", Wikipedia. https://en.wikipedia.org/wiki/Thai_lunar_calendar
