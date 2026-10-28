@@ -5,6 +5,7 @@ import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from "react
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { HomeClient } from "../home-client";
+import { BIRTH_DATE_STORAGE_KEY } from "@/lib/storage";
 
 // Render Motion components as plain elements, dropping animation props
 jest.mock("motion/react", () => {
@@ -91,5 +92,58 @@ describe("HomeClient: the form blooms into the reading", () => {
       fireEvent.click(screen.getByRole("button", { name: "Read your own" }));
     });
     expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
+  });
+});
+
+describe("HomeClient: a calm first visit, this year first", () => {
+  beforeAll(() => {
+    window.matchMedia = ((query: string) => ({ matches: false, media: query })) as unknown as typeof window.matchMedia;
+    Element.prototype.scrollIntoView = jest.fn();
+    Element.prototype.scrollTo = jest.fn() as never;
+    window.scrollTo = jest.fn() as never;
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    jest.useFakeTimers({ now: new Date(2026, 9, 28) });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("asks one question, with the intro folded behind \"What will I see?\"", () => {
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
+    expect(screen.getByText("What will I see?").closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByText(/a luck number for every year of your 12-year cycle/)).toBeInTheDocument();
+  });
+
+  it("opens the reading on this year", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+    expect(screen.getByText("Your 2026 reading")).toBeInTheDocument();
+    expect(screen.getByText(/Life area:/)).toBeInTheDocument();
+  });
+
+  it("opens the 12 years on phones with \"See all 12 years\"", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+    const toggle = screen.getByRole("button", { name: "See all 12 years" });
+    const wheel = document.getElementById(toggle.getAttribute("aria-controls")!)!;
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(wheel.className).toMatch(/max-md:hidden/);
+
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Hide the 12 years" })).toHaveAttribute("aria-expanded", "true");
+    expect(wheel.className).not.toMatch(/max-md:hidden/);
+  });
+
+  it("lets a returning visitor forget their saved date with \"Not you?\"", () => {
+    localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day: 24, month: 7, year: 1997 }));
+    render(<HomeClient searchParams={{}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Not you?" }));
+    expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
+    expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
   });
 });
