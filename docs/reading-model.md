@@ -65,12 +65,35 @@ The labels date from the first version of `system-overview.md` (March 2026), and
 
 If the columns move to the traditional houses, the readings for the hard houses (Ari, Marana, Phayaya) have to run the other way: a high number there reads as weathering rivals, loss or illness well, not as more of them. Every current label names something people hope goes well, so for now a higher tier always reads better.
 
+## Birth weekday: is one day luckier?
+
+The family this system comes from holds that birth weekday matters to luck: Monday leans unfavorable and Thursday favorable, though neither is the extreme. Three candidate scales, with how each fits:
+
+| Day | Planet [1] | Thai benefic or malefic [10] | Planet strength [10] | Chart number [3] |
+|---|---|---|---|---|
+| Sunday | Sun | Malefic | 6 | 1 |
+| Monday | Moon | Benefic | 15 | 2 |
+| Tuesday | Mars | Malefic | 8 | 3 |
+| Wednesday | Mercury | Benefic | 17 | 4 |
+| Thursday | Jupiter | Benefic | 19 | 5 |
+| Friday | Venus | Benefic | 21 | 6 |
+| Saturday | Saturn | Malefic | 10 | 7 |
+
+- **Benefic or malefic (documented).** Thai astrology counts the Moon as benefic, so Monday would be a good day. This contradicts the family's Monday.
+- **Planet strength (documented).** Thai astrology gives each planet a strength: Sun 6, Mars 8, Saturn 10, Moon 15, Mercury 17, Jupiter 19, Venus 21. Ranked this way, Thursday is second from the top, which fits. Monday sits in the middle, which fits only loosely.
+- **Chart number (inference).** Ranked by the day's own number, Monday (2) is near the bottom and Thursday (5) near the top, and neither is the extreme, which fits both of the family's points. This ranking would also make Saturday the luckiest day, while Thai sources treat Saturn as the hardest planet [11] and a Cambodian color tradition gives Saturday the color of sadness [12].
+
+**Inference.** Solini's arithmetic doesn't favor any weekday. Across all 144 month and animal combinations, every weekday averages the same total (66), the same number of 10s and 11s (2) and the same number of zeros (1). The weekday only changes which years get which numbers, and how widely totals spread. Wednesday births never total 52, and Friday and Saturday births swing the most. So if the family reads some weekdays as luckier, that is a separate layer on top of the chart, not something the chart computes.
+
+**For the family.** Two answers would tell the scales apart. Which day is the best, and which is the worst? Friday best and Sunday worst points to planet strength. Saturday best points to the chart number. Saturday or Sunday among the worst, with Monday good, points to benefic and malefic.
+
 ## Questions only the family can answer
 
 1. Where did the twelve life-area labels come from, and does the family chart name the columns differently?
 2. Is "higher number, better year" how the family reads it? The outside sources read numbers as planets, not as a scale.
 3. Does the family chart use the lunar birth month or the Gregorian one? Solini approximates the lunar month with the Gregorian month (`months.ts`), so a birth in late November or early December can land a month off.
 4. Do the five columns with no weekday value (8 to 12) get read any differently?
+5. Which birth weekday is luckiest and which is least lucky? See "Birth weekday" above.
 
 ## Sources
 
@@ -83,5 +106,8 @@ If the columns move to the traditional houses, the readings for the hard houses 
 7. "การทายปีจรของ เลข7ตัว9ฐาน" (reading the passing year in the seven-number chart), Pantip forum question. https://pantip.com/topic/40959823
 8. "ความหมายของภพต่างๆ" (meanings of the houses), practitioner blog, 2020. http://horodigital.blogspot.com/2020/05/blog-post_6.html
 9. "Bhāva", Wikipedia. https://en.wikipedia.org/wiki/Bh%C4%81va
+10. "เทวดานพเคราะห์ประจำวันเกิด" (the planetary deities of the birth days), Thairath. https://www.thairath.co.th/horoscope/belief/2581801
+11. "เลข 7" (the number 7 in Thai astrology), Thairath. https://www.thairath.co.th/horoscope/belief/2944519
+12. "The Seven Colors of Cambodian Tradition", The Better Cambodia. https://thebettercambodia.com/the-seven-colors-of-cambodian-tradition
 
 Sources 3, 4, 6, 7 and 8 are practitioners, not scholars. They're cited for how the method is done in practice, and the main claims rest on sources 1, 2 and 5. We found no published Khmer-language description of the twelve-column variant Solini uses.
