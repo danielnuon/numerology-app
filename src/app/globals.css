@@ -86,7 +86,7 @@ body {
   pointer-events: none;
   overflow: clip;
 }
-/* The fade into the page colour sits above the glows, the dust above both. */
+/* The fade into the page color sits above the glows, the dust above both. */
 .dusk-sky::after {
   content: "";
   position: absolute;
