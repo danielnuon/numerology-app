@@ -5,23 +5,18 @@
  *
  * Displays the current year's cycle number, luck tier, life area, and
  * one-sentence guidance for returning visitors whose birth date is stored
- * in localStorage. Includes "View full cycle" (smooth-scroll) and
+ * in localStorage. Includes "See all 12 years" (smooth-scroll) and
  * "Not you?" (clear localStorage, reset to form) actions.
  */
 
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { getCycleIndex, getLifeArea, getYearNumber } from "@/lib/numerology/year-lookup";
-
-/** Tier symbol mapping — matches the cycle chart's pillar symbols. */
-const TIER_SYMBOLS: Record<string, string> = {
-  "very-strong": "●",
-  strong: "◕",
-  moderate: "◑",
-  weak: "◔",
-  zero: "⊙",
-};
-
-import { getActiveYear } from "@/lib/numerology/year-lookup";
+import { getTierSymbol } from "@/lib/numerology/chart-helpers";
+import {
+  getActiveYear,
+  getCycleIndex,
+  getLifeArea,
+  getYearNumber,
+} from "@/lib/numerology/year-lookup";
 
 interface Props {
   /** The computed 12-number cycle array. */
@@ -45,19 +40,21 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
   const cycleIndex = getCycleIndex(birthYear, activeYear);
   const lifeArea = getLifeArea(cycleIndex + 1); // getLifeArea is 1-indexed
   const interpretation = interpretYear(cycleNumber);
-  const tierSymbol = TIER_SYMBOLS[interpretation.tier] ?? "◑";
+  const tierSymbol = getTierSymbol(interpretation.tier);
 
   function handleViewFullCycle(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     const el = document.getElementById(chartSectionId);
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // "auto" defers to CSS scroll-behavior: smooth unless motion is reduced
+      el.scrollIntoView({ behavior: "auto", block: "start" });
     }
   }
 
   return (
     <div
-      className="max-w-[480px] w-full rounded-sm border border-border bg-manuscript p-8 sm:p-10 shadow-[0_1px_3px_rgba(44,36,23,0.08)]"
+      className="rise glass max-w-[480px] w-full rounded-2xl p-8 sm:p-10"
+      style={{ "--rise-delay": "760ms" } as React.CSSProperties}
       role="region"
       aria-label="Your current year reading"
     >
@@ -69,24 +66,24 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
       {/* Cycle number — large display */}
       <div className="mt-4 flex items-center justify-center gap-3">
         <span
-          className="text-5xl font-serif font-light text-ink"
+          className="title-glow font-display text-6xl text-ink"
           aria-hidden="true"
         >
           {cycleNumber}
         </span>
-        <span className="text-2xl" aria-hidden="true">
+        <span className="text-2xl text-gold-deep" aria-hidden="true">
           {tierSymbol}
         </span>
       </div>
 
       {/* Tier label */}
-      <p className="mt-2 text-center text-lg font-serif text-ink tracking-[0.02em]">
+      <p className="mt-2 text-center text-lg font-display text-ink tracking-[0.04em]">
         {interpretation.label}
       </p>
 
       {/* Life area */}
       <p className="mt-1 text-center text-sm text-ink-light">
-        {lifeArea} domain
+        Life area: {lifeArea}
       </p>
 
       {/* Guidance — one sentence */}
@@ -96,7 +93,7 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
 
       {/* Screen reader summary */}
       <span className="sr-only">
-        {`Year ${currentYear}: cycle number ${cycleNumber}, ${interpretation.label}, ${lifeArea} domain. ${interpretation.guidance}`}
+        {`Year ${currentYear}: cycle number ${cycleNumber}, ${interpretation.label}, life area ${lifeArea}. ${interpretation.guidance}`}
       </span>
 
       {/* Actions */}
@@ -104,14 +101,14 @@ export function CurrentYearWidget({ cycle, birthYear, birthMonth, birthDay, onRe
         <a
           href={`#${chartSectionId}`}
           onClick={handleViewFullCycle}
-          className="text-ink-light hover:text-gold underline underline-offset-4 transition-colors"
+          className="pressable inline-flex items-center min-h-[44px] px-2 -mx-2 rounded-sm text-ink-light hover:text-ink active:opacity-70 underline underline-offset-4"
         >
-          View full cycle
+          See all 12 years
         </a>
         <button
           type="button"
           onClick={onReset}
-          className="text-ink-light hover:text-ink underline underline-offset-4 transition-colors"
+          className="pressable inline-flex items-center min-h-[44px] px-2 -mx-2 rounded-sm text-ink-light hover:text-ink active:opacity-70 underline underline-offset-4"
         >
           Not you?
         </button>

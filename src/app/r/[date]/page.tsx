@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { decodeBirthDate } from "@/lib/numerology/url-encoding";
+import { decodeShareSegment } from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal } from "@/lib/numerology/interpretation";
+import {
+  SHARED_READING_TITLE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  sharedReadingDescription,
+} from "@/lib/site-copy";
 import { ShareRedirectClient } from "./share-redirect-client";
 
 type Props = {
@@ -15,39 +22,38 @@ type Props = {
  */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { date } = await params;
-  const decoded = decodeBirthDate(date);
+  const decoded = decodeShareSegment(date);
 
   if (!decoded) {
     // Invalid date — return generic metadata (graceful fallback)
-    return {
-      title: "Solini — Life Cycle Calculator",
-      description:
-        "Discover your 12-year life cycle through Khmer numerology. Combines Khmer lunar calendar, Chinese zodiac, and weekday birth data.",
-    };
+    return { title: SITE_TITLE, description: SITE_DESCRIPTION };
   }
 
   const result = computeCycleFromBirthDate(
     decoded.year,
     decoded.month,
-    decoded.day
+    decoded.day,
+    decoded.rule
   );
-  const totalInterp = interpretTotal(result.totalScore);
-  const cycleStr = result.cycle.join(", ");
+  const description = sharedReadingDescription(
+    result.totalScore,
+    interpretTotal(result.totalScore).label
+  );
 
   return {
-    title: `Life Cycle Reading — Solini`,
-    description: `Born ${date}: cycle [${cycleStr}], total score ${result.totalScore} (${totalInterp.label}). Discover your 12-year life cycle.`,
+    title: SHARED_READING_TITLE,
+    description,
     openGraph: {
-      title: "Life Cycle Reading — Solini",
-      description: `Born ${date}: total score ${result.totalScore} (${totalInterp.label}). Discover your 12-year life cycle through Khmer numerology.`,
+      title: SHARED_READING_TITLE,
+      description,
       type: "website",
       locale: "en_US",
-      siteName: "Solini",
+      siteName: SITE_NAME,
     },
     twitter: {
       card: "summary_large_image",
-      title: "Life Cycle Reading — Solini",
-      description: `Born ${date}: total score ${result.totalScore} (${totalInterp.label}). Discover your 12-year life cycle.`,
+      title: SHARED_READING_TITLE,
+      description,
     },
   };
 }
@@ -59,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function SharePage({ params }: Props) {
   const { date } = await params;
-  const decoded = decodeBirthDate(date);
+  const decoded = decodeShareSegment(date);
 
   if (!decoded) {
     // Invalid date — redirect to home form
@@ -74,6 +80,7 @@ export default async function SharePage({ params }: Props) {
       day={decoded.day}
       month={decoded.month}
       year={decoded.year}
+      rule={decoded.rule}
     />
   );
 }

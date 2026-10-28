@@ -4,21 +4,25 @@
  * BirthDataForm
  *
  * Collects day, month, and year inputs from the user, auto-derives the
- * weekday and Chinese zodiac animal when all three fields are complete,
+ * weekday and zodiac animal when all three fields are complete,
  * validates the date on submission, and emits the cycle result via an
- * `onResult` callback.
+ * `onResult` callback. Also holds the Khmer/Chinese New Year toggle, since
+ * it decides the animal the preview and the reading use.
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   deriveBirthData,
   validateBirthDate,
+  zodiacAnimalByRule,
   computeCycleFromBirthDate,
   type CycleResultWithYear,
-  BIRTH_YEAR_MIN,
-  BIRTH_YEAR_MAX,
 } from "@/lib/numerology/derive";
+import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { saveBirthDate } from "@/lib/storage";
+import type { NewYearRule } from "@/lib/numerology/zodiac";
+import { ZodiacIcon } from "@/components/ui/zodiac-icon";
+import { NewYearToggle } from "@/components/new-year-toggle";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -36,6 +40,10 @@ interface Props {
   onResult: (result: CycleResultWithYear) => void;
   /** Optional initial values for pre-filling the form (e.g., from share URL). */
   initialValues?: { day: string; month: string; year: string };
+  /** Which New Year turns the animal year, for the preview and the result. */
+  newYearRule: NewYearRule;
+  /** Called when the visitor switches the New Year rule. */
+  onNewYearRuleChange: (rule: NewYearRule) => void;
 }
 
 interface FieldErrors {
@@ -45,56 +53,177 @@ interface FieldErrors {
   date?: string;
 }
 
-export function BirthDataForm({ onResult, initialValues }: Props) {
+/** Keeps only digits, so letters and signs never reach the field. */
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+/**
+ * The field's new digits after an edit. Typing into a full field starts it
+ * over with the typed digit, so a filled date can be corrected without
+ * clearing it first. Pasting keeps the first digits that fit.
+ */
+function nextFieldValue(
+  previous: string,
+  raw: string,
+  typed: string | null,
+  maxLength: number
+): string {
+  const digits = digitsOnly(raw);
+  if (digits.length <= maxLength) return digits;
+  // The typed text, or (where the browser doesn't report it) what was added
+  // after the existing digits.
+  const typedDigits = typed
+    ? digitsOnly(typed)
+    : digits.startsWith(previous) ? digits.slice(previous.length) : "";
+  if (previous.length === maxLength && typedDigits) return typedDigits.slice(0, maxLength);
+  return digits.slice(0, maxLength);
+}
+
+/**
+ * Whether a field is complete, so focus can move on. A day starting 4-9 or a
+ * month starting 2-9 can't take a second digit, so it is complete at one.
+ */
+export function isFieldComplete(value: string, maxLength: number, maxFirstDigit?: number): boolean {
+  if (value.length >= maxLength) return true;
+  return (
+    maxFirstDigit !== undefined &&
+    value.length === 1 &&
+    Number(value) > maxFirstDigit
+  );
+}
+
+interface DateFieldProps {
+  id: string;
+  label: string;
+  placeholder: string;
+  maxLength: number;
+  /** Autofill hint, so Safari and Chrome can offer the saved birthday. */
+  autoComplete: string;
+  value: string;
+  error?: string;
+  onChange: (digits: string) => void;
+  /** Largest first digit that still allows a second one (3 for days, 1 for months). */
+  maxFirstDigit?: number;
+  inputRef?: React.Ref<HTMLInputElement>;
+  /** Called when an edit completes the field, to move focus on. */
+  onComplete?: () => void;
+  /** Called on Backspace in an empty field, to move focus back. */
+  onBackspaceEmpty?: () => void;
+  className?: string;
+}
+
+/** One labelled date part: a lit well that glows gold on focus and ember on error. */
+function DateField({
+  id,
+  label,
+  placeholder,
+  maxLength,
+  autoComplete,
+  value,
+  error,
+  onChange,
+  maxFirstDigit,
+  inputRef,
+  onComplete,
+  onBackspaceEmpty,
+  className = "",
+}: DateFieldProps) {
+  const errorId = `error-${id.replace("birth-", "")}`;
+  return (
+    <div className={`flex flex-col min-w-0 ${className}`}>
+      <label
+        htmlFor={id}
+        className="mb-2 text-center text-xs uppercase tracking-[0.12em] text-ink-light"
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        value={value}
+        ref={inputRef}
+        onChange={(e) => {
+          const native = e.nativeEvent as InputEvent;
+          const typed = native.data ?? null;
+          const next = nextFieldValue(value, e.target.value, typed, maxLength);
+          onChange(next);
+          // Move on only after typing or pasting, never after deleting.
+          const inserted = native.inputType
+            ? native.inputType.startsWith("insert")
+            : digitsOnly(e.target.value).length > value.length;
+          if (inserted && isFieldComplete(next, maxLength, maxFirstDigit)) {
+            onComplete?.();
+          }
+        }}
+        onFocus={(e) => {
+          // Select the contents so typing replaces them. Deferred because
+          // iOS Safari drops a selection made during the focus event.
+          const input = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (document.activeElement === input) input.setSelectionRange(0, input.value.length);
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Backspace" && value === "") onBackspaceEmpty?.();
+        }}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
+        className="lantern-input pressable"
+      />
+      {error && (
+        <p id={errorId} role="alert" className="mt-2 text-xs text-tier-weak">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function BirthDataForm({
+  onResult,
+  initialValues,
+  newYearRule,
+  onNewYearRuleChange,
+}: Props) {
   const [day, setDay] = useState(initialValues?.day ?? "");
   const [month, setMonth] = useState(initialValues?.month ?? "");
   const [year, setYear] = useState(initialValues?.year ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  const dayRef = useRef<HTMLInputElement>(null);
+  const monthRef = useRef<HTMLInputElement>(null);
+  const yearRef = useRef<HTMLInputElement>(null);
 
   // Parse current field values as numbers (NaN if empty/invalid)
   const dayNum = parseInt(day, 10);
   const monthNum = parseInt(month, 10);
   const yearNum = parseInt(year, 10);
 
-  // Auto-derive zodiac and weekday once all three fields look valid
+  // Preview the zodiac and weekday as soon as the three fields form a real
+  // date, before submission. Future dates still preview; they are rejected
+  // on submit with a message.
   const derived = useMemo(() => {
-    if (
-      !Number.isInteger(dayNum) ||
-      !Number.isInteger(monthNum) ||
-      !Number.isInteger(yearNum) ||
-      dayNum < 1 || dayNum > 31 ||
-      monthNum < 1 || monthNum > 12 ||
-      yearNum < BIRTH_YEAR_MIN || yearNum > BIRTH_YEAR_MAX
-    ) {
+    const partsInRange =
+      isSupportedYear(yearNum) &&
+      Number.isInteger(monthNum) && monthNum >= 1 && monthNum <= 12 &&
+      Number.isInteger(dayNum) && dayNum >= 1 && dayNum <= 31;
+    if (!partsInRange || !isRealCalendarDate(yearNum, monthNum, dayNum)) {
       return null;
     }
+    return deriveBirthData(yearNum, monthNum, dayNum, newYearRule);
+  }, [dayNum, monthNum, yearNum, newYearRule]);
 
-    // Quick calendar check before deriving
-    const date = new Date(yearNum, monthNum - 1, dayNum);
-    if (
-      date.getFullYear() !== yearNum ||
-      date.getMonth() !== monthNum - 1 ||
-      date.getDate() !== dayNum
-    ) {
-      return null;
-    }
-
-    try {
-      return deriveBirthData(yearNum, monthNum, dayNum);
-    } catch {
-      return null;
-    }
-  }, [dayNum, monthNum, yearNum]);
+  // The animal under each rule, once the date is complete, so the toggle can
+  // say whether the choice matters for this birth date.
+  const animalsByRule = useMemo(
+    () => (derived ? zodiacAnimalByRule(yearNum, monthNum, dayNum) : null),
+    [derived, yearNum, monthNum, dayNum]
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,7 +240,7 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
     }
 
     setErrors({});
-    const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum);
+    const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum, newYearRule);
     saveBirthDate(dayNum, monthNum, yearNum);
     onResult(result);
   }
@@ -141,171 +270,120 @@ export function BirthDataForm({ onResult, initialValues }: Props) {
       aria-label="Birth date form"
     >
       {/* Date inputs */}
-      <div className="flex gap-6 mt-8">
-        {/* Day */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <label
-            htmlFor="birth-day"
-            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
-          >
-            Day
-          </label>
-          <input
-            id="birth-day"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={31}
-            placeholder="DD"
-            value={day}
-            onChange={(e) => {
-              setDay(e.target.value);
-              revalidate(e.target.value, month, year);
-            }}
-            aria-invalid={!!errors.day}
-            aria-describedby={errors.day ? "error-day" : undefined}
-            className={[
-              "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-lg font-serif placeholder:text-ink-faint",
-              "focus:border-gold transition-colors min-h-[44px]",
-              errors.day
-                ? "border-[#A0522D]"
-                : "border-border",
-            ].join(" ")}
-          />
-          {errors.day && (
-            <p id="error-day" role="alert" className="mt-1 text-xs text-[#A0522D]">
-              {errors.day}
-            </p>
-          )}
-        </div>
+      <div className="mt-6 sm:mt-8 grid grid-cols-[1fr_1fr_1.5fr] gap-3 sm:gap-4">
+        <DateField
+          id="birth-day"
+          label="Day"
+          placeholder="DD"
+          maxLength={2}
+          autoComplete="bday-day"
+          maxFirstDigit={3}
+          inputRef={dayRef}
+          onComplete={() => monthRef.current?.focus()}
+          value={day}
+          error={errors.day}
+          onChange={(digits) => {
+            setDay(digits);
+            revalidate(digits, month, year);
+          }}
+        />
+        <DateField
+          id="birth-month"
+          label="Month"
+          placeholder="MM"
+          maxLength={2}
+          autoComplete="bday-month"
+          maxFirstDigit={1}
+          inputRef={monthRef}
+          onComplete={() => yearRef.current?.focus()}
+          onBackspaceEmpty={() => dayRef.current?.focus()}
+          value={month}
+          error={errors.month}
+          onChange={(digits) => {
+            setMonth(digits);
+            revalidate(day, digits, year);
+          }}
+        />
+        <DateField
+          id="birth-year"
+          label="Year"
+          placeholder="YYYY"
+          maxLength={4}
+          autoComplete="bday-year"
+          inputRef={yearRef}
+          onBackspaceEmpty={() => monthRef.current?.focus()}
+          value={year}
+          error={errors.year}
+          onChange={(digits) => {
+            setYear(digits);
+            revalidate(day, month, digits);
+          }}
+        />
+      </div>
 
-        {/* Month */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <label
-            htmlFor="birth-month"
-            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
-          >
-            Month
-          </label>
-          <input
-            id="birth-month"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={12}
-            placeholder="MM"
-            value={month}
-            onChange={(e) => {
-              setMonth(e.target.value);
-              revalidate(day, e.target.value, year);
-            }}
-            aria-invalid={!!errors.month}
-            aria-describedby={errors.month ? "error-month" : undefined}
-            className={[
-              "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-lg font-serif placeholder:text-ink-faint",
-              "focus:border-gold transition-colors min-h-[44px]",
-              errors.month
-                ? "border-[#A0522D]"
-                : "border-border",
-            ].join(" ")}
-          />
-          {errors.month && (
-            <p id="error-month" role="alert" className="mt-1 text-xs text-[#A0522D]">
-              {errors.month}
-            </p>
-          )}
-        </div>
+      {/* General date error (e.g. future date, invalid calendar date) */}
+      {errors.date && (
+        <p role="alert" className="mt-3 text-center text-xs text-tier-weak">
+          {errors.date}
+        </p>
+      )}
 
-        {/* Year */}
-        <div className="flex flex-col flex-[2] min-w-0">
-          <label
-            htmlFor="birth-year"
-            className="text-xs uppercase tracking-[0.08em] text-ink-light mb-2"
-          >
-            Year
-          </label>
-          <input
-            id="birth-year"
-            type="number"
-            inputMode="numeric"
-            min={BIRTH_YEAR_MIN}
-            max={BIRTH_YEAR_MAX}
-            placeholder="YYYY"
-            value={year}
-            onChange={(e) => {
-              setYear(e.target.value);
-              revalidate(day, month, e.target.value);
-            }}
-            aria-invalid={!!errors.year}
-            aria-describedby={errors.year ? "error-year" : undefined}
-            className={[
-              "bg-transparent border-0 border-b pb-2 outline-none w-full",
-              "text-ink text-lg font-serif placeholder:text-ink-faint",
-              "focus:border-gold transition-colors min-h-[44px]",
-              errors.year
-                ? "border-[#A0522D]"
-                : "border-border",
-            ].join(" ")}
-          />
-          {errors.year && (
-            <p id="error-year" role="alert" className="mt-1 text-xs text-[#A0522D]">
-              {errors.year}
+      {/* Auto-derived zodiac and weekday. Takes no space until the date is
+          complete, then the slot opens smoothly (grid rows 0fr → 1fr) so the
+          button glides down rather than jumping. */}
+      <div
+        aria-live="polite"
+        className={[
+          "grid transition-[grid-template-rows] duration-[var(--duration-gentle)] ease-[var(--ease-enter)]",
+          derived ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        ].join(" ")}
+      >
+        <div className="overflow-hidden">
+          {derived && (
+            <p className="animate-settle-in mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-gold-deep/[0.06] py-1 pl-2 pr-4">
+                <ZodiacIcon animal={derived.zodiacAnimal} className="size-6 text-gold-deep" />
+                <span>
+                  Year of the{" "}
+                  <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
+                </span>
+              </span>
+              <span className="inline-flex items-center rounded-full border border-border bg-gold-deep/[0.06] px-4 py-1.5">
+                <span>
+                  Born on a{" "}
+                  <span className="font-display text-base text-gold-deep">
+                    {WEEKDAY_NAMES[derived.weekday]}
+                  </span>
+                </span>
+              </span>
             </p>
           )}
         </div>
       </div>
 
-      {/* General date error (e.g. future date, invalid calendar date) */}
-      {errors.date && (
-        <p role="alert" className="mt-2 text-xs text-[#A0522D]">
-          {errors.date}
-        </p>
-      )}
-
-      {/* Auto-derived display */}
-      {derived && (
-        <div
-          aria-live="polite"
-          className={[
-            "mt-6 flex flex-wrap gap-6",
-            prefersReducedMotion ? "" : "animate-[fadeIn_0.3s_ease-in]",
-          ].join(" ")}
-          style={prefersReducedMotion ? undefined : { animation: "fadeIn 0.3s ease-in" }}
-        >
-          {!prefersReducedMotion && <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>}
-          <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.08em] text-ink-faint">
-              Zodiac
-            </span>
-            <span className="text-ink mt-1">{derived.zodiacAnimal}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-[0.08em] text-ink-faint">
-              Day of week
-            </span>
-            <span className="text-ink mt-1">
-              {WEEKDAY_NAMES[derived.weekday]}
-            </span>
-          </div>
-        </div>
-      )}
+      <NewYearToggle
+        rule={newYearRule}
+        onChange={onNewYearRuleChange}
+        animals={animalsByRule}
+      />
 
       {/* Submit */}
-      <div className="mt-10">
+      <div className="mt-6">
         <button
           type="submit"
           className={[
-            "w-full border border-ink text-ink",
-            "py-3 px-6 min-h-[44px]",
-            "text-sm uppercase tracking-[0.08em]",
-            "bg-transparent hover:bg-ink hover:text-manuscript",
-            "transition-colors duration-200",
+            "w-full rounded-full border border-gold-deep text-gold-deep",
+            "py-3 px-6 min-h-[48px]",
+            "text-sm font-medium uppercase tracking-[0.14em]",
+            "bg-transparent hover:bg-gold-deep hover:text-parchment hover:shadow-[var(--shadow-glow)]",
+            "pressable active:scale-[0.97] active:bg-gold-deep active:text-parchment",
           ].join(" ")}
         >
           Reveal My Cycle
         </button>
+        <p className="mt-3 text-center text-xs text-ink-light">
+          Free, no sign-up. Your birth date stays in this browser.
+        </p>
       </div>
     </form>
   );

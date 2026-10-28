@@ -1,4 +1,5 @@
 import {
+  zodiacAnimalByRule,
   deriveBirthData,
   validateBirthDate,
   computeCycleFromBirthDate,
@@ -42,11 +43,18 @@ describe("deriveBirthData", () => {
     expect(zodiacNumber).toBe(4);
   });
 
-  it("uses 2000 zodiac for Feb 6, 2000 (after CNY Feb 5, 2000)", () => {
+  it("uses 2000 zodiac for Feb 6, 2000 under the Chinese New Year rule (CNY Feb 5)", () => {
     // On or after CNY → zodiac year 2000 → Dragon (index 4 → number 5)
-    const { zodiacNumber, zodiacAnimal } = deriveBirthData(2000, 2, 6);
+    const { zodiacNumber, zodiacAnimal } = deriveBirthData(2000, 2, 6, "chinese");
     expect(zodiacAnimal).toBe("Dragon");
     expect(zodiacNumber).toBe(5);
+  });
+
+  it("keeps the 1999 zodiac for Feb 6, 2000 by default (Khmer New Year in April)", () => {
+    const { zodiacNumber, zodiacAnimal, newYearRule } = deriveBirthData(2000, 2, 6);
+    expect(newYearRule).toBe("khmer");
+    expect(zodiacAnimal).toBe("Rabbit");
+    expect(zodiacNumber).toBe(4);
   });
 
   it("maps getDay() correctly: Sunday → weekday 1", () => {
@@ -160,7 +168,7 @@ describe("validateBirthDate", () => {
   it("rejects February 30 as invalid calendar date", () => {
     const errors = validateBirthDate(2000, 2, 30, today);
     expect(errors.some((e) => e.field === "date")).toBe(true);
-    expect(errors[0].message).toMatch(/invalid date/i);
+    expect(errors[0].message).toMatch(/doesn't exist/i);
   });
 
   it("accepts Feb 29 on a leap year", () => {
@@ -197,5 +205,25 @@ describe("validateBirthDate", () => {
   it("BIRTH_YEAR_MIN is 1900 and BIRTH_YEAR_MAX is 2100", () => {
     expect(BIRTH_YEAR_MIN).toBe(1900);
     expect(BIRTH_YEAR_MAX).toBe(2100);
+  });
+});
+
+describe("zodiacAnimalByRule", () => {
+  it("differs between Chinese New Year and Khmer New Year", () => {
+    expect(zodiacAnimalByRule(1997, 2, 10)).toEqual({ khmer: "Rat", chinese: "Ox" });
+  });
+
+  it("agrees outside that gap", () => {
+    expect(zodiacAnimalByRule(1997, 7, 24)).toEqual({ khmer: "Ox", chinese: "Ox" });
+  });
+});
+
+describe("computeCycleFromBirthDate with a New Year rule", () => {
+  it("changes the cycle when the rule changes the animal", () => {
+    const khmer = computeCycleFromBirthDate(1997, 2, 10, "khmer");
+    const chinese = computeCycleFromBirthDate(1997, 2, 10, "chinese");
+    expect(khmer.birthData.zodiacAnimal).toBe("Rat");
+    expect(chinese.birthData.zodiacAnimal).toBe("Ox");
+    expect(khmer.cycle).not.toEqual(chinese.cycle);
   });
 });

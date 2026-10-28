@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A fortune calculation system rooted in Khmer tradition that combines three inputs — birth month, Chinese zodiac year, and birth weekday — into a 12-number repeating life cycle. Each number represents the relative luck strength for a given year, and the cycle repeats every 12 years from birth.
+A fortune calculation system rooted in Khmer tradition that combines three inputs — birth month, zodiac animal year, and birth weekday — into a 12-number repeating life cycle. Each number represents the relative luck strength for a given year, and the cycle repeats every 12 years from birth.
 
 ## Inputs
 
@@ -11,7 +11,7 @@ The system requires three pieces of birth data:
 | Input | Source | Range |
 |-------|--------|-------|
 | Birth month | Khmer lunar calendar (Margasir-based) | 1–12 |
-| Birth year | Chinese zodiac (12-animal cycle) | 1–12 |
+| Birth year | Zodiac animal (12-animal cycle), counted from Khmer New Year by default | 1–12 |
 | Birth weekday | Day of the week | 1–7 |
 
 ## Calendar Foundation
@@ -36,7 +36,9 @@ The row always contains all values 1–12 in cyclic order, starting from the bir
 
 ### Row 2: Zodiac Row (12-Animal Cycle)
 
-Each Chinese zodiac animal maps to a fixed number:
+The animal year turns at New Year. By default that is **Khmer New Year** (Moha Sangkran, 12–15 April), as reckoned in Cambodia; visitors can switch to **Chinese New Year** (late January to February). The two give different animals only for births between them. A birth on New Year's day counts as the new year, since birth times are not collected.
+
+Each zodiac animal maps to a fixed number:
 
 | Animal | Number | Animal | Number |
 |--------|--------|--------|--------|

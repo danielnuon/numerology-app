@@ -2,6 +2,8 @@ import {
   encodeBirthDate,
   decodeBirthDate,
   buildSharePath,
+  encodeShareSegment,
+  decodeShareSegment,
 } from "../url-encoding";
 
 describe("encodeBirthDate", () => {
@@ -167,5 +169,28 @@ describe("roundtrip encode/decode", () => {
     for (const segment of segments) {
       expect(segment.length).toBeLessThanOrEqual(20);
     }
+  });
+});
+
+describe("share segments with a New Year rule", () => {
+  it("leaves Khmer New Year readings unmarked", () => {
+    expect(encodeShareSegment(1997, 7, 24, "khmer")).toBe("1997-07-24");
+    expect(buildSharePath(1997, 7, 24, "khmer")).toBe("/r/1997-07-24");
+  });
+
+  it("marks Chinese New Year readings with -cny", () => {
+    expect(encodeShareSegment(1997, 2, 10, "chinese")).toBe("1997-02-10-cny");
+    expect(buildSharePath(1997, 2, 10, "chinese")).toBe("/r/1997-02-10-cny");
+  });
+
+  it("decodes both forms", () => {
+    expect(decodeShareSegment("1997-07-24")).toEqual({ year: 1997, month: 7, day: 24, rule: "khmer" });
+    expect(decodeShareSegment("1997-02-10-cny")).toEqual({ year: 1997, month: 2, day: 10, rule: "chinese" });
+  });
+
+  it("rejects unknown suffixes and bad dates", () => {
+    expect(decodeShareSegment("1997-02-10-xyz")).toBeNull();
+    expect(decodeShareSegment("1997-02-30-cny")).toBeNull();
+    expect(decodeShareSegment("-cny")).toBeNull();
   });
 });

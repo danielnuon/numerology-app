@@ -1,17 +1,29 @@
 /**
  * Birth Data Derivation
  *
- * Pure functions that derive weekday, Chinese zodiac, and compute the
+ * Pure functions that derive weekday, zodiac animal, and compute the
  * numerology cycle from raw birth date inputs. Keeps all domain logic
  * out of UI components.
  */
 
 import { computeCycle, type CycleResult, type Weekday } from "./calculate";
-import { getZodiacAnimal, getZodiacNumber, type ZodiacAnimal } from "./zodiac";
+import {
+  isRealCalendarDate,
+  isSupportedYear,
+  SUPPORTED_YEAR_MAX,
+  SUPPORTED_YEAR_MIN,
+} from "./calendar";
+import {
+  DEFAULT_NEW_YEAR_RULE,
+  getZodiacAnimal,
+  getZodiacNumber,
+  type NewYearRule,
+  type ZodiacAnimal,
+} from "./zodiac";
 
-/** The year range supported by the CNY lookup table. */
-export const BIRTH_YEAR_MIN = 1900;
-export const BIRTH_YEAR_MAX = 2100;
+/** The year range supported by the New Year lookup tables. */
+export const BIRTH_YEAR_MIN = SUPPORTED_YEAR_MIN;
+export const BIRTH_YEAR_MAX = SUPPORTED_YEAR_MAX;
 
 /** All data derived from a birth date. */
 export interface BirthData {
@@ -19,10 +31,12 @@ export interface BirthData {
   gregorianMonth: number;
   /** Weekday number (1-7, Sunday=1 ... Saturday=7). */
   weekday: Weekday;
-  /** Chinese zodiac number (1-12, Rat=1 ... Pig=12), CNY-boundary adjusted. */
+  /** Zodiac number (1-12, Rat=1 ... Pig=12), adjusted for the New Year boundary. */
   zodiacNumber: number;
   /** Human-readable zodiac animal name. */
   zodiacAnimal: ZodiacAnimal;
+  /** The New Year boundary the animal was counted from. */
+  newYearRule: NewYearRule;
 }
 
 /** Validation error structure returned by validateBirthDate. */
@@ -48,40 +62,36 @@ export function validateBirthDate(
 ): BirthDateValidationError[] {
   const errors: BirthDateValidationError[] = [];
 
-  if (!Number.isInteger(year) || year < BIRTH_YEAR_MIN || year > BIRTH_YEAR_MAX) {
+  if (!isSupportedYear(year)) {
     errors.push({
       field: "year",
-      message: `Year must be between ${BIRTH_YEAR_MIN} and ${BIRTH_YEAR_MAX}.`,
+      message: `Enter a year from ${BIRTH_YEAR_MIN} to ${BIRTH_YEAR_MAX}.`,
     });
   }
 
   if (!Number.isInteger(month) || month < 1 || month > 12) {
-    errors.push({ field: "month", message: "Month must be between 1 and 12." });
+    errors.push({ field: "month", message: "Enter a month from 1 to 12." });
   }
 
   if (!Number.isInteger(day) || day < 1 || day > 31) {
-    errors.push({ field: "day", message: "Day must be between 1 and 31." });
+    errors.push({ field: "day", message: "Enter a day from 1 to 31." });
   }
 
-  // Only check calendar validity and future date if year/month/day passed basic range checks
+  // Calendar and future-date checks only make sense once each part is in range.
   if (errors.length === 0) {
-    const date = new Date(year, month - 1, day);
-    // Detect overflow: new Date(2000, 1, 30) overflows to March, so getMonth() !== month-1
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      errors.push({ field: "date", message: "Invalid date for the given month." });
+    if (!isRealCalendarDate(year, month, day)) {
+      errors.push({ field: "date", message: "That date doesn't exist. Check the day and month." });
     } else {
       const today = todayOverride ?? new Date();
-      const todayNoon = new Date(
+      const startOfToday = new Date(
         today.getFullYear(),
         today.getMonth(),
         today.getDate()
       );
-      if (date > todayNoon) {
-        errors.push({ field: "date", message: "Birth date cannot be in the future." });
+      // Compare against midnight so a birth date of today is accepted
+      // regardless of the current time of day.
+      if (new Date(year, month - 1, day) > startOfToday) {
+        errors.push({ field: "date", message: "A birth date can't be in the future." });
       }
     }
   }
@@ -99,26 +109,36 @@ export function validateBirthDate(
  * @param year - Four-digit Gregorian year
  * @param month - Gregorian month (1-12)
  * @param day - Day of month
+ * @param rule - Which New Year turns the animal year (Khmer by default)
  * @returns BirthData with derived weekday, zodiac number, zodiac animal, and month
  */
-export function deriveBirthData(year: number, month: number, day: number): BirthData {
+export function deriveBirthData(
+  year: number,
+  month: number,
+  day: number,
+  rule: NewYearRule = DEFAULT_NEW_YEAR_RULE
+): BirthData {
   const date = new Date(year, month - 1, day);
 
-  // JS getDay(): 0=Sun, 1=Mon...6=Sat → Weekday type: 1=Sun, 2=Mon...7=Sat
+  // JS getDay() is 0-based (0=Sun); the Khmer weekday numbering is 1-based (1=Sun).
   const weekday = (date.getDay() + 1) as Weekday;
 
-  const zodiacNumber = getZodiacNumber(date);
-  const zodiacAnimal = getZodiacAnimal(date);
+  const zodiacNumber = getZodiacNumber(date, rule);
+  const zodiacAnimal = getZodiacAnimal(date, rule);
 
   return {
     gregorianMonth: month,
     weekday,
     zodiacNumber,
     zodiacAnimal,
+    newYearRule: rule,
   };
 }
 
-/** Extended cycle result that also carries the birth year for year-lookup queries. */
+/**
+ * Cycle result plus the birth date it came from. Year lookups need the birth
+ * year as the cycle's anchor, and birthday timing needs the month and day.
+ */
 export interface CycleResultWithYear extends CycleResult {
   birthYear: number;
   birthDay: number;
@@ -131,14 +151,16 @@ export interface CycleResultWithYear extends CycleResult {
  * @param year - Four-digit Gregorian year
  * @param month - Gregorian month (1-12)
  * @param day - Day of month
+ * @param rule - Which New Year turns the animal year (Khmer by default)
  * @returns CycleResultWithYear combining CycleResult, birthYear, and BirthData
  */
 export function computeCycleFromBirthDate(
   year: number,
   month: number,
-  day: number
+  day: number,
+  rule: NewYearRule = DEFAULT_NEW_YEAR_RULE
 ): CycleResultWithYear {
-  const birthData = deriveBirthData(year, month, day);
+  const birthData = deriveBirthData(year, month, day, rule);
   const cycleResult = computeCycle(
     birthData.gregorianMonth,
     birthData.zodiacNumber,
@@ -150,5 +172,22 @@ export function computeCycleFromBirthDate(
     birthYear: year,
     birthDay: day,
     birthData,
+  };
+}
+
+/**
+ * The animal a birth date gets under each New Year rule. They differ only for
+ * births between Chinese New Year and Khmer New Year (roughly February to
+ * mid-April), which is when the choice of rule changes the reading.
+ */
+export function zodiacAnimalByRule(
+  year: number,
+  month: number,
+  day: number
+): Record<NewYearRule, ZodiacAnimal> {
+  const date = new Date(year, month - 1, day);
+  return {
+    khmer: getZodiacAnimal(date, "khmer"),
+    chinese: getZodiacAnimal(date, "chinese"),
   };
 }

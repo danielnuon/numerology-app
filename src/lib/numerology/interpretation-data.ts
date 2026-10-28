@@ -6,10 +6,16 @@
  * constants, enabling future i18n by swapping this module.
  */
 
+/** Luck tier for a single year. Also used as a CSS token suffix (bg-tier-*). */
+export type YearTier = "zero" | "weak" | "moderate" | "strong" | "very-strong";
+
+/** Luck tier for the whole 12-year cycle's total score. */
+export type TotalTier = "weak" | "moderate" | "strong";
+
 /** A single year-cycle interpretation tier. */
 export interface YearTierEntry {
   /** CSS-friendly tier identifier */
-  tier: string;
+  tier: YearTier;
   /** Human-readable tier label */
   label: string;
   /** Longer description of the tier */
@@ -25,7 +31,7 @@ export interface YearTierEntry {
 /** A single total-score interpretation tier. */
 export interface TotalTierEntry {
   /** CSS-friendly tier identifier */
-  tier: string;
+  tier: TotalTier;
   /** Human-readable tier label */
   label: string;
   /** Longer description of the tier */
@@ -45,9 +51,9 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     tier: "zero",
     label: "Reset / unstable",
     description:
-      "A year of reset and instability. Old cycles close and new ones have yet to begin.",
+      "A turning point. Tradition reads zero as a year of change, when old patterns close and new ones are still forming.",
     guidance:
-      "Avoid major commitments. Focus on reflection, rest, and clearing unfinished business before the next cycle begins.",
+      "A year to hold off on big risks. Make room for rest, reflection and finishing what is unfinished.",
     min: 0,
     max: 0,
   },
@@ -55,9 +61,9 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     tier: "weak",
     label: "Weak luck",
     description:
-      "A year where fortune is subdued. Progress may feel slow and obstacles more frequent.",
+      "A quieter year for fortune. Progress can feel slower and setbacks more frequent.",
     guidance:
-      "Practise patience and conserve resources. Small, steady efforts will serve you better than bold moves.",
+      "Favor patience and small, steady steps over bold moves, and look after your energy and resources.",
     min: 1,
     max: 3,
   },
@@ -65,9 +71,9 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     tier: "moderate",
     label: "Moderate / neutral",
     description:
-      "A balanced year with neither strong fortune nor serious hardship.",
+      "A balanced year, with neither strong tailwinds nor heavy headwinds.",
     guidance:
-      "Maintain your current course. Modest investments and careful planning will yield steady results.",
+      "A year for keeping a steady course: plan carefully and build gradually.",
     min: 4,
     max: 6,
   },
@@ -75,9 +81,9 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     tier: "strong",
     label: "Strong luck",
     description:
-      "A favourable year. Opportunities are plentiful and efforts tend to bear fruit.",
+      "A favorable year. Tradition reads it as a time when effort tends to bear fruit.",
     guidance:
-      "Take confident action on goals you have been preparing for. Fortune supports decisive movement.",
+      "A good year to act on the plans you have been preparing.",
     min: 7,
     max: 9,
   },
@@ -85,9 +91,9 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
     tier: "very-strong",
     label: "Very strong luck",
     description:
-      "An exceptional year of powerful fortune. The highest energies align in your favour.",
+      "One of the two highest numbers in the cycle. Tradition reads it as a peak year for fortune.",
     guidance:
-      "Seize major opportunities — start ventures, make significant commitments, and invest boldly. This peak energy is rare.",
+      "A year to pursue what matters most to you. Peaks like this come rarely, so make room for them.",
     min: 10,
     max: 11,
   },
@@ -101,7 +107,7 @@ export const TOTAL_TIERS: readonly TotalTierEntry[] = [
     tier: "weak",
     label: "Weak / difficult cycle",
     description:
-      "The overall cycle carries heavy challenges. Resilience and caution are essential throughout.",
+      "Your cycle as a whole leans toward challenge. Patience serves you, and your stronger years are the ones to build on.",
     min: 0,
     max: 59,
   },
@@ -109,15 +115,15 @@ export const TOTAL_TIERS: readonly TotalTierEntry[] = [
     tier: "moderate",
     label: "Balanced / moderate cycle",
     description:
-      "The overall cycle is balanced. Some years will be harder, others easier — steadiness is key.",
+      "Your cycle as a whole is balanced: some years ask for patience, others open doors.",
     min: 60,
     max: 67,
   },
   {
     tier: "strong",
-    label: "Strong / favourable cycle",
+    label: "Strong / favorable cycle",
     description:
-      "The overall cycle is auspicious. Conditions broadly favour growth and accomplishment.",
+      "Your cycle as a whole leans favorable, with conditions that broadly support growth.",
     min: 68,
     max: Infinity,
   },

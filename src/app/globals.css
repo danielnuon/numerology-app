@@ -1,73 +1,543 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* === Temple at Dusk — Color Palette === */
-  --color-parchment: #F5F0E8;
-  --color-manuscript: #FFFDF7;
-  --color-manuscript-alt: #EDE7DB;
-  --color-ink: #2C2417;
-  --color-ink-light: #7A6F5F;
-  --color-ink-faint: #A89F8F;
-  --color-gold: #B8860B;
-  --color-gold-light: #D4A843;
-  --color-border: #D5CBBA;
-  --color-border-light: #E8E0D2;
+  /* === Temple Lantern — Color Palette ===
+   * A night temple lit by lanterns. Token names are kept from the original
+   * parchment palette so every component follows: "parchment" is the page,
+   * "manuscript" the card surface, "ink" the text. */
+  --color-parchment: #17131C;
+  --color-manuscript: #221C28;
+  --color-manuscript-alt: #2B2431;
+  --color-ink: #F1E8D8; /* 15:1 on the page */
+  --color-ink-light: #B4A894; /* 7.8:1 on the page, 7.1:1 on cards — secondary text */
+  --color-ink-faint: #85796B; /* 4.3:1 — placeholders and decoration only */
+  --color-gold: #C99A3E; /* decorative: diamonds, hairlines */
+  --color-gold-deep: #E2B65A; /* 9.7:1 — gold that carries meaning: focus, "now", gold text */
+  --color-gold-light: #F0CD8C;
+  --color-border: #3B3242;
+  --color-border-light: #2E2734;
 
-  /* Luck tier colors */
-  --color-tier-very-strong: #5B7744;
-  --color-tier-strong: #7A9B6B;
-  --color-tier-moderate: #B8860B;
-  --color-tier-weak: #A0522D;
-  --color-tier-zero: #4A4039;
+  /* Luck tier colors: the lantern light each tier gives off */
+  --color-tier-very-strong: #BFE0A5;
+  --color-tier-strong: #A9CC93;
+  --color-tier-moderate: #E2B65A;
+  --color-tier-weak: #D98A62;
+  --color-tier-zero: #0E0B11; /* an unlit niche, darker than the page */
 
-  /* === Typography === */
-  --font-serif: var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+/* === Typography === */
+  --font-serif: var(--font-marcellus), var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+  --font-sans: var(--font-hanken), var(--font-noto-serif-khmer), "Helvetica Neue", Arial, sans-serif;
 
   /* === Spacing (temple proportions) === */
   --spacing-4_5: 18px;
+
+  /* === Elevation === */
+  --shadow-card: 0 40px 80px -40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(241, 232, 216, 0.06);
+  --shadow-raised: 0 10px 30px -8px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 40px -6px rgba(226, 182, 90, 0.42);
+
+  /* === Motion (Material 3 curves; see docs/design-spec.md "Motion") === */
+  --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* Symmetric ease for ambient breathing that runs back and forth */
+  --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+
+:root {
+  --duration-press: 100ms;
+  --duration-quick: 150ms;
+  --duration-standard: 250ms;
+  --duration-gentle: 400ms;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+  background: var(--color-parchment);
 }
 
 body {
   background: var(--color-parchment);
   color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-size: 1.125rem;
-  line-height: 1.7;
-  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
-/* Paper texture — subtle noise overlay */
-.paper-texture {
-  position: relative;
+/* Display face: Marcellus, an inscriptional serif like temple lettering */
+.font-display {
+  font-family: var(--font-serif);
 }
-.paper-texture::before {
+
+/* === Lantern atmosphere ===
+ * A dusk sky behind everything: lantern glows that rise as the page
+ * scrolls, and dust motes drifting on a canvas above them. */
+.dusk-sky {
+  /* Sized to the large viewport so the sky reaches under mobile browser
+   * toolbars (Safari's floats over the page). Safari may still clip a fixed
+   * layer at the small viewport, so the fade into the page color finishes
+   * just above the small viewport's bottom: wherever the layer ends, the
+   * color beneath it already matches and there is no seam. */
+  position: fixed;
+  inset: 0 0 auto;
+  height: 100vh;
+  height: 100lvh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: clip;
+}
+/* The fade into the page color sits above the glows, the dust above both. */
+.dusk-sky::after {
   content: "";
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
-  background-repeat: repeat;
   z-index: 1;
+  background: linear-gradient(to bottom, transparent 82%, var(--color-parchment));
+  background: linear-gradient(to bottom, transparent calc(100svh - 220px), var(--color-parchment) calc(100svh - 16px));
 }
-.paper-texture > * {
-  position: relative;
+
+/* Lantern glows. Each is a plain gradient in a box no bigger than its light,
+ * so it is painted once and then only slid by the compositor. */
+.sky-glow {
+  --drift: 0px;
+  position: absolute;
+  background: radial-gradient(closest-side, var(--glow), transparent);
+}
+.sky-glow-dusk {
+  --drift: 520px;
+  --glow: rgba(120, 72, 120, 0.35);
+  left: calc(50% - 840px);
+  top: calc(-10% - 420px);
+  width: 1680px;
+  height: 840px;
+}
+/* Starts below the fold and rises into view as the page scrolls */
+.sky-glow-lantern {
+  --drift: 520px;
+  --glow: rgba(226, 170, 90, 0.12);
+  left: calc(30% - 532px);
+  top: calc(100svh + 260px - 266px);
+  width: 1064px;
+  height: 532px;
+}
+.sky-glow-ember {
+  --drift: 200px;
+  --glow: rgba(226, 150, 70, 0.14);
+  left: calc(50% - 630px);
+  top: calc(100svh - 200px - 294px);
+  width: 1260px;
+  height: 588px;
+}
+
+/* Parallax: the glows rise more slowly than the page as it scrolls (about
+ * 0.4x and 0.15x over the first 1300px), giving the sky depth. Driven by the
+ * scroll position on the compositor, with no script; where scroll-driven
+ * animation is unsupported, or Reduce Motion is on, the sky stays still. */
+@keyframes glow-rise {
+  to { transform: translate3d(0, calc(var(--drift) * -1), 0); }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sky-glow {
+      will-change: transform;
+      animation: glow-rise linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 1300px;
+    }
+  }
+}
+.dusk-sky canvas {
+  position: absolute;
+  inset: 0;
   z-index: 2;
+  width: 100%;
+  height: 100%;
 }
 
-/* Zero-tier pillar breathing pulse */
-@keyframes breathe {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+/* Side gutter that also clears the notch in landscape (viewport-fit=cover) */
+.safe-gutter {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+@media (min-width: 640px) {
+  .safe-gutter {
+    padding-left: max(2rem, env(safe-area-inset-left));
+    padding-right: max(2rem, env(safe-area-inset-right));
+  }
 }
 
-.animate-breathe {
-  animation: breathe 3s ease-in-out infinite;
+/* === Form fields ===
+ * A lit well: a solid surface (so autofill can be matched exactly), centered
+ * lining figures in the body face, a gold glow on focus, ember on error. */
+.lantern-input {
+  --field-bg: #1A1520;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 clamp(0.25rem, 2vw, 0.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  background-color: var(--field-bg);
+  color: var(--color-ink);
+  caret-color: var(--color-gold-deep);
+  font-family: var(--font-sans);
+  font-size: clamp(1.125rem, 5vw, 1.375rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.04em;
+  text-align: center;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.lantern-input::placeholder {
+  color: var(--color-ink-faint);
+}
+@media (min-width: 400px) {
+  .lantern-input {
+    letter-spacing: 0.08em;
+  }
+  .lantern-input::placeholder {
+    letter-spacing: 0.12em;
+  }
+}
+@media (hover: hover) {
+  .lantern-input:hover {
+    border-color: color-mix(in srgb, var(--color-gold-deep) 35%, var(--color-border));
+  }
+}
+.lantern-input:focus {
+  border-color: var(--color-gold-deep);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(226, 182, 90, 0.16),
+    0 0 24px -6px rgba(226, 182, 90, 0.55);
+}
+.lantern-input[aria-invalid="true"] {
+  border-color: var(--color-tier-weak);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(217, 138, 98, 0.16);
+}
+/* Safari and Chrome paint autofilled fields pale yellow. Cover it with the
+ * field color (an inset shadow is the only paint that sits above it) and
+ * hold their background change off indefinitely. */
+.lantern-input:-webkit-autofill,
+.lantern-input:-webkit-autofill:hover,
+.lantern-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  -webkit-box-shadow: 0 0 0 100px var(--field-bg) inset;
+  box-shadow: 0 0 0 100px var(--field-bg) inset;
+  caret-color: var(--color-gold-deep);
+  transition: background-color 99999s ease-out 0s;
+}
+.lantern-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px var(--field-bg) inset, 0 0 0 3px rgba(226, 182, 90, 0.16);
+  box-shadow: 0 0 0 100px var(--field-bg) inset, 0 0 0 3px rgba(226, 182, 90, 0.16);
 }
 
+/* Frosted card over the sky */
+.glass {
+  background: color-mix(in srgb, var(--color-manuscript) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+.title-glow {
+  text-shadow: 0 0 40px rgba(226, 182, 90, 0.28);
+}
+
+/* Each tier lights its pillar from below; stronger years burn brighter. */
+[data-tier="very-strong"] { --lamp: rgba(170, 215, 140, 0.55); }
+[data-tier="strong"] { --lamp: rgba(150, 190, 130, 0.45); }
+[data-tier="moderate"] { --lamp: rgba(226, 182, 90, 0.42); }
+[data-tier="weak"] { --lamp: rgba(205, 110, 70, 0.45); }
+[data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); }
+
+/* === Cycle wheel ===
+ * Twelve lantern orbs on a ring, each lit from within by its tier's light.
+ * The current year has a gold edge and a warmer glow. */
+.wheel-orb {
+  background:
+    radial-gradient(circle at 50% 65%, var(--lamp) 0, transparent 70%),
+    #1d1823;
+  box-shadow: 0 0 18px -4px var(--lamp), inset 0 0 0 1px rgba(241, 232, 216, 0.09);
+}
+.wheel-orb[data-tier="zero"] {
+  background: var(--color-tier-zero);
+}
+.wheel-orb-current {
+  box-shadow: 0 0 0 1.5px var(--color-gold-deep), 0 0 30px -2px rgba(226, 182, 90, 0.55);
+}
+/* === The living wheel ===
+ * The wheel is the one place the interface moves on its own, so it reads as
+ * lit rather than printed. Everything is slow, animates only opacity and
+ * transform (compositor work, no repaints), and is still under Reduce Motion:
+ * - the current year's number breathes with a soft gold halo
+ * - every number's light breathes at its own pace, like lanterns
+ * - the numbers float about a pixel
+ * - a glint travels the ring every 14 s; a fine tick ring turns every 3 min
+ * - a tapped number sends out one ring
+ * - scrolling shifts the ring and the center slightly apart, for depth */
+.wheel-ticks {
+  background: repeating-conic-gradient(from 0deg, rgba(241, 232, 216, 0.14) 0 0.35deg, transparent 0.35deg 7.5deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  opacity: 0.6;
+}
+.wheel-glint {
+  opacity: 0;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(226, 182, 90, 0) 300deg, rgba(226, 182, 90, 0.75) 356deg, transparent 360deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+.wheel-orb::before,
+.wheel-orb-current::after,
+.wheel-ripple {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.wheel-orb::before {
+  box-shadow: 0 0 22px -2px var(--lamp);
+  opacity: 0.5;
+}
+.wheel-orb-current::after {
+  box-shadow: 0 0 18px 3px rgba(226, 182, 90, 0.45);
+  opacity: 0;
+}
+.wheel-ripple {
+  border: 1px solid var(--lamp);
+  opacity: 0;
+}
+@keyframes current-pulse {
+  from { opacity: 0.15; transform: scale(1); }
+  to { opacity: 0.85; transform: scale(1.08); }
+}
+@keyframes lantern-breathe {
+  from { opacity: 0.2; }
+  to { opacity: 0.9; }
+}
+@keyframes number-float {
+  from { transform: translateY(-1px); }
+  to { transform: translateY(1px); }
+}
+@keyframes ring-turn {
+  to { transform: rotate(360deg); }
+}
+@keyframes ring-glint {
+  0% { opacity: 0; transform: rotate(0deg); }
+  8% { opacity: 1; }
+  60% { opacity: 1; }
+  75%, 100% { opacity: 0; transform: rotate(360deg); }
+}
+@keyframes orb-ripple {
+  from { opacity: 0.9; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+@keyframes depth-ring {
+  from { transform: translateY(6px); }
+  to { transform: translateY(-6px); }
+}
+@keyframes depth-hub {
+  from { transform: translateY(-4px); }
+  to { transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wheel-orb-current::after {
+    animation: current-pulse 1.8s var(--ease-sine) infinite alternate;
+  }
+  .wheel-orb::before {
+    animation: lantern-breathe var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
+  }
+  .wheel-orb-number {
+    animation: number-float var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
+  }
+  .wheel-ticks {
+    animation: ring-turn 180s linear infinite;
+  }
+  .wheel-glint {
+    animation: ring-glint 14s var(--ease-sine) 1.2s infinite;
+  }
+  .wheel-ripple-run {
+    animation: orb-ripple 600ms var(--ease-standard) both;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .wheel-depth-ring {
+      animation: depth-ring linear both;
+      animation-timeline: view();
+    }
+    .wheel-depth-hub {
+      animation: depth-hub linear both;
+      animation-timeline: view();
+    }
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wheel-orb-current::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 18px 3px rgba(226, 182, 90, 0.45);
+    animation: current-pulse 1.8s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+  }
+}
+@media (hover: hover) {
+  .wheel-orb:not(.wheel-orb-current):hover {
+    box-shadow: 0 0 26px -2px var(--lamp), inset 0 0 0 1px rgba(241, 232, 216, 0.2);
+  }
+}
+
+/* The center of the wheel and the reading that blooms from it */
+.wheel-hub {
+  background:
+    radial-gradient(circle at 50% 75%, var(--lamp), transparent 70%),
+    rgba(23, 19, 28, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(241, 232, 216, 0.08);
+}
+.wheel-reading {
+  background:
+    radial-gradient(120% 70% at 50% 110%, var(--lamp), transparent 70%),
+    #1c1722;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+}
+
+/* The gold arc traces the cycle from the birth year to this year */
+@keyframes trace-arc {
+  from { stroke-dashoffset: var(--arc-length); }
+}
+.wheel-arc {
+  animation: trace-arc 1.6s var(--ease-enter) 0.3s both;
+}
+
+/* A small orb of the same light for the timeline dots */
+.lamp-orb {
+  box-shadow: 0 0 14px -2px var(--lamp), inset 0 -8px 10px -6px var(--lamp);
+}
+
+/* The timeline fades into the dark at both edges */
+.timeline-fade {
+  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+/* === Entrance choreography ===
+ * On load the title surfaces out of the dark, then each block follows
+ * 120ms apart. Set --rise-delay on an element to place it in the sequence. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.rise {
+  animation: rise 900ms var(--ease-enter) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+@keyframes kindle {
+  from { opacity: 0; letter-spacing: 0.3em; filter: blur(10px); }
+  to { opacity: 1; filter: none; }
+}
+.kindle {
+  animation: kindle 1600ms var(--ease-enter) both;
+}
+
+/* === Interaction ===
+ * Anything clickable looks clickable: pointer cursor, a visible keyboard
+ * focus ring, and hover only on devices that can hover. */
+button:not(:disabled),
+[role="button"],
+[role="tab"],
+[role="option"] {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-deep);
+  outline-offset: 2px;
+}
+
+/* Calm press feedback shared by every control */
+.pressable {
+  transition:
+    transform var(--duration-quick) var(--ease-standard),
+    box-shadow var(--duration-quick) var(--ease-standard),
+    background-color var(--duration-quick) var(--ease-standard),
+    color var(--duration-quick) var(--ease-standard),
+    opacity var(--duration-quick) var(--ease-standard);
+}
+.pressable:active {
+  transition-duration: var(--duration-press);
+}
+
+/* Fade-and-settle entrance for content that appears in place */
+@keyframes settle-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-settle-in {
+  animation: settle-in var(--duration-standard) var(--ease-enter) both;
+}
+
+/* Sections settle into place as they scroll into view. Compositor-driven
+ * where supported; elsewhere they simply appear. */
+@keyframes scroll-settle {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-settle {
+      animation: scroll-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+
+/* === View transitions (React <ViewTransition>) ===
+ * Only named elements animate; the rest of the page updates live. */
+:root {
+  view-transition-name: none;
+}
+::view-transition-group(*) {
+  animation-duration: var(--duration-standard);
+  animation-timing-function: var(--ease-standard);
+}
+::view-transition-old(.panel-swap) {
+  animation: var(--duration-quick) var(--ease-exit) both vt-fade-out;
+}
+::view-transition-new(.panel-swap) {
+  animation: var(--duration-standard) var(--ease-enter) both vt-fade-in;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+/* === Reduce Motion ===
+ * Nothing moves or scales; changes happen instantly. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-breathe {
-    animation: none;
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

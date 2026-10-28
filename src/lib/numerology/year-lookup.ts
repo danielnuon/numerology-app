@@ -9,6 +9,13 @@
  * 12 years.
  */
 
+import {
+  isSupportedYear,
+  SUPPORTED_YEAR_MAX,
+  SUPPORTED_YEAR_MIN,
+} from "./calendar";
+import { positiveMod } from "./cycle-math";
+
 /** Life area domains keyed by 1-indexed column position (1-12). */
 export const LIFE_AREA_MAP: Record<number, string> = {
   1: "Self",
@@ -26,10 +33,10 @@ export const LIFE_AREA_MAP: Record<number, string> = {
 };
 
 /** Minimum supported year (inclusive). */
-export const MIN_YEAR = 1900;
+export const MIN_YEAR = SUPPORTED_YEAR_MIN;
 
 /** Maximum supported year (inclusive). */
-export const MAX_YEAR = 2100;
+export const MAX_YEAR = SUPPORTED_YEAR_MAX;
 
 /**
  * Returns the 0-based cycle index for a target year relative to a birth year.
@@ -38,13 +45,13 @@ export const MAX_YEAR = 2100;
  * @param birthYear - The reference (birth) year.
  * @param targetYear - The year to look up.
  * @returns Cycle index (0-11).
- * @throws If either year is outside the 1900-2100 range.
+ * @throws If either year is outside the supported range.
  */
 export function getCycleIndex(birthYear: number, targetYear: number): number {
   validateYear(birthYear, "birthYear");
   validateYear(targetYear, "targetYear");
 
-  return ((targetYear - birthYear) % 12 + 12) % 12;
+  return positiveMod(targetYear - birthYear, 12);
 }
 
 /**
@@ -91,9 +98,9 @@ export function getLifeArea(column: number): string {
 /**
  * Returns the "active" year for displaying the user's current-year reading.
  *
- * Before the user's birthday has passed in the current calendar year, the
- * cycle has not yet advanced — the user is still in the previous year's
- * position. On or after the birthday, the new year's cycle position applies.
+ * The cycle advances on the user's birthday, not on January 1. Until the
+ * birthday comes around in the current calendar year, the user is still in
+ * the previous year's position; on or after it, the new position applies.
  *
  * @param currentYear   - The current calendar year (from `new Date().getFullYear()`).
  * @param birthMonth   - Birth month (1–12).
@@ -130,10 +137,10 @@ export function getActiveYear(
  *
  * @param year - The year to validate.
  * @param label - Parameter name for the error message.
- * @throws If the year is outside 1900-2100.
+ * @throws If the year is outside the supported range.
  */
 function validateYear(year: number, label: string): void {
-  if (!Number.isInteger(year) || year < MIN_YEAR || year > MAX_YEAR) {
+  if (!isSupportedYear(year)) {
     throw new Error(
       `Invalid ${label}: ${year}. Must be an integer between ${MIN_YEAR} and ${MAX_YEAR}.`
     );

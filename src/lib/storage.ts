@@ -5,6 +5,11 @@
  * is never persisted — always recomputed on load from the stored date.
  */
 
+import { isRealCalendarDate, isSupportedYear } from "./numerology/calendar";
+import { isNewYearRule, type NewYearRule } from "./numerology/zodiac";
+
+// Changing this key would silently drop every returning visitor's saved
+// birth date, so keep it as-is even if the app is renamed.
 const STORAGE_KEY = "khmer-numerology:birth";
 
 /** The shape stored in localStorage. */
@@ -51,25 +56,11 @@ export function readStoredBirthDate(): StoredBirthDate | null {
 
     const { day, month, year } = obj as unknown as StoredBirthDate;
 
-    // Must be integers
-    if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) {
-      return null;
-    }
-
-    // Range checks
-    if (year < 1900 || year > 2100) return null;
+    if (!Number.isInteger(day) || !Number.isInteger(month)) return null;
+    if (!isSupportedYear(year)) return null;
     if (month < 1 || month > 12) return null;
     if (day < 1 || day > 31) return null;
-
-    // Calendar validity: check Date constructor doesn't overflow
-    const date = new Date(year, month - 1, day);
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
-    }
+    if (!isRealCalendarDate(year, month, day)) return null;
 
     return { day, month, year };
   } catch {
@@ -107,3 +98,25 @@ export function clearStoredBirthDate(): void {
 
 /** Exported for testing — the raw localStorage key. */
 export const BIRTH_DATE_STORAGE_KEY = STORAGE_KEY;
+
+/** Where the visitor's New Year choice (Khmer or Chinese) is remembered. */
+export const NEW_YEAR_RULE_STORAGE_KEY = "khmer-numerology:new-year";
+
+/** Reads the remembered New Year rule, or null if none (or unreadable). */
+export function readStoredNewYearRule(): NewYearRule | null {
+  try {
+    const value = localStorage.getItem(NEW_YEAR_RULE_STORAGE_KEY);
+    return isNewYearRule(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Remembers the visitor's New Year rule for later visits. */
+export function saveNewYearRule(rule: NewYearRule): void {
+  try {
+    localStorage.setItem(NEW_YEAR_RULE_STORAGE_KEY, rule);
+  } catch {
+    // Silently fail — quota exceeded, private browsing, etc.
+  }
+}

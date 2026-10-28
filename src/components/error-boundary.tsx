@@ -34,16 +34,18 @@ export class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="max-w-[480px] w-full mx-auto rounded-sm border border-border bg-manuscript p-8 sm:p-12 shadow-[0_1px_3px_rgba(44,36,23,0.08)] text-center">
-          <p className="text-2xl font-light tracking-[0.04em] text-ink mb-4">
-            Something went wrong
+        <div className="max-w-[480px] w-full mx-auto glass rounded-2xl p-8 sm:p-12 text-center">
+          <p className="font-display text-2xl tracking-[0.04em] text-ink mb-4">
+            This reading didn&apos;t load
           </p>
           <p className="text-ink-light text-sm mb-6">
-            An unexpected error occurred while calculating your reading.
+            Something went wrong on our side. Try again, or re-enter the
+            birth date.
           </p>
           <button
             onClick={this.handleReset}
-            className="text-gold hover:text-gold-light underline underline-offset-4 text-sm tracking-[0.04em] transition-colors"
+            type="button"
+            className="pressable inline-flex items-center min-h-[44px] px-2 rounded-sm text-gold-deep hover:text-ink active:opacity-70 underline underline-offset-4 text-sm tracking-[0.04em]"
           >
             Try again
           </button>

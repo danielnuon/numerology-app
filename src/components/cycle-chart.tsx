@@ -3,22 +3,34 @@
 /**
  * CycleChart
  *
- * Interactive 12-column pillar grid that visualises a person's life cycle.
- * Pillars animate in from below with an 80 ms stagger. Clicking a pillar
- * reveals a detail panel showing calendar years, tier interpretation, and
- * guidance text. Responsive: 6 columns on mobile, 12 on desktop.
+ * The 12-year cycle as a wheel of lantern orbs, starting at the top with the
+ * birth year and running clockwise, each with its zodiac animal outside it.
+ * A gold arc traces the cycle from the birth year to this year.
+ *
+ * The orbs behave like tabs: one is always selected, arrow keys move focus
+ * and selection together, and the center of the wheel (the tab panel) shows a
+ * short preview of the selected year. Tapping the center, or the selected
+ * orb again, blooms the full reading out over the wheel with a native view
+ * transition; Escape, the close button or a tap outside it folds it back.
  */
 
-import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
-import { getLifeArea, getCycleIndex } from "@/lib/numerology/year-lookup";
 import {
-  getTierSymbol,
-  getTierColorClass,
-  getCurrentYearColumn,
-} from "@/lib/numerology/chart-helpers";
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  startTransition,
+  ViewTransition,
+} from "react";
+import { motion } from "motion/react";
+import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
+import { getActiveYear, getCycleIndex, getLifeArea } from "@/lib/numerology/year-lookup";
+import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
+import { getTierTextClass, getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
+import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { DetailPanel } from "./detail-panel";
+import { EASE, MOTION, PRESS } from "@/lib/motion";
 
 export interface CycleChartProps {
   /** 12-element array of cycle numbers (each 0–11). */
@@ -31,215 +43,437 @@ export interface CycleChartProps {
   birthMonth: number;
   /** Birth day (1–31) — used for timing-corrected "current year" highlight. */
   birthDay: number;
-  /** When set from timeline, highlight this specific year instead of current year column. */
-  selectedYear?: number | null;
-  /** Callback when a pillar is selected. */
-  onSelectPillar?: (columnIndex: number | null) => void;
+  /** The selected calendar year; its orb is the selected tab. */
+  selectedYear: number;
+  /** Called with the 0-indexed position when an orb is chosen. */
+  onSelectPillar?: (columnIndex: number) => void;
+  /** Called when the wheel has sat idle on another year long enough to return to now. */
+  onReturnToCurrent?: () => void;
 }
 
-/** Framer Motion container variant — staggers children by 80 ms. */
+/**
+ * How long the wheel rests on another year before gliding back to the
+ * current one, counted from the last tap, key, scroll or wheel anywhere.
+ */
+export const RETURN_TO_CURRENT_MS = 9000;
+
+/** Page activity that restarts the idle countdown. */
+const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "scroll"] as const;
+
+/** Orbs sit on this ring, as a percentage of the wheel's width. */
+const ORB_RADIUS = 36;
+/** Zodiac animals sit just outside the orbs. */
+const ANIMAL_RADIUS = 48;
+/** Length of the full ring in SVG units (viewBox is 100 × 100). */
+const RING_LENGTH = 2 * Math.PI * ORB_RADIUS;
+
+/**
+ * Position on the wheel for a cycle position, clockwise from the top.
+ * Rounded so the server and the browser render identical styles.
+ */
+function polar(index: number, radius: number): { left: string; top: string } {
+  const angle = (index / 12) * 2 * Math.PI;
+  return {
+    left: `${(50 + radius * Math.sin(angle)).toFixed(3)}%`,
+    top: `${(50 - radius * Math.cos(angle)).toFixed(3)}%`,
+  };
+}
+
+/** Staggers orb entrances by 40 ms, clockwise from the birth year. */
 const containerVariants = {
   hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
+  show: { transition: { staggerChildren: 0.04 } },
 };
 
-/** Framer Motion item variant — rises from below. */
+/** Each orb fades in and swells gently into place. */
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { scale: 0.6, opacity: 0 },
   show: {
-    y: 0,
+    scale: 1,
     opacity: 1,
-    transition: { duration: 0.35, ease: "easeOut" as const },
+    transition: { duration: MOTION.gentle, ease: EASE.enter },
   },
 };
 
-export function CycleChart({ 
-  cycle, 
-  totalScore, 
+export function CycleChart({
+  cycle,
+  totalScore,
   birthYear,
   birthMonth,
   birthDay,
   selectedYear,
   onSelectPillar,
+  onReturnToCurrent,
 }: CycleChartProps) {
   const currentYear = new Date().getFullYear();
-  
-  // If selectedYear is provided (from timeline), use that; otherwise use timing-corrected current year
-  const highlightedColumn = selectedYear !== undefined && selectedYear !== null
-    ? getCycleIndex(birthYear, selectedYear)
-    : getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
-    
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
+  const currentColumn = getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
+  const selectedIndex = getCycleIndex(birthYear, selectedYear);
+  // The twelve calendar years of the cycle that holds the selected year
+  const cycleStart = selectedYear - selectedIndex;
 
+  const [readingOpen, setReadingOpen] = useState(false);
+  const orbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const rippleRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const hubRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const readingRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const wasOpen = useRef(false);
+  // False when the reading closed because of a tap elsewhere on the page, so
+  // focus stays with whatever was tapped instead of jumping back to the wheel.
+  const returnFocus = useRef(true);
+  const headingId = useId();
+
+  const selected = interpretYear(cycle[selectedIndex]);
+  const selectedAnimal = getZodiacAnimalForYear(selectedYear);
   const totalInterp = interpretTotal(totalScore);
 
-  function handlePillarClick(index: number) {
-    const newIndex = selectedIndex === index ? null : index;
-    setSelectedIndex(newIndex);
-    onSelectPillar?.(newIndex);
+  // Move focus into the reading when it opens and back to the center when it
+  // closes, so keyboard and screen reader users stay where they were.
+  // Layout effects run inside the commit, while passive effects wait for the
+  // bloom's view transition to finish, which some browsers delay or never do.
+  useLayoutEffect(() => {
+    if (readingOpen) closeRef.current?.focus();
+    else if (wasOpen.current && returnFocus.current) hubRef.current?.focus();
+    wasOpen.current = readingOpen;
+    returnFocus.current = true;
+  }, [readingOpen]);
+
+  function setOpen(open: boolean) {
+    startTransition(() => setReadingOpen(open));
   }
 
-  function handleKeyDown(
-    event: React.KeyboardEvent<HTMLButtonElement>,
-    index: number
-  ) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handlePillarClick(index);
+  // Light dismiss: a tap or click anywhere outside the reading folds it back.
+  // Attached in a layout effect for the same reason as the focus handling.
+  useLayoutEffect(() => {
+    if (!readingOpen) return;
+    function handlePointerDown(event: PointerEvent) {
+      if (readingRef.current?.contains(event.target as Node)) return;
+      returnFocus.current = false;
+      startTransition(() => setReadingOpen(false));
     }
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      const next = (index + 1) % 12;
-      setSelectedIndex(next);
-      const el = document.getElementById(`pillar-${next}`);
-      el?.focus();
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [readingOpen]);
+
+  // Return to now: after a quiet spell on another year, the selection glides
+  // back to the current one. Never while a reading is open, the pointer rests
+  // on the wheel, or the keyboard is working in it.
+  useEffect(() => {
+    if (!onReturnToCurrent || readingOpen || selectedYear === activeYear) return;
+    let timer = 0;
+    function isInUse(): boolean {
+      const section = sectionRef.current;
+      if (!section) return false;
+      // Touch screens keep :hover on the last tap, so only real pointers count
+      const hovered = window.matchMedia("(hover: hover)").matches && section.matches(":hover");
+      let keyboardFocus = false;
+      try {
+        keyboardFocus = section.querySelector(":focus-visible") !== null;
+      } catch {
+        // Older engines without :focus-visible: treat focus as not keyboard
+      }
+      return hovered || keyboardFocus;
     }
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      const prev = (index - 1 + 12) % 12;
-      setSelectedIndex(prev);
-      const el = document.getElementById(`pillar-${prev}`);
-      el?.focus();
+    function restart() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (isInUse()) restart();
+        else onReturnToCurrent?.();
+      }, RETURN_TO_CURRENT_MS);
     }
+    restart();
+    for (const type of ACTIVITY_EVENTS) window.addEventListener(type, restart, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      for (const type of ACTIVITY_EVENTS) window.removeEventListener(type, restart);
+    };
+  }, [onReturnToCurrent, readingOpen, selectedYear, activeYear]);
+
+  // One soft ring spreads from a tapped number (CSS, so Reduce Motion skips it)
+  function ripple(index: number) {
+    const el = rippleRefs.current[index];
+    if (!el) return;
+    el.classList.remove("wheel-ripple-run");
+    void el.offsetWidth; // restart the animation on a repeat tap
+    el.classList.add("wheel-ripple-run");
   }
+
+  function handleOrbClick(index: number) {
+    ripple(index);
+    if (index === selectedIndex) setOpen(true);
+    else onSelectPillar?.(index);
+  }
+
+  // Tabs pattern (WAI-ARIA, automatic activation): arrows move focus and
+  // selection together around the wheel, Home/End jump to the ends.
+  function handleKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
+    const targets: Record<string, number> = {
+      ArrowRight: (index + 1) % 12,
+      ArrowDown: (index + 1) % 12,
+      ArrowLeft: (index + 11) % 12,
+      ArrowUp: (index + 11) % 12,
+      Home: 0,
+      End: 11,
+    };
+    const next = targets[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    orbRefs.current[next]?.focus();
+    onSelectPillar?.(next);
+  }
+
+  const arcLength = (RING_LENGTH * currentColumn) / 12;
 
   return (
-    <section aria-label="Life cycle chart" className="paper-texture w-full">
-      {/* Pillar grid */}
-      <motion.div
-        role="tablist"
-        aria-label="12-year life cycle pillars"
-        variants={prefersReducedMotion ? undefined : containerVariants}
-        initial={prefersReducedMotion ? false : "hidden"}
-        animate={prefersReducedMotion ? undefined : "show"}
-        className="grid grid-cols-6 md:grid-cols-12 gap-2"
-      >
-        {cycle.map((cycleNumber, index) => {
-          const interp = interpretYear(cycleNumber);
-          const domain = getLifeArea(index + 1);
-          const symbol = getTierSymbol(interp.tier);
-          const bgClass = getTierColorClass(interp.tier);
-          const isZero = interp.tier === "zero";
-          const isCurrent = index === highlightedColumn;
-          const isSelected = selectedIndex === index;
+    <section ref={sectionRef} aria-label="Life cycle chart" className="w-full">
+      <div className="@container mx-auto grid w-full max-w-[440px] grid-cols-[minmax(0,1fr)]">
+        {/* The ring: orbs, animals and the gold arc */}
+        <div
+          className={`wheel-depth-ring relative col-start-1 row-start-1 aspect-square w-full ${
+            // Let taps on the ring fall through to the page, since browsers
+            // differ on delivering pointer events that land on inert content.
+            readingOpen ? "pointer-events-none" : ""
+          }`}
+          inert={readingOpen}
+        >
+          {/* Ambient light: a fine tick ring that turns very slowly and a glint
+              that travels the ring now and then */}
+          <div aria-hidden="true" className="wheel-ticks pointer-events-none absolute inset-[9%] rounded-full" />
+          <div aria-hidden="true" className="wheel-glint pointer-events-none absolute inset-[14%] rounded-full" />
+          <svg
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 size-full overflow-visible"
+          >
+            <circle cx="50" cy="50" r={ORB_RADIUS} fill="none" stroke="var(--color-border)" strokeWidth="0.5" />
+            {arcLength > 0 && (
+              <circle
+                className="wheel-arc"
+                cx="50"
+                cy="50"
+                r={ORB_RADIUS}
+                fill="none"
+                stroke="var(--color-gold)"
+                strokeOpacity="0.7"
+                strokeWidth="0.7"
+                strokeLinecap="round"
+                transform="rotate(-90 50 50)"
+                strokeDasharray={`${arcLength} ${RING_LENGTH}`}
+                style={{ "--arc-length": arcLength } as React.CSSProperties}
+              />
+            )}
+          </svg>
 
-          const ariaLabel = [
-            `Column ${index + 1}`,
-            `cycle number ${cycleNumber}`,
-            `${interp.label}`,
-            `${domain} domain`,
-            isCurrent ? "current year" : "",
-          ]
-            .filter(Boolean)
-            .join(", ");
+          <motion.div
+            role="tablist"
+            aria-label="12-year life cycle"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
+            {cycle.map((cycleNumber, index) => {
+              const interp = interpretYear(cycleNumber);
+              const year = cycleStart + index;
+              const animal = getZodiacAnimalForYear(year);
+              const isCurrent = index === currentColumn;
+              const isSelected = index === selectedIndex;
 
-          return (
-            <motion.button
-              key={index}
-              id={`pillar-${index}`}
-              role="tab"
-              aria-selected={isSelected}
-              aria-label={ariaLabel}
-              variants={prefersReducedMotion ? undefined : itemVariants}
-              onClick={() => handlePillarClick(index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={[
-                // Layout
-                "relative flex flex-col items-center justify-between gap-1",
-                "rounded-sm px-1 py-3 min-h-[96px] min-w-0 overflow-hidden cursor-pointer",
-                "transition-transform duration-150",
-                // Background
-                bgClass,
-                // Text colour
-                isZero ? "text-parchment" : "text-ink",
-                // Current year treatment
-                isCurrent
-                  ? "border-2 border-gold shadow-[0_0_8px_rgba(184,134,11,0.3)] -translate-y-0.5"
-                  : "border border-border",
-                // Zero breathing animation
-                isZero ? "animate-breathe" : "",
-                // Selected outline
-                isSelected && !isCurrent
-                  ? "ring-2 ring-gold/60 ring-offset-1"
-                  : "",
-                // Hover / focus
-                "hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-light focus-visible:ring-offset-1",
+              const ariaLabel = [
+                `${year}`,
+                getLifeArea(index + 1),
+                `cycle number ${cycleNumber}`,
+                interp.label,
+                `Year of the ${animal}`,
+                isCurrent ? "current year" : "",
               ]
                 .filter(Boolean)
-                .join(" ")}
+                .join(", ");
+
+              return (
+                <motion.button
+                  key={index}
+                  ref={(el) => {
+                    orbRefs.current[index] = el;
+                  }}
+                  id={`pillar-${index}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  aria-controls="cycle-detail-panel"
+                  tabIndex={isSelected ? 0 : -1}
+                  aria-label={ariaLabel}
+                  data-tier={interp.tier}
+                  variants={itemVariants}
+                  whileTap={{ scale: PRESS.scale, transition: PRESS.spring }}
+                  onClick={() => handleOrbClick(index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  style={{
+                    ...polar(index, ORB_RADIUS),
+                    // Each lantern breathes at its own pace so the ring never pulses in unison
+                    "--breathe-duration": `${(5 + ((index * 7) % 5) * 0.9).toFixed(1)}s`,
+                    "--breathe-delay": `${(-index * 1.3).toFixed(1)}s`,
+                  } as React.CSSProperties}
+                  className={[
+                    "wheel-orb pressable absolute grid size-[clamp(44px,13cqw,58px)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full",
+                    "focus-visible:outline-offset-[6px]",
+                    interp.tier === "zero" ? "text-ink-light" : "text-ink",
+                    isCurrent ? "wheel-orb-current" : "",
+                  ].join(" ")}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="wheel-orb-number font-sans text-[clamp(1.05rem,5cqw,1.4rem)] font-medium leading-none tabular-nums"
+                  >
+                    {cycleNumber}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    ref={(el) => {
+                      rippleRefs.current[index] = el;
+                    }}
+                    className="wheel-ripple pointer-events-none absolute inset-0 rounded-full"
+                  />
+
+                  {/* Current year marker */}
+                  {isCurrent && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-gold-deep shadow-[0_0_8px_rgba(226,182,90,0.8)]"
+                    />
+                  )}
+
+                  {/* Selection ring: one shared element that glides between orbs */}
+                  {isSelected && (
+                    <ViewTransition name="wheel-selection" share="auto" default="none">
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -inset-[5px] rounded-full ring-2 ring-ink"
+                      />
+                    </ViewTransition>
+                  )}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+
+          {cycle.map((_, index) => (
+            <span
+              key={index}
+              aria-hidden="true"
+              style={polar(index, ANIMAL_RADIUS)}
+              className={[
+                "absolute -translate-x-1/2 -translate-y-1/2 transition-colors duration-[var(--duration-gentle)]",
+                index === selectedIndex ? "text-gold-deep" : "text-ink-faint",
+              ].join(" ")}
             >
-              {/* Cycle number */}
-              <span
-                aria-hidden="true"
-                className="font-serif text-[32px] leading-none"
-                style={{ fontFamily: "var(--font-serif)" }}
-              >
-                {cycleNumber}
-              </span>
+              <ZodiacIcon
+                animal={getZodiacAnimalForYear(cycleStart + index)}
+                className="size-[clamp(16px,4.6cqw,22px)]"
+              />
+            </span>
+          ))}
+        </div>
 
-              {/* Tier symbol */}
-              <span
-                aria-hidden="true"
-                className={[
-                  "text-base leading-none",
-                  isZero ? "text-parchment/80" : "text-gold",
-                ].join(" ")}
+        {/* Tab panel: a preview in the center, or the full reading over the wheel */}
+        <div
+          id="cycle-detail-panel"
+          role="tabpanel"
+          aria-labelledby={`pillar-${selectedIndex}`}
+          className="pointer-events-none relative z-[1] col-start-1 row-start-1 grid min-w-0 grid-cols-[minmax(0,1fr)]"
+        >
+          {readingOpen ? (
+            <ViewTransition name="wheel-bloom" share="auto" default="none">
+              <div
+                ref={readingRef}
+                role="dialog"
+                aria-modal="false"
+                aria-labelledby={headingId}
+                data-tier={selected.tier}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setOpen(false);
+                }}
+                className="wheel-reading pointer-events-auto relative m-[4cqw] min-h-[92cqw] rounded-3xl border border-border p-5 sm:p-7"
               >
-                {symbol}
-              </span>
-
-              {/* Life area label */}
-              <span
-                aria-hidden="true"
-                className={[
-                  "text-[9px] font-semibold uppercase tracking-wider text-center leading-tight truncate w-full",
-                  isZero ? "text-parchment/80" : "text-ink-light",
-                ].join(" ")}
-                style={{ fontVariant: "small-caps" }}
-              >
-                {domain}
-              </span>
-
-              {/* Current year indicator dot */}
-              {isCurrent && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold"
+                <button
+                  ref={closeRef}
+                  type="button"
+                  aria-label="Close the reading"
+                  onClick={() => setOpen(false)}
+                  className="pressable absolute top-2 right-2 grid size-11 place-items-center rounded-full border border-border bg-parchment/70 text-ink hover:border-gold active:scale-[0.97]"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M4 4l8 8M12 4l-8 8" />
+                  </svg>
+                </button>
+                <DetailPanel
+                  headingId={headingId}
+                  cycleNumber={cycle[selectedIndex]}
+                  columnIndex={selectedIndex}
+                  birthYear={birthYear}
+                  year={selectedYear}
+                  isCurrent={selectedYear === activeYear}
                 />
-              )}
-            </motion.button>
-          );
-        })}
-      </motion.div>
+              </div>
+            </ViewTransition>
+          ) : (
+            <div className="wheel-depth-hub grid h-[100cqw] place-items-center">
+              <ViewTransition name="wheel-bloom" share="auto" update="panel-swap" default="none">
+                <button
+                  ref={hubRef}
+                  type="button"
+                  data-tier={selected.tier}
+                  aria-expanded={false}
+                  aria-label={`Read ${selectedYear} in full: cycle number ${cycle[selectedIndex]}, ${selected.label}`}
+                  onClick={() => setOpen(true)}
+                  className="wheel-hub pressable pointer-events-auto flex aspect-square w-[52cqw] flex-col items-center justify-center gap-0.5 rounded-full px-[6cqw] text-center text-ink hover:brightness-110 active:scale-[0.97]"
+                >
+                  <span className="text-[clamp(0.6rem,3cqw,0.72rem)] uppercase tracking-[0.14em] text-ink-light">
+                    {selectedYear}
+                    {selectedYear === activeYear ? " · Now" : ""}
+                  </span>
+                  <span className="text-[clamp(0.6rem,3cqw,0.72rem)] uppercase tracking-[0.14em] text-ink-light">
+                    {getLifeArea(selectedIndex + 1)}
+                  </span>
+                  <span className="font-sans text-[clamp(2.1rem,12cqw,3.25rem)] font-medium leading-none tabular-nums title-glow">
+                    {cycle[selectedIndex]}
+                  </span>
+                  <span className={`text-[clamp(0.72rem,3.4cqw,0.9rem)] leading-tight ${getTierTextClass(selected.tier)}`}>
+                    {selected.label}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[clamp(0.65rem,3cqw,0.8rem)] text-ink-light">
+                    <ZodiacIcon animal={selectedAnimal} className="size-[1.4em] text-gold-deep" />
+                    {selectedAnimal}
+                  </span>
+                  <span className="mt-0.5 text-[clamp(0.58rem,2.8cqw,0.7rem)] uppercase tracking-[0.14em] text-gold-deep">
+                    Read more
+                  </span>
+                </button>
+              </ViewTransition>
+            </div>
+          )}
+        </div>
+      </div>
 
-      {/* Detail panel */}
-      {selectedIndex !== null && (
-        <DetailPanel
-          cycleNumber={cycle[selectedIndex]}
-          columnIndex={selectedIndex}
-          birthYear={birthYear}
-          currentYear={currentYear}
-          selectedYear={selectedYear}
-        />
-      )}
+      <p className="mt-3 text-center text-xs text-ink-light">
+        {readingOpen
+          ? "Tap outside the reading to close it and choose another year."
+          : "Tap a number to choose a year, then the center to read it in full."}
+      </p>
 
       {/* Total score summary */}
       <div
         className={[
           "mt-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4",
-          "rounded-sm border border-border bg-manuscript px-5 py-4 paper-texture",
+          "rounded-xl border border-border bg-parchment/40 px-5 py-4",
         ].join(" ")}
       >
-        <div className="flex items-baseline gap-2">
-          <span className="text-ink-light text-sm uppercase tracking-widest">
+        <div className="flex shrink-0 items-baseline gap-2">
+          <span className="text-ink-light text-sm uppercase tracking-widest whitespace-nowrap">
             Total score
           </span>
-          <span className="font-serif text-2xl text-ink">{totalScore}</span>
+          <span className="font-display text-3xl text-gold-deep title-glow tabular-nums">{totalScore}</span>
         </div>
         <div className="hidden sm:block w-px h-8 bg-border" aria-hidden="true" />
         <div>

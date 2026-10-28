@@ -1,1 +1,1 @@
-Solini — Life Cycle Calculator. A 12-number cycle grid showing luck values from the worked example.
+Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.

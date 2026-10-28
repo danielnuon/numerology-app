@@ -1,6 +1,7 @@
 import {
   getTierSymbol,
   getTierColorClass,
+  getTierTextClass,
   getYearsForColumn,
   getCurrentYearColumn,
 } from "../chart-helpers";
@@ -64,6 +65,24 @@ describe("getTierColorClass", () => {
 
   it("returns bg-tier-zero as fallback for unknown tier", () => {
     expect(getTierColorClass("unknown")).toBe("bg-tier-zero");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTierTextClass
+// ---------------------------------------------------------------------------
+
+describe("getTierTextClass", () => {
+  it("gives each lit tier the text color of its light", () => {
+    expect(getTierTextClass("very-strong")).toBe("text-tier-very-strong");
+    expect(getTierTextClass("strong")).toBe("text-tier-strong");
+    expect(getTierTextClass("moderate")).toBe("text-tier-moderate");
+    expect(getTierTextClass("weak")).toBe("text-tier-weak");
+  });
+
+  it("keeps zero faint, and falls back to it for unknown tiers", () => {
+    expect(getTierTextClass("zero")).toBe("text-ink-faint");
+    expect(getTierTextClass("unknown")).toBe("text-ink-faint");
   });
 });
 
@@ -149,22 +168,27 @@ describe("getYearsForColumn", () => {
 // ---------------------------------------------------------------------------
 
 describe("getCurrentYearColumn", () => {
+  // Birthday Jan 1 with "today" at year end: the birthday has always passed,
+  // so these cases isolate the column arithmetic from birthday timing.
+  const afterBirthday = (year: number) => new Date(year, 11, 31);
+
   it("birthYear=1997, currentYear=2026 → column 5", () => {
     // (2026 - 1997) % 12 = 29 % 12 = 5
-    expect(getCurrentYearColumn(1997, 2026)).toBe(5);
+    expect(getCurrentYearColumn(1997, 2026, 1, 1, afterBirthday(2026))).toBe(5);
   });
 
   it("returns 0 when currentYear equals birthYear", () => {
-    expect(getCurrentYearColumn(2000, 2000)).toBe(0);
+    expect(getCurrentYearColumn(2000, 2000, 1, 1, afterBirthday(2000))).toBe(0);
   });
 
   it("returns 0 when currentYear is exactly 12 years after birthYear", () => {
-    expect(getCurrentYearColumn(2000, 2012)).toBe(0);
+    expect(getCurrentYearColumn(2000, 2012, 1, 1, afterBirthday(2012))).toBe(0);
   });
 
   it("returns a value between 0 and 11 inclusive", () => {
     for (let offset = 0; offset < 24; offset++) {
-      const col = getCurrentYearColumn(2000, 2000 + offset);
+      const year = 2000 + offset;
+      const col = getCurrentYearColumn(2000, year, 1, 1, afterBirthday(year));
       expect(col).toBeGreaterThanOrEqual(0);
       expect(col).toBeLessThanOrEqual(11);
     }
@@ -172,6 +196,15 @@ describe("getCurrentYearColumn", () => {
 
   it("handles a person born before current year with correct wrap", () => {
     // birthYear=1990, currentYear=2025 → (2025-1990) % 12 = 35 % 12 = 11
-    expect(getCurrentYearColumn(1990, 2025)).toBe(11);
+    expect(getCurrentYearColumn(1990, 2025, 1, 1, afterBirthday(2025))).toBe(11);
+  });
+
+  it("stays on the previous year's column until the birthday has passed", () => {
+    // Born July 24, 1997. On March 29, 2026 the active year is still 2025.
+    expect(getCurrentYearColumn(1997, 2026, 7, 24, new Date(2026, 2, 29))).toBe(4);
+  });
+
+  it("advances to the new column on the birthday itself", () => {
+    expect(getCurrentYearColumn(1997, 2026, 7, 24, new Date(2026, 6, 24))).toBe(5);
   });
 });

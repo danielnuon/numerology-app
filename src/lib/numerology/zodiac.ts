@@ -1,9 +1,29 @@
 /**
- * Chinese Lunar New Year Lookup Table
+ * Zodiac Animal Lookup
  *
- * Maps years to Chinese New Year dates for zodiac determination.
- * Births before CNY use the previous year's zodiac animal.
+ * Which of the 12 animals a birth date belongs to. The animal year turns at
+ * New Year, and two traditions place that differently:
+ * - Khmer New Year (Moha Sangkran, mid-April), as reckoned in Cambodia.
+ *   This is the default.
+ * - Chinese New Year (late January to February), an option for families
+ *   who count the animal that way.
+ * Births before the chosen New Year belong to the previous year's animal.
  */
+
+import { SUPPORTED_YEAR_MAX, SUPPORTED_YEAR_MIN } from "./calendar";
+import { positiveMod, rotatedCycle } from "./cycle-math";
+import { KHMER_NEW_YEAR_APRIL_DAY } from "./khmer-new-year";
+
+/** Which New Year turns the animal year: Khmer (mid-April) or Chinese (Jan–Feb). */
+export type NewYearRule = "khmer" | "chinese";
+
+/** The reckoning used unless the visitor chooses otherwise. */
+export const DEFAULT_NEW_YEAR_RULE: NewYearRule = "khmer";
+
+/** True for the two supported rule names; guards values read from URLs and storage. */
+export function isNewYearRule(value: unknown): value is NewYearRule {
+  return value === "khmer" || value === "chinese";
+}
 
 export const ZODIAC_ANIMALS = [
   "Rat",
@@ -26,7 +46,8 @@ export type ZodiacAnimal = (typeof ZODIAC_ANIMALS)[number];
  * Chinese New Year dates by Gregorian year.
  * Format: { month, day } of the CNY date for that year.
  * Source: Hong Kong Observatory / authoritative lunar calendar references.
- * Coverage: 1900–2100 (201 years).
+ * Coverage: 1900–2100 (201 years). This table is what limits the app's
+ * supported year range; see SUPPORTED_YEAR_MIN/MAX in calendar.ts.
  */
 export const CNY_DATES: Record<number, { month: number; day: number }> = {
   1900: { month: 1, day: 31 },
@@ -232,29 +253,38 @@ export const CNY_DATES: Record<number, { month: number; day: number }> = {
   2100: { month: 2, day: 9 },
 };
 
+/** The month and day a Gregorian year's New Year falls on, under a rule. */
+function newYearDate(
+  year: number,
+  rule: NewYearRule
+): { month: number; day: number } | undefined {
+  if (rule === "chinese") return CNY_DATES[year];
+  const aprilDay = KHMER_NEW_YEAR_APRIL_DAY[year];
+  return aprilDay === undefined ? undefined : { month: 4, day: aprilDay };
+}
+
 /**
- * Determines the zodiac year for a given birth date,
- * accounting for the Chinese New Year boundary.
+ * Determines the zodiac year for a given birth date, accounting for the
+ * New Year boundary of the chosen rule.
  *
- * Births before CNY of that year use the previous year's zodiac.
- * Births on or after CNY use the current year's zodiac.
+ * Births before that year's New Year use the previous year's zodiac.
+ * Births on or after it use the current year's zodiac.
  *
- * @returns The effective zodiac year (Gregorian year adjusted for CNY boundary)
+ * @returns The effective zodiac year (Gregorian year adjusted for the boundary)
  */
-export function getZodiacYear(birthDate: Date): number {
+export function getZodiacYear(birthDate: Date, rule: NewYearRule): number {
   const year = birthDate.getFullYear();
   const month = birthDate.getMonth() + 1; // 0-indexed → 1-indexed
   const day = birthDate.getDate();
 
-  const cny = CNY_DATES[year];
-  if (!cny) {
+  const newYear = newYearDate(year, rule);
+  if (!newYear) {
     throw new Error(
-      `Year ${year} is outside the supported range (1900-2100).`
+      `Year ${year} is outside the supported range (${SUPPORTED_YEAR_MIN}-${SUPPORTED_YEAR_MAX}).`
     );
   }
 
-  // If birth is before CNY, use previous year
-  if (month < cny.month || (month === cny.month && day < cny.day)) {
+  if (month < newYear.month || (month === newYear.month && day < newYear.day)) {
     return year - 1;
   }
 
@@ -262,21 +292,39 @@ export function getZodiacYear(birthDate: Date): number {
 }
 
 /**
+ * A Gregorian year whose zodiac animal is the Rat. Any Rat year works as the
+ * anchor (1984 and 2020 are too); 4 CE is the conventional one because it
+ * makes the formula `(year - 4) mod 12` index straight into ZODIAC_ANIMALS.
+ */
+const RAT_ANCHOR_YEAR = 4;
+
+/** 0-based position of a zodiac year in ZODIAC_ANIMALS (Rat = 0 ... Pig = 11). */
+function zodiacIndex(zodiacYear: number): number {
+  return positiveMod(zodiacYear - RAT_ANCHOR_YEAR, 12);
+}
+
+/**
  * Returns the zodiac animal name for a given birth date.
  */
-export function getZodiacAnimal(birthDate: Date): ZodiacAnimal {
-  const zodiacYear = getZodiacYear(birthDate);
-  const index = ((zodiacYear - 4) % 12 + 12) % 12; // Rat = year 4 in cycle
-  return ZODIAC_ANIMALS[index];
+export function getZodiacAnimal(birthDate: Date, rule: NewYearRule): ZodiacAnimal {
+  return ZODIAC_ANIMALS[zodiacIndex(getZodiacYear(birthDate, rule))];
+}
+
+/**
+ * Returns the animal that rules a calendar year: the one in force from that
+ * year's New Year onward, which covers most of the year. For a specific
+ * birth date, use getZodiacAnimal, which applies the New Year boundary.
+ */
+export function getZodiacAnimalForYear(year: number): ZodiacAnimal {
+  return ZODIAC_ANIMALS[zodiacIndex(year)];
 }
 
 /**
  * Returns the zodiac number (1-12) for a given birth date.
  * Rat=1, Ox=2, Tiger=3, ..., Pig=12
  */
-export function getZodiacNumber(birthDate: Date): number {
-  const zodiacYear = getZodiacYear(birthDate);
-  return ((zodiacYear - 4) % 12 + 12) % 12 + 1;
+export function getZodiacNumber(birthDate: Date, rule: NewYearRule): number {
+  return zodiacIndex(getZodiacYear(birthDate, rule)) + 1;
 }
 
 /**
@@ -292,9 +340,5 @@ export function getZodiacRow(zodiacNumber: number): number[] {
     );
   }
 
-  const row: number[] = [];
-  for (let i = 0; i < 12; i++) {
-    row.push(((zodiacNumber - 1 + i) % 12) + 1);
-  }
-  return row;
+  return rotatedCycle(zodiacNumber, 12);
 }
