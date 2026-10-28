@@ -95,7 +95,7 @@ A night temple lit by lanterns. The token names in `globals.css` are kept from t
 | Weak (1–3) | `#D98A62` | Ember — also used for form errors (6.8:1) |
 | Zero (reset) | `#0E0B11` | An unlit niche, darker than the page; its symbol stays faint |
 
-**Atmosphere:** `LanternSky` draws 38 specks of dust drifting slowly upward through the light (20–60 s to cross the screen, with a slow flicker). It pauses while the tab is hidden and is drawn once, still, with Reduce Motion.
+**Atmosphere:** `LanternSky` draws 38 specks of dust drifting slowly upward through the light (20–60 s to cross the screen, with a slow flicker). It pauses while the tab is hidden and is drawn once, still, with Reduce Motion. Behind the dust, three soft lantern glows (`.sky-glow`) rise more slowly than the page as it scrolls: about 0.4× for the dusk and lantern glows and 0.15× for the ember glow, over the first 1300px. A CSS scroll-driven animation moves them with `transform` only, so the compositor does the work. They stay still with Reduce Motion or where scroll-driven animation is unsupported.
 
 **Non-color indicators** (for accessibility):
 - Very Strong: filled circle (●) + upward arrow

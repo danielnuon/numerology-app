@@ -3,8 +3,9 @@
 /**
  * LanternSky
  *
- * The page's backdrop: a dusk gradient with a few dozen specks of dust
- * drifting slowly upward through lantern light. Purely decorative, so it is
+ * The page's backdrop: soft lantern glows that rise more slowly than the
+ * page as it scrolls, with a few dozen specks of dust drifting slowly upward
+ * through the light. Purely decorative, so it is
  * hidden from assistive tech and never takes pointer events. With Reduce
  * Motion the dust is drawn once and stays still. Drawing pauses while the
  * tab is hidden.
@@ -112,6 +113,9 @@ export function LanternSky() {
 
   return (
     <div className="dusk-sky" aria-hidden="true">
+      <div className="sky-glow sky-glow-dusk" />
+      <div className="sky-glow sky-glow-lantern" />
+      <div className="sky-glow sky-glow-ember" />
       <canvas ref={canvasRef} />
     </div>
   );
