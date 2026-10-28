@@ -27,6 +27,7 @@ import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
 import { CurrentYearWidget } from "@/components/current-year-widget";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { ShareReading } from "@/components/share-reading";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import {
   computeCycleFromBirthDate,
@@ -221,11 +222,23 @@ export function HomeClient() {
             className="rise glass max-w-[480px] w-full rounded-2xl p-6 sm:p-12"
             style={{ "--rise-delay": "760ms" } as React.CSSProperties}
           >
-            <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
-              Enter your birth date to see a luck number for every year of
-              your 12-year cycle, read from your birth month, zodiac animal
-              and weekday.
-            </p>
+            {hasShareParams ? (
+              <>
+                <p className="mb-2 text-center font-display text-lg text-gold-deep tracking-[0.04em]">
+                  Someone shared their reading with you
+                </p>
+                <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
+                  Their cycle is below. To see your own, enter your birth
+                  date here.
+                </p>
+              </>
+            ) : (
+              <p className="text-center text-ink-light text-sm tracking-[0.04em] leading-relaxed">
+                Enter your birth date to see a luck number for every year of
+                your 12-year cycle, read from your birth month, zodiac animal
+                and weekday.
+              </p>
+            )}
 
             <BirthDataForm onResult={handleResult} initialValues={initialValues} />
           </div>
@@ -262,6 +275,12 @@ export function HomeClient() {
                 onSelectYear={handleTimelineSelectYear}
               />
             </div>
+
+            <ShareReading
+              year={result.birthYear}
+              month={result.birthData.gregorianMonth}
+              day={result.birthDay}
+            />
           </>
         )}
       </ErrorBoundary>
