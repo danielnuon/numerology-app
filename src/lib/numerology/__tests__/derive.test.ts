@@ -227,3 +227,19 @@ describe("computeCycleFromBirthDate with a New Year rule", () => {
     expect(khmer.cycle).not.toEqual(chinese.cycle);
   });
 });
+
+describe("total score", () => {
+  it("is always 52, 64 or 76", () => {
+    const totals = new Set<number>();
+    for (let year = 1900; year <= 2030; year++) {
+      for (let month = 1; month <= 12; month++) {
+        const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        for (let day = 1; day <= days; day++) {
+          totals.add(computeCycleFromBirthDate(year, month, day, "khmer").totalScore);
+          totals.add(computeCycleFromBirthDate(year, month, day, "chinese").totalScore);
+        }
+      }
+    }
+    expect([...totals].sort((a, b) => a - b)).toEqual([52, 64, 76]);
+  });
+});

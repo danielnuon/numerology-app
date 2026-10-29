@@ -24,8 +24,8 @@ describe("CycleWalkthrough", () => {
     render(<CycleWalkthrough date={null} />);
     const section = screen.getByRole("heading", { name: "5. The total score" }).closest("section")!;
     expect(section).toHaveAttribute("id", "total-score");
-    expect(section).toHaveTextContent("runs from 0 to 132");
-    expect(section).toHaveTextContent("Balanced / moderate cycle (yours, 64)");
+    expect(section).toHaveTextContent("It can only be 52, 64 or 76");
+    expect(section).toHaveTextContent("Balanced / moderate cycle (yours)");
     expect(section).toHaveTextContent("our choice, not a family rule");
   });
 

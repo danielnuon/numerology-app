@@ -18,7 +18,6 @@ import { SectionDivider } from "@/components/ui/section-divider";
 import { computeCycleFromBirthDate, validateBirthDate } from "@/lib/numerology/derive";
 import { STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { interpretTotal } from "@/lib/numerology/interpretation";
-import { TOTAL_TIERS } from "@/lib/numerology/interpretation-data";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "@/lib/numerology/zodiac";
 import { readStoredBirthDate, readStoredNewYearRule } from "@/lib/storage";
@@ -39,6 +38,12 @@ export interface WalkthroughDate {
   day: number;
   rule: NewYearRule;
 }
+
+/**
+ * Every total a cycle can have. The rows always sum to 184 and 9, 10 or 11
+ * columns drop by 12; a derive test checks every date from 1900 to 2030.
+ */
+const POSSIBLE_TOTALS = [52, 64, 76] as const;
 
 const subscribeToNothing = () => () => {};
 
@@ -185,18 +190,17 @@ export function CycleWalkthrough({ date }: Props) {
 
       <Section title="5. The total score" id={TOTAL_SCORE_SECTION_ID}>
         <p>
-          Add the twelve numbers of the cycle and you have the total score. Each number is 0 to 11,
-          so the total runs from 0 to 132. It sums up how the cycle leans as a whole.
+          Add the twelve numbers of the cycle and you have the total score. It can only be 52, 64 or
+          76. Across the twelve columns the three rows always add up to 184, and in every cycle 9, 10 or
+          11 columns reach 12 or more and drop by 12, which leaves 76, 64 or 52.
         </p>
         <ul className="glass space-y-2 rounded-2xl p-3 text-sm min-[360px]:p-4 sm:p-6">
-          {TOTAL_TIERS.map((tier) => (
-            <li key={tier.tier} className="flex gap-3">
-              <span className="w-16 shrink-0 font-sans tabular-nums text-ink">
-                {Number.isFinite(tier.max) ? `${tier.min}–${tier.max}` : `${tier.min}+`}
-              </span>
-              <span className={tier.tier === total.tier ? "text-gold-deep" : "text-ink"}>
-                {tier.label}
-                {tier.tier === total.tier && ` (yours, ${totalScore})`}
+          {POSSIBLE_TOTALS.map((possible) => (
+            <li key={possible} className="flex gap-3">
+              <span className="w-8 shrink-0 font-sans tabular-nums text-ink">{possible}</span>
+              <span className={possible === totalScore ? "text-gold-deep" : "text-ink"}>
+                {interpretTotal(possible).label}
+                {possible === totalScore && " (yours)"}
               </span>
             </li>
           ))}
@@ -204,22 +208,21 @@ export function CycleWalkthrough({ date }: Props) {
         <p>When you compare with a partner, the two totals together give the overall reading:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            Both 68 or more: <span className="text-ink">{STABILITY_TEXT.strong.label}</span>
+            Both 76: <span className="text-ink">{STABILITY_TEXT.strong.label}</span>
           </li>
           <li>
-            Both 60 or more: <span className="text-ink">{STABILITY_TEXT.moderate.label}</span>
+            Both 64, or 64 and 76: <span className="text-ink">{STABILITY_TEXT.moderate.label}</span>
           </li>
           <li>
-            One 68 or more, the other under 60: <span className="text-ink">{STABILITY_TEXT.mixed.label}</span>
+            76 and 52: <span className="text-ink">{STABILITY_TEXT.mixed.label}</span>
           </li>
           <li>
-            Both under 60: <span className="text-ink">{STABILITY_TEXT.challenging.label}</span>
+            Both 52: <span className="text-ink">{STABILITY_TEXT.challenging.label}</span>
           </li>
         </ul>
         <p>
-          The family&apos;s rules stop there, so they don&apos;t cover one total from 60 to 67 with the
-          other under 60. Solini reads that as mixed too, because one of you is on steady ground and the
-          other isn&apos;t. That part is our choice, not a family rule.
+          The family&apos;s rules don&apos;t cover 64 and 52. Solini reads that as mixed too, because one
+          of you is on steady ground and the other isn&apos;t. That part is our choice, not a family rule.
         </p>
       </Section>
 
