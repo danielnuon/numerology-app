@@ -101,8 +101,8 @@ export default function MeaningPage() {
           how strong the year is, and the area says what that strength
           applies to. So a 9 in your Money year is read as a good year for
           earning, while the same 9 in your Health year is read as a year of
-          good energy. This follows the seven-number charts of Cambodia and
-          Thailand, where each number is read in light of the place it falls.
+          good energy. This follows the Khmer and Thai seven-number charts,
+          where each number is read in light of the place it falls.
         </p>
         <ol className="space-y-3">
           {Object.entries(LIFE_AREA_MAP).map(([column, area]) => (

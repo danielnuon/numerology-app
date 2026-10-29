@@ -4,12 +4,12 @@ Words are part of the design. This covers the copy visitors read, and the commit
 
 ## Voice
 
-Solini speaks like a calm, knowledgeable guide to a family tradition: warm, plain and unhurried.
+Solini speaks like a calm, knowledgeable guide to Khmer numerology: warm, plain and unhurried. Call the method Khmer numerology. Don't frame it as a family tradition or a Cambodian family practice.
 
 - **Reflective, not predictive.** Readings are for reflection. Say "a year to build", not "you will succeed". Never promise outcomes about health, money or relationships.
 - **Plain words, short sentences.** Explain Khmer terms the first time they appear (Margasir, the twelve animals) and then use them consistently.
-- **Open about the method.** Say where a reading comes from and how sure it is. When a result rests on a choice Solini made rather than a family rule (a gap in the rules, a default between traditions), say so in one or two plain sentences and name it as Solini's choice, so the visitor can weigh it: "The family's rules don't cover … Solini reads that as mixed too, because … That part is our choice, not a family rule." Put it where the method is explained and link the result there, rather than adding a caveat under the result. Don't hide uncertainty behind confident copy, and don't bury it in a footnote.
-- **Respectful of the tradition.** Describe the method as one Cambodian practice among several, and say where families differ (for example, Khmer New Year versus Chinese New Year).
+- **Open about the method.** Say where a reading comes from and how sure it is. When a result rests on a choice Solini made rather than a rule of Khmer numerology (a gap in the rules, a default between traditions), say so in one or two plain sentences and name it as Solini's choice, so the visitor can weigh it: "Khmer numerology's rules don't cover … Solini reads that as mixed too, because … That part is our choice, not a rule of Khmer numerology." Put it where the method is explained and link the result there, rather than adding a caveat under the result. Don't hide uncertainty behind confident copy, and don't bury it in a footnote.
+- **Respectful of the tradition.** Describe the method as one Khmer numerology method among several, and say where practice differs (for example, Khmer New Year versus Chinese New Year).
 - **Calm in every state.** Errors say what happened and what to do next, in one sentence, without blame or alarm: "Enter a month from 1 to 12."
 - **Direct address.** Talk to the visitor as "you". Buttons say what they do ("Reveal My Cycle", "Copy link"), not "Submit" or "OK".
 

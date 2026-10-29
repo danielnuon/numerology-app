@@ -4,7 +4,7 @@
  * PartnerComparison
  *
  * Compares the reading on the page with someone else's (a partner, parent,
- * child or friend), year by year, using the family's compatibility rules
+ * child or friend), year by year, using Khmer numerology's compatibility rules
  * (src/lib/numerology/compatibility.ts). It rests as one "Compare with
  * someone close" button under the reading. That opens
  * the birth date form in partner mode, and the comparison then shows:
