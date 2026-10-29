@@ -399,8 +399,9 @@ export function HomeClient({ searchParams }: Props) {
               {formOpen ? (
                 <p className="text-center text-ink-light text-base leading-relaxed">
                   {isShared
-                    ? "Enter your birth date to see your own 12-year cycle."
-                    : "Enter another birth date to read that person's 12-year cycle."}
+                    ? "Enter your birth date to see your own "
+                    : "Enter another birth date to read that person's "}
+                  <span className="whitespace-nowrap">12-year</span> cycle.
                 </p>
               ) : (
                 <>
@@ -409,7 +410,9 @@ export function HomeClient({ searchParams }: Props) {
                   </h2>
                   {/* What the visitor gets, said before the form asks for anything */}
                   <p className="mt-2 text-center text-base leading-relaxed text-ink-light text-balance">
-                    See a luck number for every year of your 12-year cycle,
+                    {/* Kept whole so the line never breaks after "12-" */}
+                    See a luck number for every year of your{" "}
+                    <span className="whitespace-nowrap">12-year</span> cycle,
                     from Khmer numerology.
                   </p>
                 </>

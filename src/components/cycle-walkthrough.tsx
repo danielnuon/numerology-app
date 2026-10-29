@@ -29,7 +29,7 @@ const MONTH_NAMES = [
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const RULE_NAMES: Record<NewYearRule, string> = { khmer: "Khmer New Year", chinese: "Chinese New Year" };
 
-/** The worked example from the system spec: Thursday 24 July 1997. */
+/** The worked example from the system spec: Thursday, July 24, 1997. */
 export const EXAMPLE_DATE: WalkthroughDate = { year: 1997, month: 7, day: 24, rule: DEFAULT_NEW_YEAR_RULE };
 
 export interface WalkthroughDate {
@@ -54,9 +54,9 @@ function storedDate(): WalkthroughDate | null {
   return { ...stored, rule: readStoredNewYearRule() ?? DEFAULT_NEW_YEAR_RULE };
 }
 
-/** "24 July 1997" */
+/** "July 24, 1997", the American order used everywhere else */
 function formatDate({ year, month, day }: WalkthroughDate): string {
-  return `${day} ${MONTH_NAMES[month - 1]} ${year}`;
+  return `${MONTH_NAMES[month - 1]} ${day}, ${year}`;
 }
 
 interface Props {
