@@ -63,7 +63,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - Marcellus draws 0 like the letter O and 11 like "ll", so any number from 0 to 11 uses the sans face with `tabular-nums`, even where it sits beside display type. The total score (52, 64 or 76) is the one number set in Marcellus, since none of its digits can be misread.
 - Guidance and quiet asides may be italic body text. Do not add new typefaces.
 - Keep letter spacing to the values above, so labels and buttons share one rhythm.
-- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px for the wheel's own labels, where space is fixed.
+- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px, and nothing smaller, for labels inside the wheel, the timeline and the worked rows on How your cycle is made, where space is fixed.
 
 ## Spacing, layout and shape
 

@@ -183,7 +183,7 @@ export function YearTimeline({
                   className={[
                     "relative flex items-center justify-center",
                     "w-10 h-10 rounded-full pressable lamp-orb",
-                    "group-hover:scale-110 group-active:scale-[0.97]",
+                    "group-hover:brightness-125 group-active:scale-[0.97]",
                     bgClass,
                     "text-ink",
                     // Current year: gold ring (an outline, since the glow owns box-shadow)
@@ -209,7 +209,7 @@ export function YearTimeline({
 
                 <span
                   className={[
-                    "mt-1 text-[10px] text-center whitespace-nowrap pressable",
+                    "mt-1 text-xs text-center whitespace-nowrap pressable",
                     isCurrent
                       ? "font-semibold text-gold-deep"
                       : isPast

@@ -434,24 +434,25 @@ export function CycleChart({
                   onClick={() => setOpen(true)}
                   className="wheel-hub pressable pointer-events-auto flex aspect-square w-[52cqw] flex-col items-center justify-center gap-0.5 rounded-full px-[6cqw] text-center text-ink hover:brightness-110 active:scale-[0.97]"
                 >
-                  <span className="text-[clamp(0.6rem,3cqw,0.72rem)] uppercase tracking-[0.14em] text-ink-light">
+                  <span className="text-[clamp(0.75rem,3cqw,0.8rem)] uppercase tracking-[0.14em] text-ink-light">
                     {selectedYear}
                     {selectedYear === activeYear ? " · Now" : ""}
                   </span>
-                  <span className="text-[clamp(0.6rem,3cqw,0.72rem)] uppercase tracking-[0.14em] text-ink-light">
+                  <span className="text-[clamp(0.75rem,3cqw,0.8rem)] uppercase tracking-[0.14em] text-ink-light">
                     {getLifeArea(selectedIndex + 1)}
                   </span>
-                  <span className="font-sans text-[clamp(2.1rem,12cqw,3.25rem)] font-medium leading-none tabular-nums title-glow">
+                  <span className="font-sans text-[clamp(1.9rem,12cqw,3.25rem)] font-medium leading-none tabular-nums title-glow">
                     {cycle[selectedIndex]}
                   </span>
-                  <span className={`text-[clamp(0.72rem,3.4cqw,0.9rem)] leading-tight ${getTierTextClass(selected.tier)}`}>
+                  <span className={`text-[clamp(0.8rem,3.4cqw,0.95rem)] leading-tight ${getTierTextClass(selected.tier)}`}>
                     {selected.label}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[clamp(0.65rem,3cqw,0.8rem)] text-ink-light">
+                  {/* Too tight for a sixth line on small phones; the ring and the full reading name the animal */}
+                  <span className="inline-flex items-center gap-1 text-[clamp(0.75rem,3cqw,0.85rem)] text-ink-light @max-xs:hidden">
                     <ZodiacIcon animal={selectedAnimal} className="size-[1.4em] text-gold-deep" />
                     {selectedAnimal}
                   </span>
-                  <span className="mt-0.5 text-[clamp(0.58rem,2.8cqw,0.7rem)] uppercase tracking-[0.14em] text-gold-deep">
+                  <span className="mt-0.5 text-[clamp(0.75rem,2.8cqw,0.8rem)] uppercase tracking-[0.14em] text-gold-deep">
                     Read more
                   </span>
                 </button>

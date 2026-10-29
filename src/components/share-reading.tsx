@@ -43,7 +43,7 @@ const STATUS_TEXT: Record<Status, string> = {
 
 const ACTION_CLASS = [
   "pressable inline-flex items-center justify-center min-h-[44px] px-5 rounded-full",
-  "border border-border text-sm text-ink-light tracking-[0.04em]",
+  "border border-border text-base text-ink-light",
   "hover:text-ink hover:border-gold active:scale-[0.97]",
 ].join(" ");
 
