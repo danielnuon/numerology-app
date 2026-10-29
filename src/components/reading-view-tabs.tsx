@@ -25,8 +25,8 @@ export const READING_VIEW_PANEL_IDS: Record<ReadingView, string> = {
 };
 
 const OPTIONS: { view: ReadingView; label: string }[] = [
-  { view: "year", label: "This year" },
-  { view: "cycle", label: "All 12 years" },
+  { view: "year", label: "Year" },
+  { view: "cycle", label: "Cycle" },
 ];
 
 interface Props {
