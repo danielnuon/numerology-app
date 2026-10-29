@@ -147,17 +147,41 @@ describe("HomeClient: a calm first visit, this year first", () => {
     expect(screen.getByText(/Life area:/)).toBeInTheDocument();
   });
 
-  it("opens the 12 years on phones with \"See all 12 years\"", () => {
+  it("switches between this year and all 12 years in the same place", () => {
     render(<HomeClient searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
-    const toggle = screen.getByRole("button", { name: "See all 12 years" });
-    const wheel = document.getElementById(toggle.getAttribute("aria-controls")!)!;
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(wheel.className).toMatch(/max-md:hidden/);
+    const yearTab = screen.getByRole("tab", { name: "This year" });
+    const cycleTab = screen.getByRole("tab", { name: "All 12 years" });
+    const yearView = document.getElementById(yearTab.getAttribute("aria-controls")!)!;
+    const cycleView = document.getElementById(cycleTab.getAttribute("aria-controls")!)!;
+    expect(yearTab).toHaveAttribute("aria-selected", "true");
+    expect(yearView.className).not.toMatch(/max-lg:hidden/);
+    expect(cycleView.className).toMatch(/max-lg:hidden/);
 
-    fireEvent.click(toggle);
-    expect(screen.getByRole("button", { name: "Hide the 12 years" })).toHaveAttribute("aria-expanded", "true");
-    expect(wheel.className).not.toMatch(/max-md:hidden/);
+    act(() => {
+      fireEvent.click(cycleTab);
+    });
+    expect(cycleTab).toHaveAttribute("aria-selected", "true");
+    expect(yearView.className).toMatch(/max-lg:hidden/);
+    expect(cycleView.className).not.toMatch(/max-lg:hidden/);
+
+    act(() => {
+      fireEvent.click(yearTab);
+    });
+    expect(yearView.className).not.toMatch(/max-lg:hidden/);
+  });
+
+  it("opens each new reading on this year", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+    act(() => {
+      fireEvent.click(screen.getByRole("tab", { name: "All 12 years" }));
+    });
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Read for someone else" }));
+    });
+    submitBirthDate("1", "3", "1961");
+    expect(screen.getByRole("tab", { name: "This year" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("lets a returning visitor forget their saved date with \"Not you?\"", () => {
