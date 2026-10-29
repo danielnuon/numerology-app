@@ -18,6 +18,8 @@ export const OG_COLORS = {
   goldDeep: "#E2B65A",
   border: "#3B3242",
   zero: "#0E0B11",
+  /** An orb's unlit shell, as `.wheel-orb` in globals.css. */
+  orb: "#1D1823",
 } as const;
 
 /** Tier colors, as --color-tier-* in globals.css. */
@@ -29,14 +31,22 @@ const TIER_COLORS: Record<YearTier, string> = {
   zero: OG_COLORS.zero,
 };
 
-/** Background and border for a pillar: lit by its tier, an unlit niche for zero. */
-export function pillarColors(tier: YearTier): { background: string; border: string } {
+/**
+ * A year's number drawn as a lantern orb, the way the cycle wheel draws it
+ * (`.wheel-orb` in globals.css): lit from within by its tier's light, with a
+ * soft glow around it. Zero is an unlit niche with no glow.
+ */
+export function lanternOrb(tier: YearTier): { background: string; border: string; boxShadow: string } {
   if (tier === "zero") {
-    return { background: OG_COLORS.zero, border: OG_COLORS.border };
+    return { background: OG_COLORS.zero, border: OG_COLORS.border, boxShadow: "none" };
   }
   const color = TIER_COLORS[tier];
-  // 8-digit hex: tier color at ~16% for the fill, ~50% for the edge.
-  return { background: `${color}29`, border: `${color}80` };
+  // 8-digit hex: the light at ~40% where it burns, ~50% at the edge, ~30% in the glow.
+  return {
+    background: `radial-gradient(circle at 50% 65%, ${color}66 0%, ${OG_COLORS.orb} 72%)`,
+    border: `${color}80`,
+    boxShadow: `0 0 22px ${color}4D`,
+  };
 }
 
 /** Interaction colors, as the comparison view's text colors (compatibility-summary.tsx). */

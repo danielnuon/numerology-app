@@ -82,6 +82,16 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - Selected or "now" animals are `text-gold-deep`; others are `text-ink-light` or `text-gold`.
 - **Tier symbols** (● ◕ ◑ ◔ ⊙) are drawn with `TierIcon` (`components/ui/tier-icon.tsx`), an SVG that is always `aria-hidden="true"`, with the meaning carried by the parent's `aria-label` or visible text. Don't render the Unicode glyphs on the page: each comes from whichever font has it, so they show at different sizes side by side (on iOS, ● is about half the size of ◑). The Satori preview images are the exception, since they can't use the component.
 - Interface glyphs (close, share, arrows) are simple inline SVG strokes that match the zodiac line weight. Do not add an icon library.
+- **The app icon** (`src/app/icon.svg`, with `favicon.ico` and `apple-icon.png` rendered from it) is a round paper lantern lit gold on the page color. Change all three together.
+
+### The lantern motif
+
+A lantern is Solini's one central image: each year of the cycle is a light, and the app itself is a lantern lit in thanks to Solini and in memory of those lost in the Khmer Rouge genocide. Carry it through light, not through pictures of lanterns.
+
+- **A year's number, shown as a mark, is a lantern orb** lit from within by its tier's light (`.wheel-orb` with `data-tier`): on the cycle wheel, on What the numbers mean and on the share images (`lanternOrb()` in `og-theme.ts`). Zero is an unlit niche. Numbers inside running text, tables and the worked rows on How your cycle is made stay plain, because they are arithmetic, not readings.
+- **The setting is lantern light:** the dusk sky's glows, the lit input wells, the three lantern stops of the total score, and gold glows that breathe.
+- **In words,** "lantern" appears in the brand line, on About and in the home page's closing line. Don't add it to buttons, labels or headings that must say plainly what they do: "Reveal my cycle" stays plain. The not-found page ("No lantern here") is the one playful use.
+- **The app icon** is the only drawn lantern. Don't add lantern illustrations or icons elsewhere; one image used everywhere stops meaning anything.
 
 ## Interaction
 
@@ -160,7 +170,7 @@ Glows breathe and floating things carry weight. Add a new living surface to this
 | Drifting dust | `LanternSky` canvas, behind every page | 38 specks rising over 20–60s with a slow flicker, sliding a little with the scroll. Paused while the tab is hidden. Drawn once, still, with Reduce Motion. |
 | Glass light | `.glass::before`, `.glass::after` | Scroll-linked (`view()` timeline), not time-based: as a card crosses the viewport a gold glint (`gold-light` at 45%) slides along its rim from right to left and a 3.5% candle-white glow crosses its face. `background-position` on the card's own pseudo-elements only. Hidden with Reduce Motion, Reduce Transparency, or without scroll-driven animation support. |
 | Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A soft gold halo that breathes in and out, 1.8s each way, on the current year only. Faster than other glows on purpose: it marks "now". |
-| Lantern breathing and number float | Every wheel orb (`.wheel-orb::before`, `.wheel-orb-number`) | Each orb's light breathes at its own pace (5–8.6s) while its number floats about 1px. |
+| Lantern breathing and number float | Every lantern orb (`.wheel-orb::before`, `.wheel-orb-number`): the wheel and the number orbs on What the numbers mean | Each orb's light breathes at its own pace (5–8.6s) while a wheel orb's number floats about 1px. |
 | Ring glint and tick ring | `.wheel-glint`, `.wheel-ticks` | A faint gold glint travels the ring every 14s; a fine tick ring turns once every 3 minutes. |
 | Tap ripple | `.wheel-ripple-run` | One ring spreads from a tapped orb (600ms). Runs once per tap, not a loop. |
 | Wheel depth | `.wheel-depth-ring`, `.wheel-depth-hub` | Scroll-linked (`view()` timeline): the ring and the center shift up to 6px apart as the wheel scrolls through the viewport. |

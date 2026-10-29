@@ -97,8 +97,8 @@ const PAGES = [
   { href: "/about", label: "About the tradition" },
 ] as const;
 
-/** Links to the other companion pages, leaving out the current one. */
-export function MorePages({ current }: { current: (typeof PAGES)[number]["href"] }) {
+/** Links to the companion pages, leaving out the current one if there is one. */
+export function MorePages({ current }: { current?: (typeof PAGES)[number]["href"] }) {
   return (
     <nav aria-label="More about Solini" className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
       {PAGES.filter((page) => page.href !== current).map((page) => (

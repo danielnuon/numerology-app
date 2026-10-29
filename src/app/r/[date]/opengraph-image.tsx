@@ -8,7 +8,7 @@ import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
 import { getActiveYear, getLifeArea } from "@/lib/numerology/year-lookup";
-import { OG_COLORS, OG_SITE_LABEL, pillarColors } from "@/lib/og-theme";
+import { OG_COLORS, OG_SITE_LABEL, lanternOrb } from "@/lib/og-theme";
 import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
 import GenericOgImage from "../../opengraph-image";
 import { comparisonImage } from "./comparison-image";
@@ -36,7 +36,7 @@ export default async function OgImage({ params }: Props) {
   const result = computeCycleFromBirthDate(decoded.year, decoded.month, decoded.day, decoded.rule);
   const totalInterp = interpretTotal(result.totalScore);
 
-  // The lit pillar: the cycle year this person is in today.
+  // The ringed orb: the cycle year this person is in today.
   const currentYear = new Date().getFullYear();
   const activeYear = getActiveYear(currentYear, decoded.month, decoded.day);
   const litColumn = getCurrentYearColumn(decoded.year, currentYear, decoded.month, decoded.day);
@@ -99,23 +99,23 @@ export default async function OgImage({ params }: Props) {
           {`A 12-year Khmer numerology reading  ·  Year of the ${animal}`}
         </div>
 
-        {/* Cycle pillars, with this year's pillar lit */}
-        <div style={{ display: "flex", gap: 10 }}>
+        {/* The cycle as lantern orbs, with this year's orb ringed in gold */}
+        <div style={{ display: "flex", gap: 12 }}>
           {result.cycle.map((n, i) => {
-            const { background, border } = pillarColors(interpretYear(n).tier);
+            const { background, border, boxShadow } = lanternOrb(interpretYear(n).tier);
             const isLit = i === litColumn;
             return (
               <div
                 key={i}
                 style={{
-                  width: 72,
-                  height: 96,
+                  width: 76,
+                  height: 76,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: 12,
+                  borderRadius: 38,
                   border: isLit ? `3px solid ${OG_COLORS.goldDeep}` : `1px solid ${border}`,
-                  boxShadow: isLit ? `0 0 28px ${OG_COLORS.goldDeep}99` : "none",
+                  boxShadow: isLit ? `0 0 30px ${OG_COLORS.goldDeep}99` : boxShadow,
                   background,
                   color: OG_COLORS.ink,
                   fontSize: 34,

@@ -10,7 +10,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { EASE, MOTION } from "@/lib/motion";
-import { OG_COLORS, pillarColors } from "@/lib/og-theme";
+import { OG_COLORS, lanternOrb } from "@/lib/og-theme";
 import manifest from "@/app/manifest";
 
 const ROOT = path.resolve(__dirname, "../../..");
@@ -85,14 +85,19 @@ describe("colors outside CSS", () => {
     expect(OG_COLORS.goldDeep.toUpperCase()).toBe(token("gold-deep"));
     expect(OG_COLORS.border.toUpperCase()).toBe(token("border"));
     expect(OG_COLORS.zero.toUpperCase()).toBe(token("tier-zero"));
+    expect(css).toMatch(new RegExp(`\\.wheel-orb \\{[^}]*${OG_COLORS.orb}`, "i"));
   });
 
   it.each(["very-strong", "strong", "moderate", "weak"] as const)(
-    "the %s preview pillar is lit with its tier token",
+    "the %s preview orb is lit with its tier token",
     (tier) => {
-      expect(pillarColors(tier).border.slice(0, 7).toUpperCase()).toBe(token(`tier-${tier}`));
+      expect(lanternOrb(tier).border.slice(0, 7).toUpperCase()).toBe(token(`tier-${tier}`));
     }
   );
+
+  it("a zero year's preview orb is an unlit niche with no glow", () => {
+    expect(lanternOrb("zero")).toEqual({ background: OG_COLORS.zero, border: OG_COLORS.border, boxShadow: "none" });
+  });
 
   it("the browser theme and web manifest use the page color", () => {
     const page = token("parchment");

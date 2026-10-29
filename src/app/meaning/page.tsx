@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { InfoPage, MorePages, PillLink, Section } from "@/components/ui/page-parts";
-import { TOTAL_TIERS, YEAR_TIERS, type YearTier } from "@/lib/numerology/interpretation-data";
+import { TOTAL_TIERS, YEAR_TIERS } from "@/lib/numerology/interpretation-data";
 import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
 import { LIFE_AREA_DESCRIPTIONS } from "@/lib/numerology/life-area-data";
 import { LIFE_AREA_MAP } from "@/lib/numerology/year-lookup";
@@ -21,12 +21,14 @@ function numbersIn(min: number, max: number): number[] {
 }
 
 /**
- * Number chips take their tier's color as text and border. Zero's color is
- * an unlit niche, darker than the page, so its chip keeps the default ink.
+ * Each number is a small lantern orb lit by its tier, as on the cycle wheel,
+ * breathing at its own pace so a row never pulses in unison.
  */
-function tierStyle(tier: YearTier): React.CSSProperties | undefined {
-  if (tier === "zero") return undefined;
-  return { color: `var(--color-tier-${tier})`, borderColor: `var(--color-tier-${tier})` };
+function orbBreath(n: number): React.CSSProperties {
+  return {
+    "--breathe-duration": `${(5 + ((n * 7) % 5) * 0.9).toFixed(1)}s`,
+    "--breathe-delay": `${(-n * 1.3).toFixed(1)}s`,
+  } as React.CSSProperties;
 }
 
 /** Total score range as text, e.g. "60–67" or "68 and above". */
@@ -58,13 +60,14 @@ export default function MeaningPage() {
               id={`tier-${tier.tier}`}
               className="glass scroll-mt-8 rounded-2xl p-4 sm:p-6"
             >
-              <div className="flex flex-wrap gap-1.5" aria-hidden="true">
+              <div className="flex flex-wrap gap-2.5 p-0.5" aria-hidden="true">
                 {numbersIn(tier.min, tier.max).map((n) => (
                   <span
                     key={n}
                     id={`number-${n}`}
-                    className="flex size-9 scroll-mt-8 items-center justify-center rounded-lg border border-border font-display text-lg text-ink tabular-nums"
-                    style={tierStyle(tier.tier)}
+                    data-tier={tier.tier}
+                    className={`wheel-orb relative flex size-10 scroll-mt-8 items-center justify-center rounded-full font-display text-lg tabular-nums ${tier.tier === "zero" ? "text-ink-light" : "text-ink"}`}
+                    style={orbBreath(n)}
                   >
                     {n}
                   </span>
