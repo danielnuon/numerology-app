@@ -34,7 +34,7 @@ export function UpdateNotice({ birthYear, birthMonth, birthDay, hasChosenRule, o
   const animalChanged = !hasChosenRule && animals.khmer !== animals.chinese;
 
   return (
-    <div className="animate-settle-in glass mb-6 w-full max-w-[480px] rounded-2xl p-5 sm:p-6 text-left">
+    <div className="glass mb-6 w-full max-w-[480px] rounded-2xl p-5 sm:p-6 text-left">
       <h2 className="font-display text-xl leading-tight tracking-[0.03em] text-ink">
         Your reading has changed a little
       </h2>

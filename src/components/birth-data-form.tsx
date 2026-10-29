@@ -27,7 +27,7 @@ import { markUpdateNoticeSeen, saveBirthDate } from "@/lib/storage";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { NewYearToggle } from "@/components/new-year-toggle";
-import { Reveal } from "@/components/ui/reveal";
+import { Reveal, useLastPresent } from "@/components/ui/reveal";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -157,6 +157,7 @@ function DateField({
 }: DateFieldProps) {
   // "birth-day" → "error-day"; partner fields keep their prefix ("error-partner-day")
   const errorId = `error-${id.replace("birth-", "")}`;
+  const shownError = useLastPresent(error);
   return (
     <div className={`flex flex-col min-w-0 ${className}`}>
       <label
@@ -202,11 +203,15 @@ function DateField({
         aria-describedby={error ? errorId : undefined}
         className="lantern-input pressable"
       />
-      {error && (
-        <p id={errorId} role="alert" className="animate-settle-in mt-2 text-sm text-tier-weak">
-          {error}
-        </p>
-      )}
+      {/* Opens in place so the fields below glide down, and folds away
+          still showing the message once it is fixed */}
+      <Reveal open={!!error}>
+        {shownError && (
+          <p id={errorId} role="alert" className="mt-2 text-sm text-tier-weak">
+            {shownError}
+          </p>
+        )}
+      </Reveal>
     </div>
   );
 }
@@ -249,8 +254,8 @@ export function BirthDataForm({
 
   // The last complete date's preview, kept so the line can fold away
   // showing it once a field is cleared
-  const [shownDerived, setShownDerived] = useState(derived);
-  if (derived && derived !== shownDerived) setShownDerived(derived);
+  const shownDerived = useLastPresent(derived);
+  const shownDateError = useLastPresent(errors.date);
 
   // The animal under each rule, once the date is complete, so the toggle can
   // say whether the choice matters for this birth date.
@@ -361,11 +366,13 @@ export function BirthDataForm({
       </div>
 
       {/* General date error (e.g. future date, invalid calendar date) */}
-      {errors.date && (
-        <p role="alert" className="animate-settle-in mt-3 text-center text-sm text-tier-weak">
-          {errors.date}
-        </p>
-      )}
+      <Reveal open={!!errors.date}>
+        {shownDateError && (
+          <p role="alert" className="mt-3 text-center text-sm text-tier-weak">
+            {shownDateError}
+          </p>
+        )}
+      </Reveal>
 
       {/* Auto-derived zodiac and weekday. Takes no space until the date is
           complete, then opens in place so the button glides down rather
