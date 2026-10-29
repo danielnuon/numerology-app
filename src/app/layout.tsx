@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import { LanternSky } from "@/components/lantern-sky";
 import { SiteAnalytics } from "@/components/site-analytics";
+import { SiteMenu } from "@/components/site-menu";
 import {
   SHARE_DESCRIPTION,
   SHARE_TITLE,
@@ -85,7 +86,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <LanternSky />
-        <div className="relative z-[1] flex flex-1 flex-col">{children}</div>
+        <div className="relative z-[1] flex flex-1 flex-col">
+          <SiteMenu />
+          {children}
+        </div>
         <SiteAnalytics />
       </body>
     </html>

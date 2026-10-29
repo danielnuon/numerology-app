@@ -40,6 +40,7 @@ import {
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
+import { MorePages } from "@/components/ui/page-parts";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
@@ -626,11 +627,9 @@ export function HomeClient({ searchParams }: Props) {
 
       <p className="mt-16 max-w-[480px] text-center text-sm leading-relaxed text-ink-light">
         Solini follows a Khmer numerology tradition. A reading is a lantern
-        for reflection, not a prediction or advice.{" "}
-        <Link href="/about" className="underline underline-offset-4 decoration-border hover:text-gold-deep">
-          About the tradition
-        </Link>
+        for reflection, not a prediction or advice.
       </p>
+      <MorePages current="/" />
     </main>
     </MotionConfig>
   );

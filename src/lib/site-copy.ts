@@ -100,3 +100,10 @@ export const MEANING_TITLE = "What the numbers mean — Solini";
 /** "What the numbers mean" search snippet and link-preview description. */
 export const MEANING_DESCRIPTION =
   "What each number from 0 to 11 means in a Khmer numerology cycle, the twelve life areas, and how to read the total score.";
+
+/** "Our heritage" page title. */
+export const HERITAGE_TITLE = "Our heritage: Cambodia and the Khmer people — Solini";
+
+/** "Our heritage" search snippet and link-preview description. */
+export const HERITAGE_DESCRIPTION =
+  "Khmer or Cambodian, and what the difference is. A short history of Cambodia from its first kingdoms and Angkor to the Khmer Rouge years, and the family story behind Solini.";

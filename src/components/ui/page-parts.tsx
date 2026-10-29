@@ -1,10 +1,12 @@
 /**
- * Building blocks shared by the reading's companion pages (About, How your
- * cycle is made, What the numbers mean): the page shell, a titled section,
- * a row of twelve number cells, and the links between the pages.
+ * Building blocks shared by the reading's companion pages (About, Our
+ * heritage, How your cycle is made, What the numbers mean): the page shell,
+ * a titled section, a row of twelve number cells, and the links between the
+ * pages.
  */
 
 import Link from "next/link";
+import { SITE_PAGE_GROUPS, type SitePagePath } from "@/lib/site-pages";
 
 /** An underlined gold link inside running text. */
 export const MORE_LINK =
@@ -91,24 +93,31 @@ export function PillLink({ href, children }: { href: string; children: React.Rea
   );
 }
 
-const PAGES = [
-  { href: "/how-it-works", label: "How your cycle is made" },
-  { href: "/meaning", label: "What the numbers mean" },
-  { href: "/about", label: "About the tradition" },
-] as const;
-
-/** Links to the companion pages, leaving out the current one if there is one. */
-export function MorePages({ current }: { current?: (typeof PAGES)[number]["href"] }) {
+/**
+ * The site's pages in their two groups, at the foot of a page. The current
+ * page is left out; the Menu button at the top lists them all.
+ */
+export function MorePages({ current }: { current?: SitePagePath }) {
   return (
-    <nav aria-label="More about Solini" className="mt-10 flex flex-wrap justify-center gap-x-6 text-sm">
-      {PAGES.filter((page) => page.href !== current).map((page) => (
-        <Link
-          key={page.href}
-          href={page.href}
-          className="inline-flex min-h-[44px] items-center text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
-        >
-          {page.label}
-        </Link>
+    <nav aria-label="More about Solini" className="mt-12 grid w-full max-w-[640px] gap-6 text-center sm:grid-cols-2">
+      {SITE_PAGE_GROUPS.map((group) => (
+        <div key={group.title}>
+          <p className="text-sm uppercase tracking-[0.14em] text-ink-light">{group.title}</p>
+          <ul className="mt-1">
+            {group.pages
+              .filter((page) => page.href !== current)
+              .map((page) => (
+                <li key={page.href}>
+                  <Link
+                    href={page.href}
+                    className="inline-flex min-h-[44px] items-center text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+                  >
+                    {page.label}
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </div>
       ))}
     </nav>
   );
