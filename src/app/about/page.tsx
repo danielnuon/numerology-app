@@ -40,6 +40,21 @@ export default function AboutPage() {
 
       <SectionDivider />
 
+      <Section title="Why it's called Solini">
+        <p>
+          Solini is named for my mother&apos;s childhood best friend, who
+          taught her this numerology. In Khmer belief, some people have a
+          special connection to the spirits, who guide them to read the
+          numbers truly. Solini was one of them.
+        </p>
+        <p>
+          During the Khmer Rouge genocide, my mother lost touch with her. This
+          app carries her name and the method she passed on.
+        </p>
+      </Section>
+
+      <SectionDivider />
+
       <Section title="How a cycle is made">
         <p>
           Three things from your birth date each become a row of numbers that

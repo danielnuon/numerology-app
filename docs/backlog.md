@@ -16,25 +16,6 @@ Empty. Add the next story with `/story`.
 
 ## Blocked
 
-### Custom domain
-
-> Blocked on a decision: which domain, and the yearly cost.
-
-**Story:** As a visitor opening a shared link, I want it to come from a domain that looks like a real product, so that I trust it enough to tap.
-
-**Acceptance Criteria:**
-- [ ] Solini is served from its own domain, with `solini.vercel.app` redirecting to it
-- [ ] `NEXT_PUBLIC_SITE_URL`, `OG_SITE_LABEL` and the preview cards use the new domain
-
-### The story behind the name
-
-> Blocked on the name's origin, which only the family can give.
-
-**Story:** As a visitor, I want to know what "Solini" means, so that the name is easy to remember and explain to a friend.
-
-**Acceptance Criteria:**
-- [ ] The About page says in one or two sentences where the name comes from
-
 ### Khmer Language Toggle
 
 > Blocked on a native Khmer speaker to translate and culturally review the interpretation text.
@@ -111,4 +92,4 @@ These need real devices or a public URL and can't be automated here.
 - Partner Comparison View
 - Compatibility Summary Card
 - Shareable Results Card
-- Shared-link and brand copy pass (shared readings say "their", "See your own cycle", one brand line, personal share text, next reading's date, comparison for anyone close, gentler comparison labels, product events)
+- Shared-link and brand copy pass (shared readings say "their", "See your own cycle", one brand line, personal share text, next reading's date, comparison for anyone close, gentler comparison labels, product events, the story behind the name on About)
