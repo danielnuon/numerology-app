@@ -4,31 +4,32 @@
  * PartnerComparison
  *
  * Compares the reading on the page with someone else's (a partner, parent,
- * child or friend), year by year, using the family's compatibility rules
+ * child or friend), year by year, using Khmer numerology's compatibility rules
  * (src/lib/numerology/compatibility.ts). It rests as one "Compare with
  * someone close" button under the reading. That opens
  * the birth date form in partner mode, and the comparison then shows:
  *
  * - CompatibilitySummary: both total scores, the overall stability
- *   assessment, this year's interaction and a count of each interaction
- * - a Cycle switch between the visitor's current 12-year cycle and up to
- *   two complete cycles before it (Current, Previous, Before that)
+ *   assessment and this year's interaction
+ * - a cycle stepper between the visitor's current 12-year cycle and up to
+ *   two complete cycles before it
  * - a table of the chosen cycle's 12 years, with each person's number and
  *   how the two meet that year, as a symbol and a word (never color alone);
  *   a year before someone's birth reads "Not born yet"
- * - a link to share the comparison (/r/A+B), its preview card to download,
- *   and a way to remove it
+ * - a button to share the comparison (/r/A+B), with quiet links to download
+ *   its preview card and to remove it
+ * - "How to read this", closed by default: what each interaction word means
+ *   and a link to how the totals are read
  *
  * HomeClient owns the partner's date, so a shared comparison link can open
  * straight onto it. The partner's date is never saved to the browser.
  */
 
-import { addTransitionType, startTransition, useRef, useState, ViewTransition } from "react";
+import { addTransitionType, startTransition, useId, useState, ViewTransition } from "react";
+import Link from "next/link";
 import { BirthDataForm } from "@/components/birth-data-form";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
-import { interpretYear } from "@/lib/numerology/interpretation";
-import { TierIcon } from "@/components/ui/tier-icon";
 import {
   assessStability,
   compareCycles,
@@ -47,9 +48,10 @@ import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { shareLink } from "@/lib/share";
 import { trackEvent } from "@/lib/track";
 import { SHARED_COMPARISON_TITLE } from "@/lib/site-copy";
+import { MORE_LINK, TOTAL_SCORE_SECTION_ID } from "@/components/ui/page-parts";
 
-/** A cycle number with its tier symbol, which is decoration beside the number. */
-function NumberWithTier({ value }: { value: number | null }) {
+/** A cycle number in the table; the wheel and the reading carry each year's tier. */
+function CycleNumber({ value }: { value: number | null }) {
   if (value === null) {
     return (
       <span className="text-ink-light">
@@ -58,89 +60,115 @@ function NumberWithTier({ value }: { value: number | null }) {
       </span>
     );
   }
-  const tier = interpretYear(value).tier;
+  return <span className="font-sans text-base tabular-nums">{value}</span>;
+}
+
+/** Interface chevron, matching the zodiac line weight. */
+function Chevron({ direction }: { direction: "left" | "right" }) {
   return (
-    <span className="inline-flex items-center justify-center gap-1.5 tabular-nums">
-      <span className="font-sans text-lg text-ink">{value}</span>
-      <TierIcon tier={tier} />
-    </span>
+    <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <path d={direction === "left" ? "M10 3 5 8l5 5" : "M6 3l5 5-5 5"} />
+    </svg>
   );
 }
 
-/** Names for the cycles a comparison offers, newest first. */
-const CYCLE_NAMES = ["Current", "Previous", "Before that"];
-
-/** Accessible names that say "cycle", since the visible tab names lean on the "Cycle" heading. */
-const CYCLE_FULL_NAMES = ["Current cycle", "Previous cycle", "Cycle before that"];
+/**
+ * Steps between the 12-year cycles a comparison offers, newest first: the
+ * left arrow goes back a cycle, the right one forward. The label between
+ * them names the cycle shown and, when one person was born partway through
+ * it, how many years the two share.
+ */
+function CycleStepper({
+  starts,
+  selected,
+  sharedYears,
+  onChange,
+}: {
+  starts: number[];
+  selected: number;
+  sharedYears: number;
+  onChange: (start: number) => void;
+}) {
+  const index = starts.indexOf(selected);
+  const earlier = starts[index + 1];
+  const later = index > 0 ? starts[index - 1] : undefined;
+  const stepClass =
+    "pressable grid size-11 shrink-0 place-items-center rounded-full text-ink-light hover:text-ink active:scale-[0.97] disabled:pointer-events-none disabled:opacity-30";
+  return (
+    <div className="mt-5 flex items-center justify-between gap-2">
+      <button
+        type="button"
+        aria-label="Earlier cycle"
+        disabled={earlier === undefined}
+        onClick={() => earlier !== undefined && onChange(earlier)}
+        className={stepClass}
+      >
+        <Chevron direction="left" />
+      </button>
+      <p aria-live="polite" className="text-center text-xs uppercase tracking-[0.12em] text-ink-light tabular-nums">
+        Cycle {selected}–{selected + 11}
+        {sharedYears < 12 && ` · ${sharedYears} years together`}
+      </p>
+      <button
+        type="button"
+        aria-label="Later cycle"
+        disabled={later === undefined}
+        onClick={() => later !== undefined && onChange(later)}
+        className={stepClass}
+      >
+        <Chevron direction="right" />
+      </button>
+    </div>
+  );
+}
 
 /**
- * Picks which 12-year cycle the comparison shows. Tabs pattern, like the
- * reading's Year / Cycle switch: arrow keys move the choice and focus
- * together, and the ink outline glides to the chosen cycle.
+ * What each interaction word means and how the totals are read, closed until
+ * asked for, at the end of the comparison where readers look for it.
  */
-function CycleTabs({ starts, selected, onChange }: { starts: number[]; selected: number; onChange: (start: number) => void }) {
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  function handleKeyDown(event: React.KeyboardEvent, index: number) {
-    const last = starts.length - 1;
-    const next = {
-      ArrowRight: index === last ? 0 : index + 1,
-      ArrowLeft: index === 0 ? last : index - 1,
-      Home: 0,
-      End: last,
-    }[event.key];
-    if (next === undefined) return;
-    event.preventDefault();
-    tabRefs.current[next]?.focus();
-    onChange(starts[next]);
-  }
-
+function HowToRead() {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   return (
-    <div className="mt-5">
-      <p id="compare-cycle-label" className="text-xs uppercase tracking-[0.12em] text-ink-light">Cycle</p>
-      <div
-        role="tablist"
-        aria-labelledby="compare-cycle-label"
-        className={`mt-2 grid gap-1 rounded-2xl border border-border p-1 ${starts.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}
+    <div className="mt-2 border-t border-border-light pt-1">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((o) => !o)}
+        className="pressable flex min-h-[44px] w-full items-center justify-between gap-2 text-left text-sm text-ink-light hover:text-ink active:scale-[0.97]"
       >
-        {starts.map((start, index) => {
-          const isSelected = start === selected;
-          return (
-            <button
-              key={start}
-              ref={(el) => {
-                tabRefs.current[index] = el;
-              }}
-              type="button"
-              role="tab"
-              id={`compare-cycle-tab-${start}`}
-              aria-selected={isSelected}
-              aria-controls="compare-cycle-panel"
-              aria-label={`${CYCLE_FULL_NAMES[index]}, ${start} to ${start + 11}`}
-              tabIndex={isSelected ? 0 : -1}
-              onClick={() => onChange(start)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={[
-                "pressable relative flex min-h-[52px] min-w-0 flex-col items-center justify-center rounded-xl px-1 active:scale-[0.97]",
-                isSelected ? "text-ink" : "text-ink-light hover:text-ink",
-              ].join(" ")}
-            >
-              {isSelected && (
-                <ViewTransition name="compare-cycle-selection" share="auto" default="none">
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-xl bg-ink/[0.06] ring-1 ring-inset ring-ink"
-                  />
-                </ViewTransition>
-              )}
-              <span className={`relative text-sm ${isSelected ? "font-medium" : ""}`}>{CYCLE_NAMES[index]}</span>
-              <span className="relative text-xs tabular-nums">
-                {start}–{start + 11}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+        How to read this
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`size-4 transition-transform duration-[var(--duration-gentle)] ${open ? "rotate-180" : ""}`}
+        >
+          <path d="M3 6l5 5 5-5" />
+        </svg>
+      </button>
+      {open && (
+        <div id={panelId} className="animate-settle-in pb-2">
+          <dl className="grid gap-1.5 text-sm">
+            {INTERACTION_ORDER.map((interaction) => (
+              <div key={interaction} className="flex gap-2">
+                <dt className="shrink-0">
+                  <InteractionLabel interaction={interaction} />
+                </dt>
+                <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
+              </div>
+            ))}
+          </dl>
+          <Link href={`/how-it-works#${TOTAL_SCORE_SECTION_ID}`} className={`${MORE_LINK} mt-3 inline-block text-sm`}>
+            How the totals are read
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
@@ -262,13 +290,11 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   const partnerReading = computeCycleFromBirthDate(partner.year, partner.month, partner.day, partner.rule);
   const cycleStarts = comparisonCycleStarts(reading.birthYear, partnerReading.birthYear, activeYear);
   const cycleStart = pickedCycle !== null && cycleStarts.includes(pickedCycle) ? pickedCycle : cycleStarts[0];
-  const years = compareCycles(
-    reading.cycle,
-    reading.birthYear,
-    partnerReading.cycle,
-    partnerReading.birthYear,
-    cycleStart
-  );
+  const yearsFrom = (start: number) =>
+    compareCycles(reading.cycle, reading.birthYear, partnerReading.cycle, partnerReading.birthYear, start);
+  const years = yearsFrom(cycleStart);
+  // This year's interaction always comes from the current cycle, whichever one the table shows
+  const now = summarizeComparison(yearsFrom(cycleStarts[0]), activeYear).current;
   const readingDate = {
     year: reading.birthYear,
     month: reading.birthData.gregorianMonth,
@@ -301,105 +327,89 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
         {isShared && !enteredHere ? "Two cycles together" : "Your cycles together"}
       </h2>
 
-      {cycleStarts.length > 1 && (
-        <CycleTabs starts={cycleStarts} selected={cycleStart} onChange={handleCycleChange} />
+      <div className="mt-4">
+        <CompatibilitySummary
+          people={people}
+          assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
+          current={now?.interaction ? { year: now.year, interaction: now.interaction } : null}
+        />
+      </div>
+
+      {cycleStarts.length > 1 ? (
+        <CycleStepper
+          starts={cycleStarts}
+          selected={cycleStart}
+          sharedYears={summarizeComparison(years, activeYear).sharedYears}
+          onChange={handleCycleChange}
+        />
+      ) : (
+        <p className="mt-5 text-center text-xs uppercase tracking-[0.12em] text-ink-light tabular-nums">
+          Cycle {cycleStart}–{cycleStart + 11}
+        </p>
       )}
 
       {/* The chosen cycle crossfades in place */}
       <ViewTransition update={{ "compare-cycle": "panel-swap", default: "none" }} default="none">
-        <div
-          id="compare-cycle-panel"
-          {...(cycleStarts.length > 1 && { role: "tabpanel", "aria-labelledby": `compare-cycle-tab-${cycleStart}` })}
-        >
-          <div className="mt-4">
-            <CompatibilitySummary
-              people={people}
-              assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
-              summary={summarizeComparison(years, activeYear)}
-              cycle={{ start: cycleStart, end: cycleStart + 11 }}
-            />
-          </div>
-
-          {/* Year by year through the chosen cycle */}
-          <table className="mt-6 w-full border-collapse text-left">
-            <caption className="sr-only">
-              Year by year from {cycleStart} to {cycleStart + 11}: each person&apos;s number and how they meet
-            </caption>
-            <thead>
-              <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
-                <th scope="col" className="py-2 pr-2 font-normal">Year</th>
-                <th scope="col" className="px-1 py-2 text-center font-normal">{terms[0]}</th>
-                <th scope="col" className="px-1 py-2 text-center font-normal">{terms[1]}</th>
-                <th scope="col" className="py-2 pl-2 font-normal">Together</th>
-              </tr>
-            </thead>
-            <tbody>
-              {years.map((row) => {
-                const isNow = row.year === activeYear;
-                return (
-                  <tr key={row.year} className="border-t border-border-light">
-                    <th scope="row" className={`py-2 pr-2 text-sm ${isNow ? "font-semibold text-gold-deep" : "font-normal text-ink-light"}`}>
-                      {row.year}
-                      {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
-                    </th>
-                    <td className="px-1 py-2 text-center"><NumberWithTier value={row.firstNumber} /></td>
-                    <td className="px-1 py-2 text-center"><NumberWithTier value={row.secondNumber} /></td>
-                    <td className="py-2 pl-2 text-sm">
-                      {row.interaction ? (
-                        <InteractionLabel interaction={row.interaction} />
-                      ) : (
-                        <span className="text-ink-light">Not born yet</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <table className="mt-2 w-full border-collapse text-left">
+          <caption className="sr-only">
+            Year by year from {cycleStart} to {cycleStart + 11}: each person&apos;s number and how they meet
+          </caption>
+          <thead>
+            <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
+              <th scope="col" className="py-2 pr-2 font-normal">Year</th>
+              <th scope="col" className="px-1 py-2 text-center font-normal">{terms[0]}</th>
+              <th scope="col" className="px-1 py-2 text-center font-normal">{terms[1]}</th>
+              <th scope="col" className="py-2 pl-2 font-normal">Together</th>
+            </tr>
+          </thead>
+          <tbody>
+            {years.map((row) => {
+              const isNow = row.year === activeYear;
+              return (
+                <tr key={row.year} className={`border-t border-border-light ${isNow ? "text-gold-deep" : "text-ink"}`}>
+                  <th scope="row" className={`py-2 pr-2 text-sm tabular-nums ${isNow ? "font-semibold" : "font-normal text-ink-light"}`}>
+                    {row.year}
+                    {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
+                  </th>
+                  <td className="px-1 py-2 text-center"><CycleNumber value={row.firstNumber} /></td>
+                  <td className="px-1 py-2 text-center"><CycleNumber value={row.secondNumber} /></td>
+                  <td className="py-2 pl-2 text-sm">
+                    {row.interaction ? (
+                      <InteractionLabel interaction={row.interaction} />
+                    ) : (
+                      <span className="text-ink-light">Not born yet</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </ViewTransition>
 
-      {/* What each word means */}
-      <dl className="mt-5 grid gap-1.5 text-sm">
-        {INTERACTION_ORDER.map((interaction) => (
-          <div key={interaction} className="flex gap-2">
-            <dt className="shrink-0">
-              <InteractionLabel interaction={interaction} />
-            </dt>
-            <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleShare}
-            className={[
-              "pressable inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
-              "border border-gold-deep text-base text-gold-deep",
-              "hover:bg-gold-deep hover:text-parchment",
-              "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
-            ].join(" ")}
-          >
-            Share this comparison
-          </button>
-          {/* The link's preview card is the summary as a 1200×630 image */}
-          <a
-            href={`${sharePath}/opengraph-image`}
-            download={`solini-comparison-${encodeBirthDate(readingDate.year, readingDate.month, readingDate.day)}-${encodeBirthDate(partner.year, partner.month, partner.day)}.png`}
-            className={[
-              "pressable inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
-              "border border-border text-sm text-ink-light tracking-[0.04em]",
-              "hover:text-ink hover:border-gold active:scale-[0.97]",
-            ].join(" ")}
-          >
-            Download image
-          </a>
-        </div>
-        <button type="button" onClick={handleRemove} className={TEXT_LINK_CLASS}>
-          Remove comparison
+      <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <button
+          type="button"
+          onClick={handleShare}
+          className={[
+            "pressable mr-2 inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
+            "border border-gold-deep text-base text-gold-deep",
+            "hover:bg-gold-deep hover:text-parchment",
+            "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
+          ].join(" ")}
+        >
+          Share this comparison
+        </button>
+        {/* The link's preview card is the summary as a 1200×630 image */}
+        <a
+          href={`${sharePath}/opengraph-image`}
+          download={`solini-comparison-${encodeBirthDate(readingDate.year, readingDate.month, readingDate.day)}-${encodeBirthDate(partner.year, partner.month, partner.day)}.png`}
+          className={TEXT_LINK_CLASS}
+        >
+          Download image
+        </a>
+        <button type="button" onClick={handleRemove} aria-label="Remove comparison" className={TEXT_LINK_CLASS}>
+          Remove
         </button>
       </div>
       <p role="status" className="mt-2 min-h-[1.25rem] text-sm text-ink-light">
@@ -410,6 +420,8 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
           <span className="animate-settle-in inline-block">Couldn&apos;t copy automatically. Copy the link from the address bar instead.</span>
         )}
       </p>
+
+      <HowToRead />
     </section>
   );
 }

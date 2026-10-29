@@ -17,7 +17,7 @@ export const TOTAL_SCORE_SECTION_ID = "total-score";
 export function InfoPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <main className="safe-gutter flex flex-1 flex-col items-center pt-9 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
-      <p className="text-xs uppercase text-ink-light tracking-[0.18em]">
+      <p className="text-sm uppercase text-ink-light tracking-[0.18em]">
         <Link href="/" className="hover:text-gold-deep">
           Solini
         </Link>
@@ -59,7 +59,7 @@ export function NumberRow({
 }) {
   return (
     <div className="mt-4">
-      <p className="text-xs uppercase tracking-[0.12em] text-ink-light">{label}</p>
+      <p className="text-sm uppercase tracking-[0.12em] text-ink-light">{label}</p>
       <div className="mt-1.5 grid grid-cols-12 gap-0.5 sm:gap-1">
         {values.map((value, i) => (
           <span
@@ -67,7 +67,7 @@ export function NumberRow({
             className={[
               "flex h-8 items-center justify-center rounded-md border text-xs tabular-nums sm:h-10 sm:text-sm",
               highlight
-                ? "border-gold-deep text-gold-deep font-display text-sm sm:text-base"
+                ? "border-gold-deep text-gold-deep font-medium text-sm sm:text-base"
                 : "border-border text-ink",
             ].join(" ")}
           >
@@ -84,7 +84,7 @@ export function PillLink({ href, children }: { href: string; children: React.Rea
   return (
     <Link
       href={href}
-      className="pressable inline-flex min-h-[48px] items-center rounded-full border border-gold-deep px-8 text-sm font-medium uppercase tracking-[0.14em] text-gold-deep hover:bg-gold-deep hover:text-parchment"
+      className="pressable inline-flex min-h-[48px] items-center rounded-full border border-gold-deep px-8 text-base font-medium text-gold-deep hover:bg-gold-deep hover:text-parchment active:scale-[0.97]"
     >
       {children}
     </Link>
@@ -100,12 +100,12 @@ const PAGES = [
 /** Links to the companion pages, leaving out the current one if there is one. */
 export function MorePages({ current }: { current?: (typeof PAGES)[number]["href"] }) {
   return (
-    <nav aria-label="More about Solini" className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
+    <nav aria-label="More about Solini" className="mt-10 flex flex-wrap justify-center gap-x-6 text-sm">
       {PAGES.filter((page) => page.href !== current).map((page) => (
         <Link
           key={page.href}
           href={page.href}
-          className="text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+          className="inline-flex min-h-[44px] items-center text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
         >
           {page.label}
         </Link>

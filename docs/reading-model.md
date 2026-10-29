@@ -1,8 +1,8 @@
 # How a year is read
 
-This explains how Solini turns a year's number, life area and day planet into a reading, what in the tradition supports it, and what only the family's own chart can settle. Read it before changing the readings in `src/lib/numerology/life-area-data.ts`, the day planets in `day-planet-data.ts`, the birth day and animal readings in `birth-day-data.ts` and `zodiac-data.ts`, or the tiers in `interpretation-data.ts`.
+This explains how Solini turns a year's number, life area and day planet into a reading, what Khmer numerology sources support, and what is still open. Read it before changing the readings in `src/lib/numerology/life-area-data.ts`, the day planets in `day-planet-data.ts`, the birth day and animal readings in `birth-day-data.ts` and `zodiac-data.ts`, or the tiers in `interpretation-data.ts`.
 
-Labels used below: **Documented** means a cited source says it. **Popular** means horoscope columns or general sites say it, with no source of their own. **Inference** means it's our reasoning from sources, not stated by them. **Family rule** means it comes from the system as the family passed it on (see `docs/system-overview.md`), with no outside source found.
+Labels used below: **Documented** means a cited source says it. **Popular** means horoscope columns or general sites say it, with no source of their own. **Inference** means it's our reasoning from sources, not stated by them. **System rule** means it comes from the method as specified in `docs/system-overview.md`, with no outside source found yet.
 
 ## The rule
 
@@ -13,7 +13,7 @@ A year is read as its life area and its number together, with the day planet tha
 - The **reading** is the text for that pair: `AREA_READINGS[column][tier]`, 12 areas by 5 tiers, 60 readings in all. A 9 in Money reads "A year read as favorable for earning"; a 9 in Health reads "A year of good energy".
 - The **day planet** comes from the birth weekday. The day row starts at the birth day and counts on through the week, so the birth day's planet stands over the year of birth (Self), the next day's planet over Family, and so on to column 7. Each planet adds one sentence on what it lends the year, set by its strength in the Khmer count (`DAY_PLANETS`, see "Birth weekday" below). Columns 8 to 12 have no day value, so the reading says no day planet stands over them.
 
-The day planet never changes the number or the tier, which stay as the family's chart gives them. Before this change, every reading came from the tier alone. The area was a label above five shared texts, so a 9 in Money and a 9 in Health read the same.
+The day planet never changes the number or the tier, which stay as the method gives them. Before this change, every reading came from the tier alone. The area was a label above five shared texts, so a 9 in Money and a 9 in Health read the same.
 
 ## What the tradition supports
 
@@ -31,9 +31,9 @@ The day planet never changes the number or the tier, which stay as the family's 
 
 **Inference.** Reading area and number together is the documented practice, and reading the number alone is not. That is the main reason for this change.
 
-### What the numbers mean is the family's own scale
+### What the numbers mean is the system's own scale
 
-**Family rule.** In the seven-number chart the values 1 to 7 are planets with characters, not a strength scale [1][3]. Solini reduces by 12, so its values aren't planets, and it reads them as a luck scale: higher is stronger, zero is a reset. We found no outside source for a mod-12 luck scale, so the tiers stay as the family gave them, and the copy says "read as" rather than presenting them as documented tradition.
+**System rule.** In the seven-number chart the values 1 to 7 are planets with characters, not a strength scale [1][3]. Solini reduces by 12, so its values aren't planets, and it reads them as a luck scale: higher is stronger, zero is a reset. We found no outside source for a mod-12 luck scale, so the tiers stay as the method gives them, and the copy says "read as" rather than presenting them as documented tradition.
 
 ### Counting years around the chart
 
@@ -41,7 +41,7 @@ The day planet never changes the number or the tier, which stay as the family's 
 
 **Inference.** Solini's rule, where the year of birth is position 1 and each later year moves one position and wraps every 12, is an age count of this kind.
 
-## The life areas: an open question for the family
+## The life areas: an open question
 
 **Documented.** The houses that a seven-number chart's month and year rows carry are, in order: Tanu (self, body), Kadumpha (wealth, income), Sahatcha (friends, siblings, helpers), Phanthu (relatives, home), Putta (children), Ari (rivals, obstacles), Patni (spouse), Marana (loss, illness, separation), Subha (honor, good name), Kamma (work, position), Labha (gains, profit) and Phayaya (sickness, loss), then two servant houses [2][4][8]. The first twelve are the same twelve houses as Indian astrology's *bhavas*, where 6, 8 and 12 are the unfortunate houses [9].
 
@@ -62,13 +62,13 @@ The day planet never changes the number or the tier, which stay as the family's 
 | 11 | Karma | Labha: gains | No |
 | 12 | Protection | Phayaya: loss, sickness | Opposite |
 
-The labels date from the first version of `system-overview.md` (March 2026), and the repo doesn't say where they came from. They may be the family's own, or a later relabeling. **Only the family's chart can settle this**, so the readings are written for the current labels.
+The labels date from the first version of `system-overview.md` (March 2026), and the repo doesn't say where they came from. They may come from a Khmer source not yet found, or be a later relabeling. **A Khmer numerology practitioner (*kru*) or a written chart would settle this**, so the readings are written for the current labels.
 
 If the columns move to the traditional houses, the readings for the hard houses (Ari, Marana, Phayaya) have to run the other way: a high number there reads as weathering rivals, loss or illness well, not as more of them. Every current label names something people hope goes well, so for now a higher tier always reads better.
 
 ## Birth weekday: is one day luckier?
 
-The family this system comes from holds that birth weekday matters to luck: Tuesday leans unfavorable and Thursday favorable, though neither is the extreme. Three candidate scales, with how each fits:
+In Khmer numerology as Solini follows it, birth weekday matters to luck: Tuesday leans unfavorable and Thursday favorable, though neither is the extreme. Three candidate scales, with how each fits:
 
 | Day | Planet [1] | Thai benefic or malefic [10] | Planet strength [10] | Chart number [3] |
 |---|---|---|---|---|
@@ -81,18 +81,18 @@ The family this system comes from holds that birth weekday matters to luck: Tues
 | Saturday | Saturn | Malefic | 10 | 7 |
 
 - **Benefic or malefic (documented).** Thai astrology counts Mars as malefic and Jupiter as benefic, which fits in direction. But it is a two-way split with no middle, so it can't say that neither day is the extreme.
-- **Planet strength (documented).** Thai astrology gives each planet a strength: Sun 6, Mars 8, Saturn 10, Moon 15, Mercury 17, Jupiter 19, Venus 21. Ranked this way, Tuesday is second from the bottom and Thursday second from the top, which fits both of the family's points exactly.
+- **Planet strength (documented).** Thai astrology gives each planet a strength: Sun 6, Mars 8, Saturn 10, Moon 15, Mercury 17, Jupiter 19, Venus 21. Ranked this way, Tuesday is second from the bottom and Thursday second from the top, which fits both points exactly.
 - **Chart number (inference).** Ranked by the day's own number, Tuesday (3) sits below the middle and Thursday (5) above it, which fits in direction. This ranking would also make Saturday the luckiest day, while Thai sources treat Saturn as the hardest planet [11] and a Cambodian color tradition gives Saturday the color of sadness [12].
 
-**Inference.** Solini's arithmetic doesn't favor any weekday. Across all 144 month and animal combinations, every weekday averages the same total (66), the same number of 10s and 11s (2) and the same number of zeros (1). The weekday only changes which years get which numbers, and how widely totals spread. Wednesday births never total 52, and Friday and Saturday births swing the most. So if the family reads some weekdays as luckier, that is a separate layer on top of the chart, not something the chart computes.
+**Inference.** Solini's arithmetic doesn't favor any weekday. Across all 144 month and animal combinations, every weekday averages the same total (66), the same number of 10s and 11s (2) and the same number of zeros (1). The weekday only changes which years get which numbers, and how widely totals spread. Wednesday births never total 52, and Friday and Saturday births swing the most. So any ranking of weekdays as luckier is a separate layer on top of the chart, not something the chart computes.
 
 **The Khmer account (documented).** In a 2014 Radio Free Asia Khmer feature, Khmer cultural researcher Vay Vibol retells how each day's deity was made: the Sun from 6 sages, the Moon from 15 goddesses, Mars from 8 buffalo heads, Mercury from 17 elephant heads, Jupiter from 19 sages, Venus from 21 cow heads and Saturn from 10 tiger heads [13]. These counts are the planet strengths in the table above, so the strength scale is Khmer tradition as well as Thai. The same feature calls Tuesday "not very good", calls Monday a soft, gentle day, and calls Thursday the royal teacher's day, good for work, with those born on it suited to study, teaching and medicine. It gives no overall luck ranking.
 
-**Decision.** The family follows the Khmer account, so Solini ranks the day planets by these strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Tuesday near the bottom and Thursday near the top, with neither at the extreme, which matches the family's account. The RFA feature's own notes agree: Tuesday "not very good", Thursday the royal teacher's day.
+**Decision.** Solini follows the Khmer account and ranks the day planets by these strengths: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. This places Tuesday near the bottom and Thursday near the top, with neither at the extreme. The RFA feature's own notes agree: Tuesday "not very good", Thursday the royal teacher's day.
 
 **How the planets enter a reading (inference).** In the seven-number chart the day row's values are planets, and predictions are made for a planet in a house [1][2]. Solini's day row is the same row, so each of the first seven years has a planet in it. The reading adds one sentence for that planet: the stronger planets (Venus, Jupiter, Mercury) lend support, the Moon is gentle, and the weaker ones (Saturn, Mars, the Sun) ask for patience. The traits come from the RFA feature where it gives one (Mars quick to heat, the Moon soft, Jupiter the teacher, Mercury unhurried) and from the strength alone otherwise.
 
-**Character.** The family also holds that people born on Tuesday are stubborn. The RFA feature says people born on Tuesday are impatient and quick to fight [13], and popular Khmer horoscope columns call Tuesday births "a little stubborn" [14]. Those columns cite no tradition and disagree with each other elsewhere (one gives stubbornness to Saturday instead [15]), so they count only as support for the RFA account.
+**Character.** People born on Tuesday are also said to be stubborn. The RFA feature says people born on Tuesday are impatient and quick to fight [13], and popular Khmer horoscope columns call Tuesday births "a little stubborn" [14]. Those columns cite no tradition and disagree with each other elsewhere (one gives stubbornness to Saturday instead [15]), so they count only as support for the RFA account.
 
 ### Reading the birth day itself
 
@@ -111,19 +111,21 @@ Beside the year readings, the birth day panel reads the weekday on its own. Its 
 **How Cambodians use the animal (documented).** Three ways, and none is a fixed personality profile:
 
 - *The yearly forecast.* Each Khmer New Year, the Ministry of Cults and Religion's *Moha Sangkran* almanac gives a forecast for every birth animal, by gender [20]. This is the most common living use. Solini doesn't reproduce it: the text is the ministry's and changes every year.
-- *Marriage matching.* Khmer manuscripts sort the animals into three races (deities, humans and *yak*) and rate each pairing, but the tables disagree with each other and the author suspects copying errors [18, pp. 315, 321, 327]. Solini's comparison view uses the family's own rules, not these tables.
+- *Marriage matching.* Khmer manuscripts sort the animals into three races (deities, humans and *yak*) and rate each pairing, but the tables disagree with each other and the author suspects copying errors [18, pp. 315, 321, 327]. Solini's comparison view uses its own rules (`docs/system-overview.md`), not these tables.
 - *Character with the birth month.* Porée-Maspero: the animal's variety, set by the part of the year one is born in, "determines character and destiny". For example, a Rat born in some months is intelligent and supple, and in others badly placed [18, pp. 314, 319]. The full tables for all twelve animals aren't available in a form we could use.
 
-**Traits (popular).** Khmer horoscope sites give each animal a set of traits (Rat quick and clever, Ox patient and stubborn, Tiger brave) without citing a source, and they match the Chinese zodiac's stock traits [21]. **Decision:** the animal panel shows these traits because they are what visitors expect from a zodiac reading, labeled "Popular reading" with a line saying they are shared with Chinese astrology, not drawn from a Khmer text. The meaning page explains the Khmer uses above. If the family or a Khmer source gives the animals' character, it replaces these traits.
+**Traits (popular).** Khmer horoscope sites give each animal a set of traits (Rat quick and clever, Ox patient and stubborn, Tiger brave) without citing a source, and they match the Chinese zodiac's stock traits [21]. **Decision:** the animal panel shows these traits because they are what visitors expect from a zodiac reading, labeled "Popular reading" with a line saying they are shared with Chinese astrology, not drawn from a Khmer text. The meaning page explains the Khmer uses above. If a Khmer source gives the animals' character, it replaces these traits.
 
-## Questions only the family can answer
+## Open questions
 
-1. Where did the twelve life-area labels come from, and does the family chart name the columns differently?
-2. Is "higher number, better year" how the family reads it? The outside sources read numbers as planets, not as a scale.
-3. Does the family chart use the lunar birth month or the Gregorian one? Solini approximates the lunar month with the Gregorian month (`months.ts`), so a birth in late November or early December can land a month off.
+These need a Khmer numerology practitioner (*kru*) or a written source to settle.
+
+1. Where did the twelve life-area labels come from, and does a Khmer chart name the columns differently?
+2. Is "higher number, better year" how Khmer numerology reads a mod-12 value? The outside sources read numbers as planets, not as a scale.
+3. Should the chart use the lunar birth month rather than the Gregorian one? Solini approximates the lunar month with the Gregorian month (`months.ts`), so a birth in late November or early December can land a month off.
 4. Do the five columns with no weekday value (8 to 12) get read any differently?
-5. Does the family read character from the animal, and if so, from the animal alone or with the birth month, as the manuscripts do?
-6. Which birth day does the family read as luckiest, and which as least lucky? The Khmer planet strengths predict Friday and Sunday. See "Birth weekday" above.
+5. Does Khmer numerology read character from the animal, and if so, from the animal alone or with the birth month, as the manuscripts do?
+6. Is Friday the luckiest birth day and Sunday the least lucky, as the Khmer planet strengths predict? See "Birth weekday" above.
 
 ## Sources
 
