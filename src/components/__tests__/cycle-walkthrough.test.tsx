@@ -20,6 +20,15 @@ describe("CycleWalkthrough", () => {
     expect(screen.getByRole("link", { name: "See your cycle" })).toHaveAttribute("href", "/");
   });
 
+  it("explains the total score and owns that the gap case is Solini's choice", () => {
+    render(<CycleWalkthrough date={null} />);
+    const section = screen.getByRole("heading", { name: "5. The total score" }).closest("section")!;
+    expect(section).toHaveAttribute("id", "total-score");
+    expect(section).toHaveTextContent("runs from 0 to 132");
+    expect(section).toHaveTextContent("Balanced / moderate cycle (yours, 64)");
+    expect(section).toHaveTextContent("our choice, not a family rule");
+  });
+
   it("uses the date it is given, with its New Year rule", () => {
     render(<CycleWalkthrough date={{ year: 1997, month: 2, day: 10, rule: "chinese" }} />);
     expect(screen.getByText(/reading for 10 February 1997/)).toBeInTheDocument();

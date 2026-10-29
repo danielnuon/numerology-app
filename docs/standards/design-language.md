@@ -79,7 +79,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - **Zodiac animals** are the custom `ZodiacIcon` set in [`src/components/ui/zodiac-icon.tsx`](../../src/components/ui/zodiac-icon.tsx): engraved line marks on a 32-unit grid, 1.5 stroke, round caps and joins, colored by `currentColor`. They appear around the wheel, in the wheel's center, in the reading, on the form and on share images (through `ZODIAC_ICON_PATHS`). Keep them wherever an animal is named. A new animal mark must follow the same grid and stroke.
 - Icons are decorative by default (`aria-hidden`), because the animal's name is always written beside them. Pass `title` only when an icon stands alone.
 - Selected or "now" animals are `text-gold-deep`; others are `text-ink-light` or `text-gold`.
-- **Tier symbols** (● ◕ ◑ ◔ ⊙) are Unicode, always `aria-hidden="true"`, with the meaning carried by the parent's `aria-label` or visible text.
+- **Tier symbols** (● ◕ ◑ ◔ ⊙) are drawn with `TierIcon` (`components/ui/tier-icon.tsx`), an SVG that is always `aria-hidden="true"`, with the meaning carried by the parent's `aria-label` or visible text. Don't render the Unicode glyphs on the page: each comes from whichever font has it, so they show at different sizes side by side (on iOS, ● is about half the size of ◑). The Satori preview images are the exception, since they can't use the component.
 - Interface glyphs (close, share, arrows) are simple inline SVG strokes that match the zodiac line weight. Do not add an icon library.
 
 ## Interaction

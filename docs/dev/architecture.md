@@ -20,13 +20,13 @@ BirthDataForm (input)
           +- buildDayRow() [calculate.ts]    -- weekday value for columns 1-7 only
       -> CycleResultWithYear -> HomeClient state
           -> CycleChart (display)
-              |- getTierSymbol/ColorClass() [chart-helpers.ts]
+              |- getTierTextClass/getCurrentYearColumn() [chart-helpers.ts]
               |- interpretYear() [interpretation.ts]
               |- interpretTotal() [interpretation.ts]
               |- getLifeArea() [year-lookup.ts]
               +- DetailPanel (reading that blooms from the wheel center)
                   |- getYearsForColumn() [chart-helpers.ts]
-                  |- getTierSymbol() [chart-helpers.ts]
+                  |- TierIcon [components/ui/tier-icon.tsx]
                   |- interpretAreaYear() [interpretation.ts] -- life area x tier reading
                   +- describeYearPlanet() [interpretation.ts] -- day planet over the year
 
@@ -301,7 +301,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
-- **PartnerComparison**: Rests as a "Compare with a partner" button under the reading. Opens `BirthDataForm` in partner mode, then shows a Cycle switch (current cycle and up to two before it), `CompatibilitySummary` (both totals, the stability assessment, the current year's interaction and a count of each) and the chosen cycle's 12-year table of each person's number and the interaction (`compatibility.ts`), with share and remove actions. HomeClient owns the partner's date, so a comparison link opens straight onto it.
+- **PartnerComparison**: Rests as a "Compare with a partner" button under the reading. Opens `BirthDataForm` in partner mode, then shows a Cycle switch (current cycle and up to two before it), `CompatibilitySummary` (both totals, the stability assessment with a link to how the totals are read, the current year's interaction and a count of each) and the chosen cycle's 12-year table of each person's number and the interaction (`compatibility.ts`), with share and remove actions. HomeClient owns the partner's date, so a comparison link opens straight onto it.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
 ## Styling Architecture

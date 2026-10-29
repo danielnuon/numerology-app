@@ -64,13 +64,6 @@ export const INTERACTION_TEXT: Record<YearInteraction, { symbol: string; label: 
   unstable: { symbol: "⊙", label: "Unstable", meaning: "A reset year on either side unsettles the pair." },
 };
 
-/**
- * Shown under "Mixed stability" when the pair falls in the case the family's
- * table leaves out, so the visitor can weigh Solini's reading for themselves.
- */
-export const STABILITY_GAP_NOTE =
-  "The family's rules don't cover one total from 60 to 67 with the other under 60. Solini calls it mixed because one of you is on steady ground and the other isn't, but this is our reading, not a family rule.";
-
 /** One calendar year of a comparison. */
 export interface ComparedYear {
   year: number;
@@ -123,16 +116,6 @@ export function yearInteraction(first: number, second: number): YearInteraction 
  * other under 60; Solini reads that as mixed too, since one person is on
  * steady ground and the other isn't (see docs/system-overview.md).
  */
-/**
- * Whether two totals fall in the case the family's table leaves out: one
- * from 60 to 67 with the other under 60. assessStability() reads it as mixed.
- */
-export function isStabilityRuleGap(firstTotal: number, secondTotal: number): boolean {
-  const low = Math.min(firstTotal, secondTotal);
-  const high = Math.max(firstTotal, secondTotal);
-  return low < 60 && high >= 60 && high < 68;
-}
-
 export function assessStability(firstTotal: number, secondTotal: number): StabilityAssessment {
   const low = Math.min(firstTotal, secondTotal);
   const high = Math.max(firstTotal, secondTotal);

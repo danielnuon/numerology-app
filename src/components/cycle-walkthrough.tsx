@@ -4,18 +4,21 @@
  * CycleWalkthrough
  *
  * Works a 12-year cycle out step by step for one birth date: the three
- * starting numbers, the three rows, each column's sum and remainder, and the
- * total. The date comes from the page's query string; without one it is the
+ * starting numbers, the three rows, each column's sum and remainder, the
+ * cycle, and what its total score means (alone and beside a partner's, which
+ * the comparison links to). The date comes from the page's query string; without one it is the
  * visitor's saved birth date, read after hydration, and failing that the
  * worked example from the system spec.
  */
 
 import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { NumberRow, PillLink, Section } from "@/components/ui/page-parts";
+import { MORE_LINK, NumberRow, PillLink, Section, TOTAL_SCORE_SECTION_ID } from "@/components/ui/page-parts";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { computeCycleFromBirthDate, validateBirthDate } from "@/lib/numerology/derive";
+import { STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { interpretTotal } from "@/lib/numerology/interpretation";
+import { TOTAL_TIERS } from "@/lib/numerology/interpretation-data";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "@/lib/numerology/zodiac";
 import { readStoredBirthDate, readStoredNewYearRule } from "@/lib/storage";
@@ -36,8 +39,6 @@ export interface WalkthroughDate {
   day: number;
   rule: NewYearRule;
 }
-
-const MORE_LINK = "text-gold-deep underline underline-offset-4 decoration-gold-deep/40 hover:decoration-gold-deep";
 
 const subscribeToNothing = () => () => {};
 
@@ -177,6 +178,48 @@ export function CycleWalkthrough({ date }: Props) {
             What each number means
           </Link>
           .
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="5. The total score" id={TOTAL_SCORE_SECTION_ID}>
+        <p>
+          Add the twelve numbers of the cycle and you have the total score. Each number is 0 to 11,
+          so the total runs from 0 to 132. It sums up how the cycle leans as a whole.
+        </p>
+        <ul className="glass space-y-2 rounded-2xl p-3 text-sm min-[360px]:p-4 sm:p-6">
+          {TOTAL_TIERS.map((tier) => (
+            <li key={tier.tier} className="flex gap-3">
+              <span className="w-16 shrink-0 font-sans tabular-nums text-ink">
+                {Number.isFinite(tier.max) ? `${tier.min}–${tier.max}` : `${tier.min}+`}
+              </span>
+              <span className={tier.tier === total.tier ? "text-gold-deep" : "text-ink"}>
+                {tier.label}
+                {tier.tier === total.tier && ` (yours, ${totalScore})`}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p>When you compare with a partner, the two totals together give the overall reading:</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Both 68 or more: <span className="text-ink">{STABILITY_TEXT.strong.label}</span>
+          </li>
+          <li>
+            Both 60 or more: <span className="text-ink">{STABILITY_TEXT.moderate.label}</span>
+          </li>
+          <li>
+            One 68 or more, the other under 60: <span className="text-ink">{STABILITY_TEXT.mixed.label}</span>
+          </li>
+          <li>
+            Both under 60: <span className="text-ink">{STABILITY_TEXT.challenging.label}</span>
+          </li>
+        </ul>
+        <p>
+          The family&apos;s rules stop there, so they don&apos;t cover one total from 60 to 67 with the
+          other under 60. Solini reads that as mixed too, because one of you is on steady ground and the
+          other isn&apos;t. That part is our choice, not a family rule.
         </p>
       </Section>
 

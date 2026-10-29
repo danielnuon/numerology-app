@@ -13,11 +13,8 @@ import { useRef, useEffect, useCallback, ViewTransition } from "react";
 import { useReducedMotion } from "motion/react";
 import { interpretYear } from "@/lib/numerology/interpretation";
 import { getCycleIndex } from "@/lib/numerology/year-lookup";
-import {
-  getTierSymbol,
-  getTierColorClass,
-  getTierTextClass,
-} from "@/lib/numerology/chart-helpers";
+import { getTierColorClass } from "@/lib/numerology/chart-helpers";
+import { TierIcon } from "@/components/ui/tier-icon";
 
 /** How many years past the active year the timeline extends. */
 export const TIMELINE_YEARS_AHEAD = 30;
@@ -149,7 +146,6 @@ export function YearTimeline({
           const cycleIndex = getCycleIndex(birthYear, year);
           const cycleNumber = cycle[cycleIndex];
           const interp = interpretYear(cycleNumber);
-          const symbol = getTierSymbol(interp.tier);
           const bgClass = getTierColorClass(interp.tier);
           const isCurrent = year === activeYear;
           const isSelected = selectedYear === year;
@@ -198,15 +194,7 @@ export function YearTimeline({
                     .filter(Boolean)
                     .join(" ")}
                 >
-                  <span
-                    aria-hidden="true"
-                    className={[
-                      "text-xs leading-none",
-                      getTierTextClass(interp.tier),
-                    ].join(" ")}
-                  >
-                    {symbol}
-                  </span>
+                  <TierIcon tier={interp.tier} className="size-2.5" />
 
                   {/* Selection outline — glides between years */}
                   {isSelected && (

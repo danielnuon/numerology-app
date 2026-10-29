@@ -27,7 +27,7 @@ import { BirthDataForm } from "@/components/birth-data-form";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers";
+import { TierIcon } from "@/components/ui/tier-icon";
 import {
   assessStability,
   compareCycles,
@@ -60,9 +60,7 @@ function NumberWithTier({ value }: { value: number | null }) {
   return (
     <span className="inline-flex items-center justify-center gap-1.5 tabular-nums">
       <span className="font-sans text-lg text-ink">{value}</span>
-      <span aria-hidden="true" className={`text-xs ${getTierTextClass(tier)}`}>
-        {getTierSymbol(tier)}
-      </span>
+      <TierIcon tier={tier} />
     </span>
   );
 }
