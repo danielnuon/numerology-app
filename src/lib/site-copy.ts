@@ -106,4 +106,4 @@ export const HERITAGE_TITLE = "Our heritage: Cambodia and the Khmer people — S
 
 /** "Our heritage" search snippet and link-preview description. */
 export const HERITAGE_DESCRIPTION =
-  "Khmer or Cambodian, and what the difference is. A short history of Cambodia from its first kingdoms and Angkor to the Khmer Rouge years, and the family story behind Solini.";
+  "How the Khmer have read time for centuries, from the zero carved in stone and Angkor Wat's equinox sunrise to the New Year, and where Solini's numerology fits. Khmer or Cambodian, the Khmer Rouge years and the family story behind Solini.";
