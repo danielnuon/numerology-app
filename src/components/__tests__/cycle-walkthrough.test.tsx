@@ -26,7 +26,7 @@ describe("CycleWalkthrough", () => {
     expect(section).toHaveAttribute("id", "total-score");
     expect(section).toHaveTextContent("It can only be 52, 64 or 76");
     expect(section).toHaveTextContent("Balanced / moderate cycle (yours)");
-    expect(section).toHaveTextContent("our choice, not a family rule");
+    expect(section).toHaveTextContent("our choice, not a rule of Khmer numerology");
   });
 
   it("uses the date it is given, with its New Year rule", () => {

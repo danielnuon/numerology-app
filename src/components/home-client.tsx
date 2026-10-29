@@ -404,7 +404,7 @@ export function HomeClient({ searchParams }: Props) {
                   {/* What the visitor gets, said before the form asks for anything */}
                   <p className="mt-2 text-center text-base leading-relaxed text-ink-light text-balance">
                     See a luck number for every year of your 12-year cycle,
-                    from a Cambodian family tradition.
+                    from Khmer numerology.
                   </p>
                 </>
               )}

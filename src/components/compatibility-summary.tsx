@@ -5,7 +5,7 @@
  * overall stability assessment, the current year's interaction (when the
  * shown cycle holds it) and how many of the cycle's years have each
  * interaction. A link under the assessment leads to how the totals are
- * read, including the case the family's rules leave out. It sits at the top
+ * read, including the case Khmer numerology's rules leave out. It sits at the top
  * of PartnerComparison, above the year-by-year table, and depends on nothing
  * around it: it brings its own border and padding and fills the width it's
  * given. The comparison link's preview image (/r/A+B/opengraph-image) draws

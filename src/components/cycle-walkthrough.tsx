@@ -221,11 +221,11 @@ export function CycleWalkthrough({ date }: Props) {
           </li>
         </ul>
         <p>
-          The family&apos;s rules don&apos;t cover 64 and 52. Solini reads that as mixed too, because one
-          of you is on steady ground and the other isn&apos;t. That part is our choice, not a family rule.
+          Khmer numerology&apos;s rules don&apos;t cover 64 and 52. Solini reads that as mixed too, because one
+          of you is on steady ground and the other isn&apos;t. That part is our choice, not a rule of Khmer numerology.
         </p>
         <p>
-          The family&apos;s word for two low totals is &ldquo;Challenging&rdquo;, and for a year when
+          Khmer numerology&apos;s word for two low totals is &ldquo;Challenging&rdquo;, and for a year when
           both numbers are low, &ldquo;Risk&rdquo;. Solini says &ldquo;{STABILITY_TEXT.challenging.label}&rdquo;
           and &ldquo;{INTERACTION_TEXT.risk.label}&rdquo; instead, so that comparing two people you care
           about never reads as a warning. The reading behind them is the same. The wording is our choice.

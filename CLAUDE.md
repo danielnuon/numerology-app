@@ -77,7 +77,7 @@ The repo copies of `system-overview.md` and `design-spec.md` are the source of t
 
 The full rules are in the standards above. The ones most often missed:
 
-- Transparency is core to the product. When a result rests on Solini's own choice rather than a family rule, say so in plain words, beside it or in the explanation it links to, so the visitor can judge it (see the principles in `docs/standards/README.md`).
+- Transparency is core to the product. When a result rests on Solini's own choice rather than a rule of Khmer numerology, say so in plain words, beside it or in the explanation it links to, so the visitor can judge it (see the principles in `docs/standards/README.md`).
 - Colors come from tokens (`text-ink`, `bg-manuscript`, `text-gold-deep`, `tier-*`). Never hardcode hex; ESLint rejects it.
 - `ink-faint` and `gold` are for decoration and placeholders only. Meaningful text uses `ink`, `ink-light` or `gold-deep`. The focus ring is the global 2px `gold-deep` outline.
 - Pressed controls use `pressable active:scale-[0.97]` or `PRESS` from `@/lib/motion`. Selection is an ink outline that glides with `<ViewTransition>`; gold means "now".
