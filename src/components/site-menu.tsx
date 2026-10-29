@@ -8,12 +8,24 @@
  * any familiar site: the button toggles the list, Escape or a tap outside it
  * closes it, and following a link closes it on the new page. The current
  * page is marked with `aria-current` and the "now" gold.
+ *
+ * The list stays mounted so it can unfold and fold away (`.menu-panel` in
+ * globals.css); while closed it is invisible and inert.
  */
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE_PAGE_GROUPS } from "@/lib/site-pages";
+
+/**
+ * A line's place in the menu, counting each group's heading (pageIndex -1)
+ * and its links in order, so the stagger runs straight down the list.
+ */
+function itemIndex(groupIndex: number, pageIndex: number): number {
+  const before = SITE_PAGE_GROUPS.slice(0, groupIndex).reduce((n, group) => n + group.pages.length + 1, 0);
+  return before + pageIndex + 1;
+}
 
 export function SiteMenu() {
   const pathname = usePathname();
@@ -62,30 +74,42 @@ export function SiteMenu() {
             "pressable active:scale-[0.97]",
           ].join(" ")}
         >
-          <svg viewBox="0 0 16 16" className="h-4 w-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <path d="M2 4.5h12M2 8h12M2 11.5h12" />
+          <svg viewBox="0 0 16 16" className="menu-icon h-4 w-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <line className="menu-icon-top" x1="2" y1="4.5" x2="14" y2="4.5" />
+            <line className="menu-icon-middle" x1="2" y1="8" x2="14" y2="8" />
+            <line className="menu-icon-bottom" x1="2" y1="11.5" x2="14" y2="11.5" />
           </svg>
           <span className="max-sm:sr-only">Menu</span>
         </button>
 
-        {isOpen && (
-          <nav
+        <nav
             id={panelId}
             aria-label="Site"
+            data-open={isOpen}
+            inert={!isOpen}
             className={[
-              "animate-settle-in absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)]",
+              "menu-panel absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)]",
               "rounded-2xl border border-border bg-manuscript p-2",
               "shadow-[var(--shadow-raised)]",
             ].join(" ")}
           >
-            {SITE_PAGE_GROUPS.map((group) => (
+            {SITE_PAGE_GROUPS.map((group, groupIndex) => (
               <div key={group.title} className="py-1">
-                <p className="px-3 pt-2 pb-1 text-sm uppercase tracking-[0.14em] text-ink-light">{group.title}</p>
+                <p
+                  className="menu-item px-3 pt-2 pb-1 text-sm uppercase tracking-[0.14em] text-ink-light"
+                  style={{ "--i": itemIndex(groupIndex, -1) } as React.CSSProperties}
+                >
+                  {group.title}
+                </p>
                 <ul>
-                  {group.pages.map((page) => {
+                  {group.pages.map((page, pageIndex) => {
                     const isCurrent = page.href === pathname;
                     return (
-                      <li key={page.href}>
+                      <li
+                        key={page.href}
+                        className="menu-item"
+                        style={{ "--i": itemIndex(groupIndex, pageIndex) } as React.CSSProperties}
+                      >
                         <Link
                           href={page.href}
                           aria-current={isCurrent ? "page" : undefined}
@@ -104,7 +128,6 @@ export function SiteMenu() {
               </div>
             ))}
           </nav>
-        )}
       </div>
     </div>
   );
