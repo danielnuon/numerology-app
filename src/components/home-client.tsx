@@ -18,9 +18,9 @@
  *   (/r/A+B) arrives with the partner's date as ?pday=&pmonth=&pyear=&pny=.
  *
  * The first visit asks one question, with the intro and the New Year choice
- * folded away. The reading opens on this year's reading; on phones the
- * 12-year wheel and timeline wait behind "See all 12 years", and on tablet
- * and desktop they show at once.
+ * folded away. The reading opens on this year's reading. Below lg a
+ * "This year / All 12 years" switch swaps it for the 12-year wheel and
+ * timeline in the same place; from lg the two sit side by side.
  */
 
 import {
@@ -41,6 +41,11 @@ import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
 import { ThisYearCard } from "@/components/this-year-card";
+import {
+  ReadingViewTabs,
+  READING_VIEW_PANEL_IDS,
+  type ReadingView,
+} from "@/components/reading-view-tabs";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
 import { UpdateNotice } from "@/components/update-notice";
@@ -70,9 +75,6 @@ import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
 /** ID for the reading card, the place the form blooms into. */
 const CHART_SECTION_ID = "cycle-chart-section";
-
-/** ID for the 12-year wheel that "See all 12 years" opens on phones. */
-const CYCLE_SECTION_ID = "cycle-wheel-section";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -219,8 +221,8 @@ export function HomeClient({ searchParams }: Props) {
     hasShareParams ? partnerFromSearchParams(searchParams) : null
   );
 
-  // On phones the 12-year wheel and timeline wait behind "See all 12 years".
-  const [cycleOpen, setCycleOpen] = useState(false);
+  // Below lg the card shows one view at a time: this year, or all 12 years.
+  const [readingView, setReadingView] = useState<ReadingView>("year");
 
   // One selected year shared by the chart and the timeline, so they always
   // agree. null means "the active year" until the user picks something.
@@ -250,9 +252,20 @@ export function HomeClient({ searchParams }: Props) {
       setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
       setPickedYear(null);
       setFormOpen(false);
-      setCycleOpen(false);
+      setReadingView("year");
       setBloomed(true);
     });
+  }, []);
+
+  // Switching views crossfades in place. If the visitor had scrolled down
+  // the wheel, the new view starts from the card's top instead.
+  const handleReadingViewChange = useCallback((view: ReadingView) => {
+    startTransition(() => {
+      addTransitionType("reading-view");
+      setReadingView(view);
+    });
+    const card = readingCardRef.current;
+    if (card && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start" });
   }, []);
 
   const handleReadAgain = useCallback(() => {
@@ -475,9 +488,17 @@ export function HomeClient({ searchParams }: Props) {
                 </div>
               </div>
 
-              {/* This year first; the 12-year wheel beside it from lg, below it otherwise */}
-              <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
-                <div className="mx-auto w-full max-w-[440px]">
+              <ReadingViewTabs view={readingView} onChange={handleReadingViewChange} />
+
+              {/* One view at a time below lg, crossfading in place; side by side from lg */}
+              <ViewTransition name="reading-view" update={{ "reading-view": "panel-swap", default: "none" }} default="none">
+              <div className="lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
+                <div
+                  id={READING_VIEW_PANEL_IDS.year}
+                  role="tabpanel"
+                  aria-labelledby="reading-view-tab-year"
+                  className={`${readingView === "year" ? "" : "max-lg:hidden "}mx-auto w-full max-w-[440px]`}
+                >
                   <ThisYearCard
                     cycle={result.cycle}
                     birthYear={result.birthYear}
@@ -485,22 +506,13 @@ export function HomeClient({ searchParams }: Props) {
                     birthDay={result.birthDay}
                     weekday={result.birthData.weekday}
                   />
-
-                  <button
-                    type="button"
-                    aria-expanded={cycleOpen}
-                    aria-controls={CYCLE_SECTION_ID}
-                    onClick={() => setCycleOpen((open) => !open)}
-                    className="pressable mt-5 mb-2 w-full min-h-[52px] rounded-full border border-border text-base text-ink hover:border-gold-deep active:scale-[0.97] md:hidden"
-                  >
-                    {cycleOpen ? "Hide the 12 years" : "See all 12 years"}
-                  </button>
                 </div>
 
-                {/* Hidden only on phones until opened; tablet and desktop show it at once */}
                 <div
-                  id={CYCLE_SECTION_ID}
-                  className={`${cycleOpen ? "animate-settle-in" : "max-md:hidden"} mt-6 min-w-0 lg:mt-0`}
+                  id={READING_VIEW_PANEL_IDS.cycle}
+                  role="tabpanel"
+                  aria-labelledby="reading-view-tab-cycle"
+                  className={`${readingView === "cycle" ? "" : "max-lg:hidden "}min-w-0`}
                 >
                   <CycleChart
                     cycle={result.cycle}
@@ -515,17 +527,18 @@ export function HomeClient({ searchParams }: Props) {
                   />
                 </div>
               </div>
+              </ViewTransition>
             </div>
             </ViewTransition>
 
-            {/* Year Timeline Explorer, folded on phones with the wheel */}
+            {/* Year Timeline Explorer, part of the 12-year view below lg */}
             <div
-              className={`${cycleOpen ? "" : "max-md:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
+              className={`${readingView === "cycle" ? "" : "max-lg:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
             >
-              {/* Remounts when opened on a phone, so it centers this year
-                  once it has a width (it measures nothing while hidden) */}
+              {/* Remounts on each switch, so it centers this year once it
+                  has a width (it measures nothing while hidden) */}
               <YearTimeline
-                key={cycleOpen ? "open" : "folded"}
+                key={readingView}
                 cycle={result.cycle}
                 birthYear={result.birthYear}
                 activeYear={activeYear}
