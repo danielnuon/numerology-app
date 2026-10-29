@@ -133,6 +133,31 @@ export function getActiveYear(
 }
 
 /**
+ * Returns which month of the active year today falls in, from 1 to 12.
+ *
+ * The year counts from the birthday, like `getActiveYear`, so month 1 runs
+ * from the birthday to the same day of the next month. A birth day that the
+ * month doesn't have (the 31st, or February 29) turns on the month's last day.
+ *
+ * @param birthMonth    - Birth month (1–12).
+ * @param birthDay      - Birth day (1–31).
+ * @param todayOverride - Optional date to use as "today" for deterministic testing.
+ *
+ * @example
+ * // Born July 24, today is October 29 → month 4
+ * getMonthOfActiveYear(7, 24) === 4
+ */
+export function getMonthOfActiveYear(birthMonth: number, birthDay: number, todayOverride?: Date): number {
+  const today = todayOverride ?? new Date();
+  const todayMonth = today.getMonth() + 1;
+  const daysInThisMonth = new Date(today.getFullYear(), todayMonth, 0).getDate();
+  const turnDay = todayMonth === birthMonth ? birthDay : Math.min(birthDay, daysInThisMonth);
+  let monthsSince = (todayMonth - birthMonth + 12) % 12;
+  if (today.getDate() < turnDay) monthsSince = (monthsSince + 11) % 12;
+  return monthsSince + 1;
+}
+
+/**
  * Validates that a year falls within the supported range.
  *
  * @param year - The year to validate.

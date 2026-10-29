@@ -5,7 +5,9 @@
  *
  * The 12-year cycle as a wheel of lantern orbs, starting at the top with the
  * birth year and running clockwise, each with its zodiac animal outside it.
- * A gold arc traces the cycle from the birth year to this year.
+ * A gold arc traces the cycle from the birth year to this year, and a dial of
+ * twelve segments around this year's orb shows the month of the year, counted
+ * from the birthday.
  *
  * The orbs behave like tabs: one is always selected, arrow keys move focus
  * and selection together, and the center of the wheel (the tab panel) shows a
@@ -26,7 +28,7 @@ import {
 import { motion } from "motion/react";
 import type { Weekday } from "@/lib/numerology/calculate";
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { getActiveYear, getCycleIndex, getLifeArea } from "@/lib/numerology/year-lookup";
+import { getActiveYear, getCycleIndex, getLifeArea, getMonthOfActiveYear } from "@/lib/numerology/year-lookup";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
 import { getTierTextClass, getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
@@ -72,6 +74,40 @@ const ANIMAL_RADIUS = 48;
 const RING_LENGTH = 2 * Math.PI * ORB_RADIUS;
 
 /**
+ * The month dial's twelve segments, clockwise from the top, as SVG arcs on a
+ * 100-unit box centered on the orb. Rounded so the server and the browser
+ * render identical markup.
+ */
+const MONTH_SEGMENTS = Array.from({ length: 12 }, (_, month) => {
+  const radius = 48;
+  const gap = 4; // degrees left open at each end of a segment
+  const point = (degrees: number) => {
+    const angle = (degrees * Math.PI) / 180;
+    return `${(radius * Math.sin(angle)).toFixed(3)} ${(-radius * Math.cos(angle)).toFixed(3)}`;
+  };
+  return `M ${point(month * 30 + gap)} A ${radius} ${radius} 0 0 1 ${point(month * 30 + 30 - gap)}`;
+});
+
+/**
+ * This year's month, as twelve segments around the current year's orb:
+ * months behind are lit, this month breathes, months ahead stay faint.
+ */
+function MonthDial({ month }: { month: number }) {
+  return (
+    <svg
+      viewBox="-50 -50 100 100"
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-[3px] size-[calc(100%+6px)] overflow-visible"
+    >
+      {MONTH_SEGMENTS.map((d, index) => {
+        const state = index + 1 < month ? "past" : index + 1 === month ? "now" : "ahead";
+        return <path key={index} d={d} className={`wheel-month wheel-month-${state}`} />;
+      })}
+    </svg>
+  );
+}
+
+/**
  * Position on the wheel for a cycle position, clockwise from the top.
  * Rounded so the server and the browser render identical styles.
  */
@@ -113,9 +149,11 @@ export function CycleChart({
   const currentYear = new Date().getFullYear();
   const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
   const currentColumn = getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
+  const monthOfYear = getMonthOfActiveYear(birthMonth, birthDay);
   const selectedIndex = getCycleIndex(birthYear, selectedYear);
   // The twelve calendar years of the cycle that holds the selected year
   const cycleStart = selectedYear - selectedIndex;
+  const showsActiveYear = activeYear >= cycleStart && activeYear < cycleStart + 12;
 
   const [readingOpen, setReadingOpen] = useState(false);
   const orbRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -281,7 +319,7 @@ export function CycleChart({
               const interp = interpretYear(cycleNumber);
               const year = cycleStart + index;
               const animal = getZodiacAnimalForYear(year);
-              const isCurrent = index === currentColumn;
+              const isCurrent = year === activeYear;
               const isSelected = index === selectedIndex;
 
               const ariaLabel = [
@@ -290,7 +328,7 @@ export function CycleChart({
                 `cycle number ${cycleNumber}`,
                 interp.label,
                 `Year of the ${animal}`,
-                isCurrent ? "current year" : "",
+                isCurrent ? `current year, month ${monthOfYear} of 12` : "",
               ]
                 .filter(Boolean)
                 .join(", ");
@@ -340,13 +378,7 @@ export function CycleChart({
                     className="wheel-ripple pointer-events-none absolute inset-0 rounded-full"
                   />
 
-                  {/* Current year marker */}
-                  {isCurrent && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-gold-deep shadow-[0_0_8px_rgba(226,182,90,0.8)]"
-                    />
-                  )}
+                  {isCurrent && <MonthDial month={monthOfYear} />}
 
                   {/* Selection ring: one shared element that glides between orbs */}
                   {isSelected && (
@@ -465,6 +497,11 @@ export function CycleChart({
         {readingOpen
           ? "Tap outside the reading to close it and choose another year."
           : "Tap a number to choose a year, then the center to read it in full."}
+        {!readingOpen && showsActiveYear && (
+          <span className="block">
+            The ring around {activeYear} shows month {monthOfYear} of 12, counted from the birthday.
+          </span>
+        )}
       </p>
 
       <TotalScoreCard totalScore={totalScore} />

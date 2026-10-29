@@ -6,6 +6,7 @@ import {
   getYearNumber,
   getLifeArea,
   getActiveYear,
+  getMonthOfActiveYear,
   getNextReadingStart,
 } from "../year-lookup";
 
@@ -247,5 +248,33 @@ describe("getNextReadingStart", () => {
 
   it("treats 2100 as a common year", () => {
     expect(getNextReadingStart(2099, 2, 29)).toEqual({ year: 2100, month: 3, day: 1 });
+  });
+});
+
+describe("getMonthOfActiveYear", () => {
+  const on = (year: number, month: number, day: number) => new Date(year, month - 1, day);
+
+  it("starts month 1 on the birthday", () => {
+    expect(getMonthOfActiveYear(7, 24, on(2026, 7, 24))).toBe(1);
+    expect(getMonthOfActiveYear(7, 24, on(2026, 8, 23))).toBe(1);
+  });
+
+  it("counts whole months from the birthday (worked example: 1997-07-24)", () => {
+    expect(getMonthOfActiveYear(7, 24, on(2026, 8, 24))).toBe(2);
+    expect(getMonthOfActiveYear(7, 24, on(2026, 10, 29))).toBe(4);
+  });
+
+  it("wraps across New Year to month 12 the day before the birthday", () => {
+    expect(getMonthOfActiveYear(7, 24, on(2027, 1, 5))).toBe(6);
+    expect(getMonthOfActiveYear(7, 24, on(2027, 7, 23))).toBe(12);
+  });
+
+  it("turns on the month's last day when it has no matching day", () => {
+    // Born January 31: the month turns on February 28 in a common year
+    expect(getMonthOfActiveYear(1, 31, on(2026, 2, 27))).toBe(1);
+    expect(getMonthOfActiveYear(1, 31, on(2026, 2, 28))).toBe(2);
+    // Born February 29: like getActiveYear, the year turns on March 1 in a common year
+    expect(getMonthOfActiveYear(2, 29, on(2026, 2, 28))).toBe(12);
+    expect(getMonthOfActiveYear(2, 29, on(2026, 3, 1))).toBe(1);
   });
 });
