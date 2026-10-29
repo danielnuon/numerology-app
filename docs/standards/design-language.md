@@ -11,6 +11,7 @@ This document holds the rules. Token values live in [`src/app/globals.css`](../.
 3. **Looks interactive if and only if it is.** Every control has a pointer cursor, a hover state on devices that hover, a visible focus ring and a pressed state. Static cards have none of these.
 4. **One meaning per visual.** Gold-deep means "now" or "primary". An ink outline means "selected". The focus ring means "keyboard focus". Never reuse one for another.
 5. **Light carries the tier.** Luck tiers are shown by the color of their lantern light, and always also by a symbol, so color is never the only signal.
+6. **Living surfaces.** Anything that looks like a light, or like it floats, behaves like it. Glows breathe slowly, and the sky and the glass cards carry a little weight when the page scrolls: they trail a fast scroll and settle. The motion stays slow and small enough that a visitor notices calm, not movement, and it all stops with Reduce Motion. See [Living surfaces](#living-surfaces).
 
 ## Color
 
@@ -70,7 +71,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - **Gutters** come from `.safe-gutter`: 16px on phones and 32px from 640px, widened to clear the notch in landscape.
 - **Widths.** The form card is at most 480px, reading text at most 640px, the cycle card at most 900px (1200px from `xl`).
 - **Radii.** Cards and panels `rounded-2xl`. Buttons, pills, toggles and orbs `rounded-full`. Small cells and inputs `rounded-md` to `rounded-xl`. Nothing square-cornered, nothing bubbly.
-- **Surfaces.** Cards are `.glass`: the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`. A faint gold glint slides along each card's rim as it scrolls (see the glass light row under motion). With Reduce Transparency the card is solid manuscript with no blur and no glint. Raised overlays use `--shadow-raised`; gold glows use `--shadow-glow`.
+- **Surfaces.** Cards are `.glass`: the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`. A faint gold glint slides along each card's rim as it scrolls, and cards trail a fast scroll by up to 3px (see Living surfaces). With Reduce Transparency the card is solid manuscript with no blur and no glint. Raised overlays use `--shadow-raised`; gold glows use `--shadow-glow`, and a glow that is always on breathes (`.breathe-glow`).
 - **Dividers** are a hairline that fades out at both ends with a gold ◇ in the middle (`SectionDivider`).
 - **Breakpoints.** Every screen must work from 320px wide up. Check at least 320px (small phone), 768px (tablet) and 1280px (desktop). No horizontal page scroll and no clipped or truncated text at any width.
 
@@ -97,7 +98,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 
 **Buttons**
 
-- **Primary** (one per screen at most): a solid `gold-deep` pill with `parchment` text, sentence case, at least 56px tall, with `--shadow-glow`. On hover it lightens to `gold-light`. It is the one filled shape on its screen, so the next step is never in doubt.
+- **Primary** (one per screen at most): a solid `gold-deep` pill with `parchment` text, sentence case, at least 56px tall, with a breathing gold glow (`.breathe-glow`). On hover it lightens to `gold-light`. It is the one filled shape on its screen, so the next step is never in doubt.
 - **Accent**: `gold-deep` outline pill, at least 44px tall, for the main action of a section that is not the screen's next step (Share). On hover it fills with `gold-deep` and text turns `parchment`.
 - **Secondary**: `border` outline pill, `ink-light` text, at least 44px tall. On hover the text turns `ink` and the border `gold`.
 - **Text links**: `ink-light` or `gold-deep` text, underline or color change on hover, dim when pressed.
@@ -111,7 +112,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 
 ## Motion
 
-Motion explains a change or adds slow, ambient life. It is never a spectacle and never blocks reading or tapping.
+Motion explains a change or gives a surface slow, ambient life. It is never a spectacle and never blocks reading or tapping.
 
 **Tokens** (CSS custom properties in `globals.css`, the same values in `MOTION`, `EASE` and `PRESS` in `src/lib/motion.ts`; a test keeps them in step)
 
@@ -126,6 +127,9 @@ Motion explains a change or adds slow, ambient life. It is never a spectacle and
 | `--ease-exit` / `EASE.exit` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | Things leaving |
 | `--ease-sine` | `cubic-bezier(0.37, 0, 0.63, 1)` | Ambient breathing that runs back and forth (CSS only) |
 | `PRESS` | scale 0.97, spring with no bounce | Pressed feedback in Motion |
+| `--breathe-duration` | 6.5s each way | One breath of a living glow |
+| `--breathe-low` / `--breathe-rest` | 0.64 / 0.82 | A glow's dimmest point, and where it rests with Reduce Motion |
+| `SCROLL_WEIGHT` | 0.09s lag, at most 120px of trail, cards at most 3px | Scroll weight (JavaScript only) |
 
 The curves are Material 3's. They sit close to Apple's no-overshoot springs, which is what makes the app feel familiar.
 
@@ -133,36 +137,51 @@ The curves are Material 3's. They sit close to Apple's no-overshoot springs, whi
 
 1. Use the tokens. Do not write raw durations or curves for interface motion. Longer one-off choreography (the 1.6s title "kindle", the 900ms `.rise`, the 1.6s gold arc trace) is defined once in `globals.css` and reused by class.
 2. Interface movement stays small: 10px or less of travel, scale between 0.97 and 1. No bounce or overshoot.
-3. Animate `transform` and `opacity` only, so the compositor does the work. Scroll-linked effects use CSS scroll-driven animation (`animation-timeline`), not scroll listeners.
+3. Animate `transform`, `translate` and `opacity` only, so the compositor does the work. Scroll-linked effects use CSS scroll-driven animation (`animation-timeline`) where the motion is tied to the scroll position. The one exception is scroll weight, which needs a spring and so runs in `LanternSky`'s existing frame loop (see below). No other scroll listeners.
 4. Entrances fade and settle (`.rise`, `.animate-settle-in`, `.scroll-settle`). Exits are quicker than entrances.
-5. **No looping animation**, except the approved exceptions below. Anything that loops must be slow, small, decorative and fully off with Reduce Motion. Script-driven loops (canvas, timers) also pause while the tab is hidden; browsers already do this for CSS animation.
-6. **Reduce Motion** turns everything off: nothing moves, scales or loops, and changes are instant. CSS is covered by the global rule in `globals.css`; JavaScript animation uses `<MotionConfig reducedMotion="user">` at the root or `useReducedMotion()`.
+5. **Loops are for living surfaces only.** A loop must be one of the living surfaces below: slow, small, symmetric (`--ease-sine`, or linear for a turning ring), decorative and fully off with Reduce Motion. Script-driven loops (canvas, timers) also pause while the tab is hidden; browsers already do this for CSS animation. Tailwind's `animate-pulse`, `animate-spin`, `animate-bounce` and `animate-ping` are too fast and too large, and ESLint rejects them.
+6. **Every state change is a transition.** Nothing appears, disappears or jumps in one frame. Use the shared transitions below; do not invent new ones for a single component.
+7. **Reduce Motion** turns everything off: nothing moves, scales or loops, and changes are instant. Glows rest at `--breathe-rest`, so the page looks the same, only still. CSS is covered by the global rule in `globals.css`; JavaScript animation uses `<MotionConfig reducedMotion="user">` at the root or `useReducedMotion()`.
 
-**Approved exceptions to "no loops"**
+### Living surfaces
 
-These are deliberate and approved. Add new ones here, with their limits, in the PR that introduces them.
+Glows breathe and floating things carry weight. Add a new living surface to this table, with its limits, in the PR that introduces it.
 
-| Motion | Where | Limits |
+**Breathing glows.** Every gold glow is a light of its own behind the element (an `::after` layer), and only its opacity moves, between `--breathe-low` and full over `--breathe-duration` each way on `--ease-sine`. The glow is drawn about 22% brighter than its old static look, so on average it sits where it was. Each kind of glow starts at a different point in the breath (`--breathe-delay`), so neighbors never pulse together. Glows that show a state (the focused date field, a hovered button) hold steady, because a pulse there would read as a warning.
+
+**Scroll weight.** One critically damped spring (`stepScrollSpring` in `src/lib/motion.ts`) trails the scroll position with a 0.09s time constant. The sky's glows trail it by 15–55% of the lag, nearer lights more; glass cards on screen drift with a softer copy of it, up to 3px. The trail is capped at 120px, and a jump over 600px (an anchor link, a route change) snaps instead of swinging. It never overshoots. Only `translate` moves, through paused Web Animations that each frame seeks, and only while something is moving. On a 4× throttled phone profile it adds about 7% to scroll frame time; check a real phone when changing it.
+
+| Living surface | Where | Limits |
 |--------|-------|--------|
-| Drifting dust | `LanternSky` canvas, behind every page | 38 specks rising over 20–60s with a slow flicker. Paused while the tab is hidden. Drawn once, still, with Reduce Motion. |
-| Rising lantern glows (parallax) | `.sky-glow` | Scroll-linked, not time-based: about 0.4× and 0.15× the page speed over the first 1300px. `transform` only. Still with Reduce Motion or without scroll-driven animation support. |
+| Title and number glow | `.title-glow` (site and page titles, this year's number, the wheel's center number, the total score) | A pool of `gold-deep` light behind the lettering breathes; the lettering's own text shadow holds still. |
+| Primary and current glow | `.breathe-glow` (the primary button, the timeline's current year) | The `--shadow-glow` light around the shape breathes, 2.2s out of step with the titles. |
+| Sky glows | `.sky-glow` | Each breathes at its own pace (5.8–7.4s). Scroll-linked parallax as well: about 0.4× and 0.15× the page speed over the first 1300px, plus scroll weight. Still with Reduce Motion; without scroll-driven animation support they breathe and trail but do not rise. |
+| Glass weight | `.glass` | Scroll weight only: cards on screen drift up to 3px behind a fast scroll, every third card a touch more, then settle. |
+| Drifting dust | `LanternSky` canvas, behind every page | 38 specks rising over 20–60s with a slow flicker, sliding a little with the scroll. Paused while the tab is hidden. Drawn once, still, with Reduce Motion. |
 | Glass light | `.glass::before`, `.glass::after` | Scroll-linked (`view()` timeline), not time-based: as a card crosses the viewport a gold glint (`gold-light` at 45%) slides along its rim from right to left and a 3.5% candle-white glow crosses its face. `background-position` on the card's own pseudo-elements only. Hidden with Reduce Motion, Reduce Transparency, or without scroll-driven animation support. |
-| Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A soft gold halo that breathes in and out, 1.8s each way, on the current year only. |
+| Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A soft gold halo that breathes in and out, 1.8s each way, on the current year only. Faster than other glows on purpose: it marks "now". |
 | Lantern breathing and number float | Every wheel orb (`.wheel-orb::before`, `.wheel-orb-number`) | Each orb's light breathes at its own pace (5–8.6s) while its number floats about 1px. |
 | Ring glint and tick ring | `.wheel-glint`, `.wheel-ticks` | A faint gold glint travels the ring every 14s; a fine tick ring turns once every 3 minutes. |
 | Tap ripple | `.wheel-ripple-run` | One ring spreads from a tapped orb (600ms). Runs once per tap, not a loop. |
 | Wheel depth | `.wheel-depth-ring`, `.wheel-depth-hub` | Scroll-linked (`view()` timeline): the ring and the center shift up to 6px apart as the wheel scrolls through the viewport. |
 | Return to now | Cycle wheel selection (`RETURN_TO_CURRENT_MS`) | After 9s with no tap, key, scroll or wheel anywhere on the page, the selection glides back to the current year. Never while a reading is open, while a mouse hovers the wheel, or while keyboard focus is inside it. |
 
-Looping keyframes use the symmetric `--ease-sine` curve and live only under `@media (prefers-reduced-motion: no-preference)` on `.wheel-` selectors; `reduced-motion.test.ts` fails the build otherwise. A loop anywhere else needs a new row in this table and a matching change to that test.
+Looping rules live only under `@media (prefers-reduced-motion: no-preference)` on the selectors above (`.wheel-`, `.sky-glow`, `.title-glow`, `.breathe-glow`), use `--ease-sine` or linear, and the shared breath lasts at least 4s and never dims below half. `reduced-motion.test.ts` fails the build otherwise. A new living surface needs a row here and its selector added to that test.
 
-**Approved transitions**
+### Transitions
 
-| Transition | Behavior |
-|------------|----------|
-| Wheel bloom | Tapping the wheel's center, or the selected orb again, grows the full reading out of the center with a shared-element view transition and folds it back the same way. |
-| Form morph ("Bloom") | Submitting the birth date form morphs the form card into the reading in place instead of scrolling down the page. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card over 520ms (`--ease-standard`); the form fades out in 320ms and the reading scales up from 0.96 over 520ms (`--ease-enter`). A gold glow swells and fades inside the card over 900ms. A quiet "Someone else?" text link beside the date folds it back the same way with a quick fade-out (`--duration-quick`), and "Back to the reading" returns. The page scrolls only if the card's top would sit above the viewport. With Reduce Motion the swap is an instant cut. |
-| Selection glide | The ink outline glides between options on the wheel, the timeline, the New Year toggle, the reading's "Year / Cycle" switch and the partner comparison's Cycle switch; the content beneath crossfades (out in 150ms, in over 250ms). |
+Every change of state uses one of these. Old content leaves quickly (`--duration-quick`, `--ease-exit`) so it never competes with the new; new content arrives more gently (`--duration-gentle`, `--ease-enter`), rising a few pixels as it fades in. With Reduce Motion each is an instant cut.
+
+| Transition | Where | Behavior |
+|------------|-------|----------|
+| Page change | Every route change (`src/app/template.tsx`) | The page being left fades out in 150ms; the new page rises 8px and fades in over 400ms. Named elements inside a page keep their own transitions. |
+| Reveal | Disclosures: "What will I see?", the New Year toggle's "Change" (`<Reveal>` in `components/ui/reveal.tsx`) | The slot's height eases open over 400ms (grid rows 0fr → 1fr), so the page below glides instead of jumping, and the content fades and settles in just after. Closing folds it in 250ms. Closed content stays mounted but inert. The date form's derived zodiac line uses the same slot. |
+| Settle in | Content that appears in place: errors, notices, share messages, a partner's form (`.animate-settle-in`) | Fades in and rises 4px over 250ms. A status message is keyed so each new one settles in. |
+| Selection glide | The wheel, the timeline, the New Year toggle, the reading's "Year / Cycle" switch and the partner comparison's Cycle switch | The ink outline glides to the new choice; the content beneath crossfades (out in 150ms, in over 250ms, class `panel-swap`). |
+| Wheel bloom | The cycle wheel | Tapping the wheel's center, or the selected orb again, grows the full reading out of the center with a shared-element view transition and folds it back the same way. |
+| Form morph ("Bloom") | The birth date form | Submitting the birth date form morphs the form card into the reading in place instead of scrolling down the page. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card over 520ms (`--ease-standard`); the form fades out in 320ms and the reading scales up from 0.96 over 520ms (`--ease-enter`). A gold glow swells and fades inside the card over 900ms. A quiet "Someone else?" text link beside the date folds it back the same way with a quick fade-out (`--duration-quick`), and "Back to the reading" returns. The page scrolls only if the card's top would sit above the viewport. |
+| Scroll settle | Sections entering the viewport (`.scroll-settle`) | Scroll-linked: fades in and rises 12px over the first 60% of its entry. |
+| Smooth scroll | In-page anchors and recentering | `scroll-behavior: smooth`; instant with Reduce Motion. |
 
 ## Accessibility
 

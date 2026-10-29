@@ -136,8 +136,14 @@ describe("HomeClient: a calm first visit, this year first", () => {
   it("asks one question, with the intro folded behind \"What will I see?\"", () => {
     render(<HomeClient searchParams={{}} />);
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
-    expect(screen.getByText("What will I see?").closest("details")).not.toHaveAttribute("open");
-    expect(screen.getByText(/a luck number for every year of your 12-year cycle/)).toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "What will I see?" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const panel = document.getElementById(toggle.getAttribute("aria-controls")!);
+    expect(panel).toHaveAttribute("aria-hidden", "true");
+    expect(panel).toHaveTextContent(/a luck number for every year of your 12-year cycle/);
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(panel).toHaveAttribute("aria-hidden", "false");
   });
 
   it("opens the reading on this year", () => {

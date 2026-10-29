@@ -192,7 +192,7 @@ export function YearTimeline({
                     "text-ink",
                     // Current year: gold ring (an outline, since the glow owns box-shadow)
                     isCurrent
-                      ? "outline-2 outline-offset-2 outline-gold-deep"
+                      ? "breathe-glow outline-2 outline-offset-2 outline-gold-deep"
                       : "",
                   ]
                     .filter(Boolean)

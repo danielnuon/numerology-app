@@ -380,8 +380,12 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
         </button>
       </div>
       <p role="status" className="mt-2 min-h-[1.25rem] text-sm text-ink-light">
-        {shareStatus === "copied" && "Link copied. It shows both birth dates to anyone who opens it."}
-        {shareStatus === "failed" && "Couldn't copy automatically. Copy the link from the address bar instead."}
+        {shareStatus === "copied" && (
+          <span className="animate-settle-in inline-block">Link copied. It shows both birth dates to anyone who opens it.</span>
+        )}
+        {shareStatus === "failed" && (
+          <span className="animate-settle-in inline-block">Couldn&apos;t copy automatically. Copy the link from the address bar instead.</span>
+        )}
       </p>
     </section>
   );

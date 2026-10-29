@@ -4,7 +4,7 @@ These documents are the single standard for how Solini is built, how it looks an
 
 | Standard | What it covers |
 |----------|----------------|
-| [Design language](./design-language.md) | Principles, color, type, spacing, shape, motion (with approved exceptions), interaction states, iconography, accessibility |
+| [Design language](./design-language.md) | Principles, color, type, spacing, shape, motion (living surfaces and transitions), interaction states, iconography, accessibility |
 | [Code](./code.md) | Project structure, TypeScript and React conventions, styling with tokens, comments, tests |
 | [Writing](./writing.md) | Voice and copy, American spelling, naming, commit messages and PR text |
 | [Shipping](./shipping.md) | Definition of done, the PR checklist, CI, review and deploy |
@@ -18,7 +18,8 @@ Component-level specifications (the cycle wheel, the form, the timeline) live in
 3. **Familiar.** Interactions behave the way people already expect from Apple and Google products. If something looks interactive, it is; if it is interactive, it looks it. Nobody should have to guess how a control works.
 4. **Readable.** Code is written for the next person to read. Names say what things are, comments explain why, and each module does one job.
 5. **One source of truth.** Design values live in tokens, rules live in these documents, and the repo is the record. Mirrors elsewhere (the Brain vault, chat threads, mockups) follow the repo, never the other way around.
-6. **Verified, not assumed.** Every change passes lint, type check, tests and a production build, and UI changes are looked at on mobile, tablet and desktop before they merge.
+6. **Living.** Surfaces that look alive are. Every glow breathes softly, and things that look like they float (the sky, the glass cards) carry a little weight as the page scrolls and settle when it stops. Every change of state is a smooth transition from one shared set, never a jump. All of it is slow, small and calm, and stops with Reduce Motion. The rules and limits are under [Living surfaces](./design-language.md#living-surfaces) and [Transitions](./design-language.md#transitions).
+7. **Verified, not assumed.** Every change passes lint, type check, tests and a production build, and UI changes are looked at on mobile, tablet and desktop before they merge.
 
 ## Where each rule is enforced
 
@@ -29,6 +30,8 @@ Prose is the last resort. Where a rule can be checked by a machine, it is.
 | No raw hex colors in components; use tokens | ESLint (`eslint.config.mjs`) |
 | One pressed style (`active:scale-[0.97]`, `PRESS` in Motion) | ESLint |
 | No Tailwind looping utilities (`animate-pulse`, `animate-spin`, `animate-bounce`, `animate-ping`) | ESLint |
+| Loops only on registered living surfaces, slow and symmetric, only when motion is allowed | `src/lib/numerology/__tests__/reduced-motion.test.ts` |
+| Scroll weight settles without overshoot and never swings far | `src/lib/__tests__/scroll-spring.test.ts` |
 | Animation imports come from `motion/react`, not `framer-motion` | ESLint |
 | No stray `console.log` | ESLint |
 | American spelling in code, copy and docs | `src/lib/__tests__/standards.test.ts` |
@@ -40,4 +43,4 @@ Prose is the last resort. Where a rule can be checked by a machine, it is.
 
 ## Changing a standard
 
-Standards change through a PR like any other change. Update the document, the tokens and the enforcement together, and say in the PR description what changed and why. An exception to a rule is added to the standard itself (see "Approved exceptions" in the design language), not left as a one-off in code.
+Standards change through a PR like any other change. Update the document, the tokens and the enforcement together, and say in the PR description what changed and why. A new living surface or transition is added to the standard itself (see "Living surfaces" and "Transitions" in the design language), not left as a one-off in code.

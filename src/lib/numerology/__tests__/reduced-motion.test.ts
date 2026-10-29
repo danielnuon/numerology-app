@@ -36,10 +36,11 @@ describe("prefers-reduced-motion CSS rules", () => {
     expect(blockContent).toMatch(/::view-transition-group\(\*\)/);
   });
 
-  it("loops only on the cycle wheel, and only when motion is allowed", () => {
-    // The wheel's ambient light is the one sanctioned exception to the
-    // no-loops rule; every looping rule must sit in a no-preference block
-    // and style a .wheel- element.
+  it("loops only on living surfaces, and only when motion is allowed", () => {
+    // Glows breathe and the wheel's lanterns live (see "Living surfaces" in
+    // docs/standards/design-language.md). Every looping rule must sit in a
+    // no-preference block and style one of the registered living surfaces.
+    const LIVING = /\.(wheel-|sky-glow|title-glow|breathe-glow)/;
     const lines = cssContent.split("\n");
     lines.forEach((line, index) => {
       if (!/\binfinite\b/.test(line)) return;
@@ -47,8 +48,22 @@ describe("prefers-reduced-motion CSS rules", () => {
       const media = before.filter((l) => l.trim().startsWith("@media")).pop() ?? "";
       expect(media).toMatch(/prefers-reduced-motion:\s*no-preference/);
       const selector = before.filter((l) => l.trim().endsWith("{")).pop() ?? "";
-      expect(selector).toMatch(/\.wheel-/);
+      expect(selector).toMatch(LIVING);
     });
+  });
+
+  it("living loops are slow and symmetric", () => {
+    // A breath, not a blink: every loop eases with --ease-sine, and the glow
+    // breath takes at least four seconds each way.
+    const loops = cssContent.split("\n").filter((line) => /\binfinite\b/.test(line));
+    expect(loops.length).toBeGreaterThan(0);
+    for (const line of loops) {
+      expect(line).toMatch(/var\(--ease-sine\)|linear|cubic-bezier\(0\.37, 0, 0\.63, 1\)/);
+    }
+    const breath = cssContent.match(/--breathe-duration:\s*([\d.]+)s/);
+    expect(Number(breath?.[1])).toBeGreaterThanOrEqual(4);
+    const low = cssContent.match(/--breathe-low:\s*([\d.]+)/);
+    expect(Number(low?.[1])).toBeGreaterThanOrEqual(0.5);
   });
 
   it("scroll-driven animations only run when motion is allowed", () => {

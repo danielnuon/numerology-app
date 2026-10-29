@@ -202,7 +202,7 @@ function DateField({
         className="lantern-input pressable"
       />
       {error && (
-        <p id={errorId} role="alert" className="mt-2 text-sm text-tier-weak">
+        <p id={errorId} role="alert" className="animate-settle-in mt-2 text-sm text-tier-weak">
           {error}
         </p>
       )}
@@ -356,7 +356,7 @@ export function BirthDataForm({
 
       {/* General date error (e.g. future date, invalid calendar date) */}
       {errors.date && (
-        <p role="alert" className="mt-3 text-center text-sm text-tier-weak">
+        <p role="alert" className="animate-settle-in mt-3 text-center text-sm text-tier-weak">
           {errors.date}
         </p>
       )}
@@ -409,7 +409,7 @@ export function BirthDataForm({
             "w-full rounded-full bg-gold-deep text-parchment",
             "py-3 px-6 min-h-[56px]",
             "text-lg font-semibold tracking-[0.02em]",
-            "shadow-[var(--shadow-glow)] hover:bg-gold-light",
+            "breathe-glow hover:bg-gold-light",
             "pressable active:scale-[0.97]",
           ].join(" ")}
         >

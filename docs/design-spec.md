@@ -1,6 +1,6 @@
 # Design Spec: Khmer Numerology App
 
-> This file specifies Solini's components: their layout, states and behavior. The rules every component follows (palette, type, spacing, iconography, interaction states, motion and its approved exceptions, accessibility) are defined in [the design language](./standards/design-language.md), which wins if the two disagree. Token values live in `src/app/globals.css` and `src/lib/motion.ts`.
+> This file specifies Solini's components: their layout, states and behavior. The rules every component follows (palette, type, spacing, iconography, interaction states, motion (living surfaces and transitions), accessibility) are defined in [the design language](./standards/design-language.md), which wins if the two disagree. Token values live in `src/app/globals.css` and `src/lib/motion.ts`.
 
 ## Design Brief
 - **Feature:** Full application visual identity and component system
@@ -87,7 +87,7 @@ Color (the "Temple Lantern" palette and tier light), typography, spacing, shape 
 
 **Cards:** Frosted glass (`.glass`): the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`, with `rounded-2xl` corners. As a card scrolls through the viewport, a faint gold glint slides along its rim from right to left and a barely visible glow crosses its face; both rest when the page does. With Reduce Motion the glint is hidden; with Reduce Transparency the card is solid.
 
-**Background:** The dusk sky (`.dusk-sky`): soft lantern glows that rise slowly as the page scrolls, with drifting dust (`LanternSky`) above them. See the approved exceptions in the design language.
+**Background:** The dusk sky (`.dusk-sky`): soft lantern glows that breathe and rise slowly as the page scrolls, trailing a fast scroll a little before they settle, with drifting dust (`LanternSky`) above them. Glass cards carry the same weight, drifting up to 3px. See Living surfaces in the design language.
 
 **Gold accents:** `gold-deep` marks the current year, the primary action, the total score and headings on companion pages; decorative `gold` is for the ◇ diamond and hairlines. Never for "selected" (that is the ink outline) or large surfaces. Gold is sacred — overuse cheapens it.
 
@@ -123,7 +123,7 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Bloom (the full reading):** Tapping the center, or the selected orb again, opens the full reading over the wheel: number, tier, animal, description, guidance and the other years that share the number. It grows out of the center with a shared-element view transition and folds back the same way. On narrow screens it grows taller than the wheel instead of scrolling inside it.
 
-**Current year:** Gold-deep edge, a warmer glow, a gold-deep corner dot and a soft gold halo that breathes (the current-year pulse, an approved exception in the design language). After 9s idle the selection returns here.
+**Current year:** Gold-deep edge, a warmer glow, a gold-deep corner dot and a soft gold halo that breathes (the current-year pulse, a living surface in the design language). After 9s idle the selection returns here.
 
 **States:**
 | State | Description |
@@ -172,7 +172,7 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Input styling:** Lit wells (`.lantern-input`): a solid dark field with a 1px `border` edge, centered tabular figures, at least 56px tall. Day, month and year fields move on when filled and overwrite when typed into again. On focus the edge turns `gold-deep` with a soft glow; on error it turns ember (`tier-weak`). Placeholders use `ink-faint`. Browser autofill is repainted to match.
 
-**Button:** The primary button: a `gold-deep` outline pill, uppercase, `tracking-[0.14em]`, at least 48px tall. On hover (mouse only) it fills with `gold-deep`, text turns `parchment` and it gains `--shadow-glow`; pressed scales to 0.97. Transition: `--duration-quick` with `--ease-standard`. The button should feel like pressing a seal, not clicking a web button.
+**Button:** The primary button: a `gold-deep` outline pill, uppercase, `tracking-[0.14em]`, at least 48px tall. On hover (mouse only) it fills with `gold-deep`, text turns `parchment` and it gains `--shadow-glow` (a hover glow holds steady); pressed scales to 0.97. Transition: `--duration-quick` with `--ease-standard`. The button should feel like pressing a seal, not clicking a web button.
 
 **Card:** A `.glass` card, `rounded-2xl`, at most 480px wide.
 
@@ -303,7 +303,7 @@ A table, not two charts side by side: the comparison is about the same calendar 
 
 ## Motion and Interaction
 
-Motion tokens, the motion rules, the approved exceptions (the drifting dust and rising glows, the living wheel, return to now) and the shared interaction states are defined in [the design language](./standards/design-language.md#motion). The interaction patterns above describe how they apply to each component.
+Motion tokens, the motion rules, the living surfaces (breathing glows, scroll weight, the drifting dust and rising glows, the living wheel, return to now), the shared transitions and the shared interaction states are defined in [the design language](./standards/design-language.md#motion). The interaction patterns above describe how they apply to each component.
 
 ---
 
