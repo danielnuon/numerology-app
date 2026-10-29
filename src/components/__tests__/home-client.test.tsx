@@ -42,6 +42,12 @@ function submitBirthDate(day: string, month: string, year: string) {
   });
 }
 
+/** Matches a paragraph by its whole text, which may span several elements. */
+function paragraphText(text: string) {
+  return (_: string, element: Element | null) =>
+    element?.tagName === "P" && (element.textContent ?? "").replace(/\s+/g, " ").includes(text);
+}
+
 describe("HomeClient: the form blooms into the reading", () => {
   beforeAll(() => {
     // jsdom has no matchMedia, scrollIntoView or scrollTo
@@ -95,7 +101,7 @@ describe("HomeClient: the form blooms into the reading", () => {
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: "Read your own" }));
     });
-    expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
+    expect(screen.getByText(paragraphText("Enter your birth date to see your own 12-year cycle."))).toBeInTheDocument();
   });
 
   it("calls a shared reading theirs and leads to the visitor's own", () => {
@@ -109,7 +115,7 @@ describe("HomeClient: the form blooms into the reading", () => {
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: "See your own cycle" }));
     });
-    expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
+    expect(screen.getByText(paragraphText("Enter your birth date to see your own 12-year cycle."))).toBeInTheDocument();
   });
 
   it("calls the visitor's own reading theirs, with no button to read their own", () => {
@@ -159,7 +165,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
   it("asks one question, after one line saying what the reading gives", () => {
     render(<HomeClient searchParams={{}} />);
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
-    expect(screen.getByText(/a luck number for every year of your 12-year cycle/)).toBeInTheDocument();
+    expect(screen.getByText(paragraphText("a luck number for every year of your 12-year cycle"))).toBeInTheDocument();
     expect(screen.getByText("A lantern for every year in your cycle")).toBeInTheDocument();
   });
 
@@ -207,11 +213,14 @@ describe("HomeClient: a calm first visit, this year first", () => {
     expect(screen.getByRole("tab", { name: "Year" })).toHaveAttribute("aria-selected", "true");
   });
 
-  it("lets a returning visitor forget their saved date with \"Not you?\"", () => {
+  it("offers one link on the reading, and lets a returning visitor forget their saved date from the form", () => {
     localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day: 24, month: 7, year: 1997 }));
     render(<HomeClient searchParams={{}} />);
-    expect(screen.getByRole("button", { name: "Read for someone else" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Not you?" }));
+    expect(screen.queryByRole("button", { name: "Forget my date" })).not.toBeInTheDocument();
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Read for someone else" }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Forget my date" }));
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
   });

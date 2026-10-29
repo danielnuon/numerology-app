@@ -66,7 +66,7 @@ export default function MeaningPage() {
                     key={n}
                     id={`number-${n}`}
                     data-tier={tier.tier}
-                    className={`wheel-orb relative flex size-10 scroll-mt-8 items-center justify-center rounded-full font-display text-lg tabular-nums ${tier.tier === "zero" ? "text-ink-light" : "text-ink"}`}
+                    className={`wheel-orb relative flex size-10 scroll-mt-8 items-center justify-center rounded-full font-sans text-lg font-medium tabular-nums ${tier.tier === "zero" ? "text-ink-light" : "text-ink"}`}
                     style={orbBreath(n)}
                   >
                     {n}
@@ -107,7 +107,7 @@ export default function MeaningPage() {
         <ol className="space-y-3">
           {Object.entries(LIFE_AREA_MAP).map(([column, area]) => (
             <li key={column} id={`area-${area.toLowerCase()}`} className="flex scroll-mt-8 gap-3">
-              <span className="w-6 shrink-0 text-right font-display text-gold-deep tabular-nums">{column}</span>
+              <span className="w-6 shrink-0 text-right font-medium text-gold-deep tabular-nums">{column}</span>
               <span>
                 <span className="text-ink">{area}.</span>{" "}
                 {LIFE_AREA_DESCRIPTIONS[Number(column)]}
@@ -138,7 +138,7 @@ export default function MeaningPage() {
             .sort((a, b) => b.strength - a.strength)
             .map((p) => (
               <div key={p.day} className="flex gap-3">
-                <dt className="w-8 shrink-0 text-right font-display text-gold-deep tabular-nums">{p.strength}</dt>
+                <dt className="w-8 shrink-0 text-right font-medium text-gold-deep tabular-nums">{p.strength}</dt>
                 <dd>
                   <span className="text-ink">{p.day}</span>, {p.planet}
                 </dd>
@@ -159,7 +159,7 @@ export default function MeaningPage() {
           {TOTAL_TIERS.map((tier) => (
             <div key={tier.tier}>
               <dt className="text-ink">
-                <span className="font-display text-gold-deep tabular-nums">
+                <span className="font-medium text-gold-deep tabular-nums">
                   {scoreRange(tier.min, tier.max)}
                 </span>{" "}
                 · {tier.label}

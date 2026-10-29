@@ -57,13 +57,13 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Label | Hanken Grotesk, uppercase | 14px (`text-sm`), `tracking-[0.12em]`–`0.18em` | Eyebrow text and short captions |
 | Field label | Hanken Grotesk, sentence case | 16px (`text-base`) | Form field labels |
 | Button | Hanken Grotesk 500–600, sentence case | 16–18px (`text-base`/`text-lg`) | Primary and pill buttons |
-| Numbers | Hanken Grotesk, tabular lining figures | Varies | Cycle numbers on the wheel, dates, form fields |
+| Numbers | Hanken Grotesk 500, tabular lining figures | Varies | Every cycle number (the wheel, this year's number, lantern orbs, the worked example on How your cycle is made), dates, form fields |
 | Khmer | Noto Serif Khmer | Matches its context | Any Khmer script (in both font stacks) |
 
-- Marcellus draws 0 like the letter O and 11 like "ll", so numbers people must read precisely use the sans face with `tabular-nums`.
+- Marcellus draws 0 like the letter O and 11 like "ll", so any number from 0 to 11 uses the sans face with `tabular-nums`, even where it sits beside display type. The total score (52, 64 or 76) is the one number set in Marcellus, since none of its digits can be misread.
 - Guidance and quiet asides may be italic body text. Do not add new typefaces.
 - Keep letter spacing to the values above, so labels and buttons share one rhythm.
-- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px for the wheel's own labels, where space is fixed.
+- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px, and nothing smaller, for labels inside the wheel, the timeline and the worked rows on How your cycle is made, where space is fixed.
 
 ## Spacing, layout and shape
 
