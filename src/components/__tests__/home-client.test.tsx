@@ -150,8 +150,8 @@ describe("HomeClient: a calm first visit, this year first", () => {
   it("switches between this year and all 12 years in the same place", () => {
     render(<HomeClient searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
-    const yearTab = screen.getByRole("tab", { name: "This year" });
-    const cycleTab = screen.getByRole("tab", { name: "All 12 years" });
+    const yearTab = screen.getByRole("tab", { name: "Year" });
+    const cycleTab = screen.getByRole("tab", { name: "Cycle" });
     const yearView = document.getElementById(yearTab.getAttribute("aria-controls")!)!;
     const cycleView = document.getElementById(cycleTab.getAttribute("aria-controls")!)!;
     expect(yearTab).toHaveAttribute("aria-selected", "true");
@@ -175,13 +175,13 @@ describe("HomeClient: a calm first visit, this year first", () => {
     render(<HomeClient searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     act(() => {
-      fireEvent.click(screen.getByRole("tab", { name: "All 12 years" }));
+      fireEvent.click(screen.getByRole("tab", { name: "Cycle" }));
     });
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: "Read for someone else" }));
     });
     submitBirthDate("1", "3", "1961");
-    expect(screen.getByRole("tab", { name: "This year" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Year" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("lets a returning visitor forget their saved date with \"Not you?\"", () => {

@@ -19,7 +19,7 @@
  *
  * The first visit asks one question, with the intro and the New Year choice
  * folded away. The reading opens on this year's reading. Below lg a
- * "This year / All 12 years" switch swaps it for the 12-year wheel and
+ * "Year / Cycle" switch swaps it for the 12-year wheel and
  * timeline in the same place; from lg the two sit side by side.
  */
 
