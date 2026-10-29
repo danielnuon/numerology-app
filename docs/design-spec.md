@@ -71,11 +71,6 @@ The design should feel like a digitized sacred text — not a theme park replica
 
 Every screen is checked at 320, 768 and 1280px (see [the shipping checklist](./standards/shipping.md#definition-of-done)).
 
-------------|---------------|
-| Desktop (1280px+) | Full-width sections, cycle chart spans 12 columns inline, generous margins (120px+) |
-| Tablet (768–1279px) | Reduced margins, cycle chart stays inline but tighter, timeline becomes swipeable |
-| Mobile (<768px) | Cycle chart wraps to 2 rows of 6 or becomes a vertical list. Timeline becomes a vertical scroll. Compatibility stacks vertically. |
-
 ---
 
 ## Visual System
@@ -205,24 +200,26 @@ A thin gold arc traces the ring from the birth year to this year.
 **Guidance text** in italic body text with a faint gold rule at its left edge — like an annotation in the margin of a manuscript.
 
 ### Year Timeline
-**Type:** Horizontal scrollable track
-**Purpose:** Navigate years with visual cycle pattern
+**Type:** Horizontal scrollable listbox (`src/components/year-timeline.tsx`)
+**Purpose:** Pick any year from the birth year to 30 years past this year, and see the 12-year pattern repeat
 
-**Design:** A horizontal line (the "thread of fate") with dots at each year. Dot size varies by luck tier. Current year is a gold-filled circle.
+**Design:** A hairline "thread of fate" runs through one orb per year. Every orb is the same 40px size, filled with its tier color and lit like the wheel's orbs, with the tier symbol (●, ◕, ◑, ◔, ⊙) at its center. Zero years are the unlit `tier-zero` niche with ⊙. The year sits below each orb in `ink`, or `ink-light` for past years.
 
 ```
-──○──○──○──○──○──●──○──◌──○──○──○──○──●──○──
- '97 '98 '99 '00 '01 '02 '03 '04 '05 '06 '07 '08 '09 '10
-  3   6   9   5   8  11   2   0   2   4   6   8   3   6
+ ◑    ◕    ●   (◑)   ◔    ⊙    ◔
+2024 2025 2026 2027 2028 2029 2030
+          now
 ```
 
-- Large dot (●): strong/very strong years
-- Medium dot (○): moderate years
-- Small dot (◔): weak years
-- Open dot (◌): zero/reset years
-- Gold filled dot: current year
+- **Now:** the active year (see `getActiveYear()`) gets a 2px `gold-deep` outline (9.7:1 on the page) and a bold `gold-deep` label, so gold is never the only cue.
+- **Selected:** an inset `ink` ring that glides between years (`<ViewTransition name="timeline-selection">`).
+- **Cycle boundaries:** a faint vertical `border` tick behind the first year of each new 12-year cycle.
+- **Edges:** the track fades out over 48px only on a side where more years are scrolled out of view (`data-more-before` / `data-more-after` on `.timeline-fade`).
+- **Size:** each year is a 44px-wide button around its orb, 4px apart. At 1280px about 27 years are visible, at 768px about 15, and at 320px about 5.
 
-**Interaction:** Click a dot to scroll the cycle chart and update the detail panel. Horizontal scroll with snap-to-year on mobile.
+**Interaction:** The timeline and the wheel share one selected year. Tapping a year selects it and recenters the track (instant on load, smooth afterwards unless Reduce Motion is on). It is a single Tab stop: arrow keys move focus and selection together, Home and End jump to the birth year and the last year, and Enter or Space select. Each year's accessible name reads "Year 2026, cycle number 11, Very strong luck, current year". On phones the timeline folds away with the wheel behind "See all 12 years". It isn't rendered until there is a reading.
+
+**Size budget:** a 1900 birth renders about 157 buttons. That is well within what the browser handles without windowing, so the track renders every year.
 
 ### Section Dividers
 **Type:** Decorative horizontal rule
@@ -263,7 +260,7 @@ A thin gold arc traces the ring from the birth year to this year.
 ### Timeline Scrubbing
 **Trigger:** User clicks a year dot on the timeline or drags/scrolls
 **Steps:**
-1. Selected dot gains gold fill
+1. The selected year gains the inset ink ring and the track recenters on it
 2. Corresponding orb on the wheel gains the selection ring
 3. The wheel's center updates
 4. 12-year cycle boundaries shown with subtle vertical tick marks
