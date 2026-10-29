@@ -13,6 +13,8 @@ describe("Not-found page", () => {
     expect(screen.getByRole("link", { name: "See your cycle" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "How your cycle is made" })).toHaveAttribute("href", "/how-it-works");
     expect(screen.getByRole("link", { name: "What the numbers mean" })).toHaveAttribute("href", "/meaning");
-    expect(screen.getByRole("link", { name: "About the tradition" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: "Your cycle" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "About Solini" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: "Our heritage" })).toHaveAttribute("href", "/heritage");
   });
 });

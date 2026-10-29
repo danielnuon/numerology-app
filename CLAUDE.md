@@ -50,7 +50,8 @@ When you learn something a future session would otherwise rediscover the hard wa
 |------|-------|
 | Pure calculation logic (no React, no Next) | `src/lib/numerology/`, tests in `__tests__/` beside it |
 | Components (`"use client"` only where needed) | `src/components/`, shared pieces in `components/ui/`, tests in `__tests__/` |
-| Routes | `src/app/` (`/`, `/about`, `/how-it-works`, `/meaning` and the share route `/r/[date]`) |
+| Routes | `src/app/` (`/`, `/about`, `/heritage`, `/how-it-works`, `/meaning` and the share route `/r/[date]`) |
+| Site navigation (Menu button and footer links) | `src/lib/site-pages.ts` lists every page once; `SiteMenu` and `MorePages` read it |
 | Design tokens | `src/app/globals.css` (`@theme inline` block) and `src/lib/motion.ts` |
 | Project standards | [docs/standards/](docs/standards/README.md) |
 | Domain rules, algorithm, worked examples | [docs/system-overview.md](docs/system-overview.md) |
