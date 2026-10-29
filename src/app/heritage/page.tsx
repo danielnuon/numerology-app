@@ -313,7 +313,7 @@ export default function HeritagePage() {
           worked out from an old astronomical text, the Moha Sangkran. Each
           spring, at the Royal Ploughing Ceremony, a Brahmin reads the coming
           harvest from what the royal oxen choose to eat. And families still
-          ask a <em>krou</em> or an <em>achar</em> to choose a good day for a
+          ask a <em>kru teay</em> or an <em>achar</em> to choose a good day for a
           wedding, a new house or a journey.
         </p>
         <p>
