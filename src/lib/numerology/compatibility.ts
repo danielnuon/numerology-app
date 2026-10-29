@@ -67,11 +67,12 @@ export const INTERACTION_TEXT: Record<YearInteraction, { symbol: string; label: 
 /** One calendar year of a comparison. */
 export interface ComparedYear {
   year: number;
-  /** The first person's cycle number for the year (0–11). */
-  firstNumber: number;
-  /** The second person's cycle number for the year (0–11). */
-  secondNumber: number;
-  interaction: YearInteraction;
+  /** The first person's cycle number for the year (0–11), or null before their birth year. */
+  firstNumber: number | null;
+  /** The second person's cycle number for the year (0–11), or null before their birth year. */
+  secondNumber: number | null;
+  /** How the two numbers meet, or null when either person wasn't born yet. */
+  interaction: YearInteraction | null;
 }
 
 /** Maps a cycle number (0–11) to its compatibility tier. */
@@ -127,7 +128,9 @@ export function assessStability(firstTotal: number, secondTotal: number): Stabil
 /**
  * Each person's number and the interaction for consecutive calendar years.
  * A person's number for a calendar year is the one their cycle gives that
- * year, which starts on their birthday in it.
+ * year, which starts on their birthday in it. A year before someone's birth
+ * year has no number for them and no interaction, so an earlier cycle can
+ * be compared even when one person arrived partway through it.
  *
  * @param firstCycle - The first person's 12-number cycle
  * @param firstBirthYear - The first person's birth year (their cycle anchor)
@@ -146,16 +149,51 @@ export function compareCycles(
 ): ComparedYear[] {
   return Array.from({ length: count }, (_, i) => {
     const year = fromYear + i;
-    const firstNumber = getYearNumber(firstCycle, firstBirthYear, year);
-    const secondNumber = getYearNumber(secondCycle, secondBirthYear, year);
-    return { year, firstNumber, secondNumber, interaction: yearInteraction(firstNumber, secondNumber) };
+    const firstNumber = year >= firstBirthYear ? getYearNumber(firstCycle, firstBirthYear, year) : null;
+    const secondNumber = year >= secondBirthYear ? getYearNumber(secondCycle, secondBirthYear, year) : null;
+    const interaction =
+      firstNumber === null || secondNumber === null ? null : yearInteraction(firstNumber, secondNumber);
+    return { year, firstNumber, secondNumber, interaction };
   });
 }
 
-/** A comparison at a glance: how many years of each interaction, and this year's. */
+/** The first calendar year of the 12-year cycle that holds `year`, counted from the birth year. */
+export function cycleStartYear(birthYear: number, year: number): number {
+  return birthYear + 12 * Math.floor((year - birthYear) / 12);
+}
+
+/**
+ * The cycles a comparison can show, newest first: the first person's
+ * current cycle and up to `count - 1` complete cycles before it. Cycles
+ * follow the first person's birth year, since the comparison sits under
+ * their reading. A cycle is left out if it starts before the first person
+ * was born or ends before the second person was born, because it would
+ * have no year in common.
+ *
+ * @param firstBirthYear - The first person's birth year (the cycles' anchor)
+ * @param secondBirthYear - The second person's birth year
+ * @param activeYear - The first person's current cycle year (see getActiveYear)
+ * @param count - At most how many cycles to offer (3: this one and two before)
+ * @returns Each cycle's first calendar year
+ */
+export function comparisonCycleStarts(
+  firstBirthYear: number,
+  secondBirthYear: number,
+  activeYear: number,
+  count = 3
+): number[] {
+  const current = cycleStartYear(firstBirthYear, activeYear);
+  return Array.from({ length: count }, (_, i) => current - 12 * i).filter(
+    (start) => start >= firstBirthYear && start + 11 >= secondBirthYear
+  );
+}
+
+/** A comparison at a glance: how many years of each interaction, and the current year's. */
 export interface ComparisonSummary {
-  /** How many of the compared years have each interaction. */
+  /** How many of the compared years have each interaction. Years before either birth aren't counted. */
   counts: Record<YearInteraction, number>;
+  /** How many years both people share in the compared span. */
+  sharedYears: number;
   /** The compared year that is the current one, if it is among them. */
   current: ComparedYear | null;
 }
@@ -169,6 +207,11 @@ export interface ComparisonSummary {
  */
 export function summarizeComparison(years: ComparedYear[], currentYear: number): ComparisonSummary {
   const counts: Record<YearInteraction, number> = { amplified: 0, stabilized: 0, neutral: 0, risk: 0, unstable: 0 };
-  for (const year of years) counts[year.interaction] += 1;
-  return { counts, current: years.find((year) => year.year === currentYear) ?? null };
+  let sharedYears = 0;
+  for (const year of years) {
+    if (year.interaction === null) continue;
+    counts[year.interaction] += 1;
+    sharedYears += 1;
+  }
+  return { counts, sharedYears, current: years.find((year) => year.year === currentYear) ?? null };
 }

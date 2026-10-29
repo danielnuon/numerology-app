@@ -2,6 +2,8 @@ import {
   assessStability,
   compareCycles,
   compatibilityTier,
+  comparisonCycleStarts,
+  cycleStartYear,
   INTERACTION_ORDER,
   INTERACTION_TEXT,
   summarizeComparison,
@@ -97,7 +99,7 @@ describe("compareCycles", () => {
     // 1997 worked example: 2026 is column 6 of [3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8].
     expect(year2026.firstNumber).toBe(11);
     expect(year2026.secondNumber).toBe(second.cycle[(2026 - 2000) % 12]);
-    expect(year2026.interaction).toBe(yearInteraction(11, year2026.secondNumber));
+    expect(year2026.interaction).toBe(yearInteraction(11, year2026.secondNumber as number));
   });
 
   it("gives the same numbers on both sides for the same birthday", () => {
@@ -150,5 +152,53 @@ describe("summarizeComparison", () => {
 describe("INTERACTION_TEXT", () => {
   it("names every interaction in INTERACTION_ORDER exactly once", () => {
     expect([...INTERACTION_ORDER].sort()).toEqual(Object.keys(INTERACTION_TEXT).sort());
+  });
+});
+
+describe("compareCycles before a birth year", () => {
+  const first = computeCycleFromBirthDate(1997, 7, 24);
+  const second = computeCycleFromBirthDate(2000, 3, 15);
+
+  it("has no number or interaction for a person before their birth year", () => {
+    const years = compareCycles(first.cycle, 1997, second.cycle, 2000, 1997);
+    expect(years.slice(0, 3).map((y) => [y.secondNumber, y.interaction])).toEqual([
+      [null, null],
+      [null, null],
+      [null, null],
+    ]);
+    expect(years[3].secondNumber).not.toBeNull();
+    expect(years[3].interaction).not.toBeNull();
+    expect(years.every((y) => y.firstNumber !== null)).toBe(true);
+  });
+
+  it("leaves those years out of the counts", () => {
+    const summary = summarizeComparison(compareCycles(first.cycle, 1997, second.cycle, 2000, 1997), 2026);
+    expect(summary.sharedYears).toBe(9);
+    expect(Object.values(summary.counts).reduce((a, b) => a + b, 0)).toBe(9);
+    expect(summary.current).toBeNull();
+  });
+});
+
+describe("cycleStartYear", () => {
+  it("counts cycles from the birth year", () => {
+    expect(cycleStartYear(1997, 1997)).toBe(1997);
+    expect(cycleStartYear(1997, 2008)).toBe(1997);
+    expect(cycleStartYear(1997, 2009)).toBe(2009);
+    expect(cycleStartYear(1997, 2026)).toBe(2021);
+  });
+});
+
+describe("comparisonCycleStarts", () => {
+  it("offers the current cycle and the two before it, newest first", () => {
+    expect(comparisonCycleStarts(1997, 2000, 2026)).toEqual([2021, 2009, 1997]);
+  });
+
+  it("never starts a cycle before the first person was born", () => {
+    expect(comparisonCycleStarts(2010, 1990, 2026)).toEqual([2022, 2010]);
+  });
+
+  it("leaves out a cycle that ends before the second person was born", () => {
+    expect(comparisonCycleStarts(1990, 2005, 2026)).toEqual([2026, 2014, 2002]);
+    expect(comparisonCycleStarts(1990, 2015, 2026)).toEqual([2026, 2014]);
   });
 });

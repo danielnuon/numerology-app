@@ -2,11 +2,11 @@
  * CompatibilitySummary
  *
  * A comparison at a glance: both people's dates and total scores, the
- * overall stability assessment, this year's interaction and how many of the
- * 12 compared years have each interaction. It sits at the top of
- * PartnerComparison, above the year-by-year table, and depends on nothing
- * around it: it brings its own border and padding and fills the width it's
- * given. The comparison link's preview image (/r/A+B/opengraph-image) draws
+ * overall stability assessment, the current year's interaction (when the
+ * shown cycle holds it) and how many of the cycle's years have each
+ * interaction. It sits at the top of PartnerComparison, above the
+ * year-by-year table, and depends on nothing around it: it brings its own
+ * border and padding and fills the width it's given. The comparison link's preview image (/r/A+B/opengraph-image) draws
  * the same summary as a 1200×630 card for sharing and download.
  */
 
@@ -63,11 +63,16 @@ interface Props {
   people: [SummaryPerson, SummaryPerson];
   assessment: StabilityAssessment;
   summary: ComparisonSummary;
-  /** How many years the counts cover, for the "over the next N years" line. */
-  yearCount: number;
+  /** The 12-year cycle the counts cover. */
+  cycle: { start: number; end: number };
 }
 
-export function CompatibilitySummary({ people, assessment, summary, yearCount }: Props) {
+export function CompatibilitySummary({ people, assessment, summary, cycle }: Props) {
+  // The current year, if it's in the cycle shown and both people were born by then
+  const current = summary.current?.interaction
+    ? { year: summary.current.year, interaction: summary.current.interaction }
+    : null;
+  const yearCount = cycle.end - cycle.start + 1;
   const stability = STABILITY_TEXT[assessment];
   return (
     <div className="rounded-xl border border-border p-4 sm:p-5">
@@ -90,15 +95,18 @@ export function CompatibilitySummary({ people, assessment, summary, yearCount }:
         <p className="mt-1 text-sm leading-relaxed text-ink-light">{stability.description}</p>
       </div>
 
-      {summary.current && (
+      {current && (
         <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-base">
-          <span className="font-semibold text-gold-deep">This year, {summary.current.year}:</span>
-          <InteractionLabel interaction={summary.current.interaction} />
+          <span className="font-semibold text-gold-deep">Now, {current.year}:</span>
+          <InteractionLabel interaction={current.interaction} />
         </p>
       )}
 
       <div className="mt-4">
-        <p className="text-xs uppercase tracking-[0.12em] text-ink-light">Over {yearCount} years</p>
+        <p className="text-xs uppercase tracking-[0.12em] text-ink-light">
+          Cycle {cycle.start}–{cycle.end}
+          {summary.sharedYears < yearCount && ` · ${summary.sharedYears} years together`}
+        </p>
         <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
           {INTERACTION_ORDER.map((interaction) => (
             <li key={interaction} className="inline-flex items-center gap-1.5">

@@ -10,9 +10,11 @@
  *
  * - CompatibilitySummary: both total scores, the overall stability
  *   assessment, this year's interaction and a count of each interaction
- * - a table of the 12 years from the visitor's current cycle year, with each
- *   person's number and how the two meet that year, as a symbol and a word
- *   (never color alone)
+ * - a Cycle switch between the visitor's current 12-year cycle and up to
+ *   two complete cycles before it (Current, Previous, Before that)
+ * - a table of the chosen cycle's 12 years, with each person's number and
+ *   how the two meet that year, as a symbol and a word (never color alone);
+ *   a year before someone's birth reads "Not born yet"
  * - a link to share the comparison (/r/A+B), its preview card to download,
  *   and a way to remove it
  *
@@ -20,7 +22,7 @@
  * straight onto it. The partner's date is never saved to the browser.
  */
 
-import { useState } from "react";
+import { addTransitionType, startTransition, useRef, useState, ViewTransition } from "react";
 import { BirthDataForm } from "@/components/birth-data-form";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
@@ -29,6 +31,7 @@ import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers"
 import {
   assessStability,
   compareCycles,
+  comparisonCycleStarts,
   INTERACTION_ORDER,
   INTERACTION_TEXT,
   summarizeComparison,
@@ -44,7 +47,15 @@ import { shareLink } from "@/lib/share";
 import { SHARED_COMPARISON_TITLE } from "@/lib/site-copy";
 
 /** A cycle number with its tier symbol, which is decoration beside the number. */
-function NumberWithTier({ value }: { value: number }) {
+function NumberWithTier({ value }: { value: number | null }) {
+  if (value === null) {
+    return (
+      <span className="text-ink-light">
+        <span aria-hidden="true">—</span>
+        <span className="sr-only">Not born yet</span>
+      </span>
+    );
+  }
   const tier = interpretYear(value).tier;
   return (
     <span className="inline-flex items-center justify-center gap-1.5 tabular-nums">
@@ -53,6 +64,84 @@ function NumberWithTier({ value }: { value: number }) {
         {getTierSymbol(tier)}
       </span>
     </span>
+  );
+}
+
+/** Names for the cycles a comparison offers, newest first. */
+const CYCLE_NAMES = ["Current", "Previous", "Before that"];
+
+/** Accessible names that say "cycle", since the visible tab names lean on the "Cycle" heading. */
+const CYCLE_FULL_NAMES = ["Current cycle", "Previous cycle", "Cycle before that"];
+
+/**
+ * Picks which 12-year cycle the comparison shows. Tabs pattern, like the
+ * reading's Year / Cycle switch: arrow keys move the choice and focus
+ * together, and the ink outline glides to the chosen cycle.
+ */
+function CycleTabs({ starts, selected, onChange }: { starts: number[]; selected: number; onChange: (start: number) => void }) {
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  function handleKeyDown(event: React.KeyboardEvent, index: number) {
+    const last = starts.length - 1;
+    const next = {
+      ArrowRight: index === last ? 0 : index + 1,
+      ArrowLeft: index === 0 ? last : index - 1,
+      Home: 0,
+      End: last,
+    }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    tabRefs.current[next]?.focus();
+    onChange(starts[next]);
+  }
+
+  return (
+    <div className="mt-5">
+      <p id="compare-cycle-label" className="text-xs uppercase tracking-[0.12em] text-ink-light">Cycle</p>
+      <div
+        role="tablist"
+        aria-labelledby="compare-cycle-label"
+        className={`mt-2 grid gap-1 rounded-2xl border border-border p-1 ${starts.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}
+      >
+        {starts.map((start, index) => {
+          const isSelected = start === selected;
+          return (
+            <button
+              key={start}
+              ref={(el) => {
+                tabRefs.current[index] = el;
+              }}
+              type="button"
+              role="tab"
+              id={`compare-cycle-tab-${start}`}
+              aria-selected={isSelected}
+              aria-controls="compare-cycle-panel"
+              aria-label={`${CYCLE_FULL_NAMES[index]}, ${start} to ${start + 11}`}
+              tabIndex={isSelected ? 0 : -1}
+              onClick={() => onChange(start)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              className={[
+                "pressable relative flex min-h-[52px] min-w-0 flex-col items-center justify-center rounded-xl px-1 active:scale-[0.97]",
+                isSelected ? "text-ink" : "text-ink-light hover:text-ink",
+              ].join(" ")}
+            >
+              {isSelected && (
+                <ViewTransition name="compare-cycle-selection" share="auto" default="none">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-xl bg-ink/[0.06] ring-1 ring-inset ring-ink"
+                  />
+                </ViewTransition>
+              )}
+              <span className={`relative text-sm ${isSelected ? "font-medium" : ""}`}>{CYCLE_NAMES[index]}</span>
+              <span className="relative text-xs tabular-nums">
+                {start}–{start + 11}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -78,6 +167,15 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   // The partner form starts on the reading's rule, so both are counted alike unless changed.
   const [partnerRule, setPartnerRule] = useState<NewYearRule>(readingRule);
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle");
+  // The cycle's first year; null follows the current cycle.
+  const [pickedCycle, setPickedCycle] = useState<number | null>(null);
+
+  function handleCycleChange(start: number) {
+    startTransition(() => {
+      addTransitionType("compare-cycle");
+      setPickedCycle(start);
+    });
+  }
 
   function handlePartnerResult(result: CycleResultWithYear) {
     onPartnerChange({
@@ -93,6 +191,7 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   function handleRemove() {
     onPartnerChange(null);
     setShareStatus("idle");
+    setPickedCycle(null);
   }
 
   // Resting state: one button under the reading.
@@ -140,12 +239,14 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   }
 
   const partnerReading = computeCycleFromBirthDate(partner.year, partner.month, partner.day, partner.rule);
+  const cycleStarts = comparisonCycleStarts(reading.birthYear, partnerReading.birthYear, activeYear);
+  const cycleStart = pickedCycle !== null && cycleStarts.includes(pickedCycle) ? pickedCycle : cycleStarts[0];
   const years = compareCycles(
     reading.cycle,
     reading.birthYear,
     partnerReading.cycle,
     partnerReading.birthYear,
-    activeYear
+    cycleStart
   );
   const readingDate = {
     year: reading.birthYear,
@@ -177,45 +278,63 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
         Your cycles together
       </h2>
 
-      <div className="mt-4">
-        <CompatibilitySummary
-          people={people}
-          assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
-          summary={summarizeComparison(years, activeYear)}
-          yearCount={years.length}
-        />
-      </div>
+      {cycleStarts.length > 1 && (
+        <CycleTabs starts={cycleStarts} selected={cycleStart} onChange={handleCycleChange} />
+      )}
 
-      {/* Year by year, starting with the visitor's current cycle year */}
-      <table className="mt-6 w-full border-collapse text-left">
-        <caption className="sr-only">Year by year: each person&apos;s number and how they meet</caption>
-        <thead>
-          <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
-            <th scope="col" className="py-2 pr-2 font-normal">Year</th>
-            <th scope="col" className="px-1 py-2 text-center font-normal">You</th>
-            <th scope="col" className="px-1 py-2 text-center font-normal">Partner</th>
-            <th scope="col" className="py-2 pl-2 font-normal">Together</th>
-          </tr>
-        </thead>
-        <tbody>
-          {years.map((row) => {
-            const isNow = row.year === activeYear;
-            return (
-              <tr key={row.year} className="border-t border-border-light">
-                <th scope="row" className={`py-2 pr-2 text-sm ${isNow ? "font-semibold text-gold-deep" : "font-normal text-ink-light"}`}>
-                  {row.year}
-                  {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
-                </th>
-                <td className="px-1 py-2 text-center"><NumberWithTier value={row.firstNumber} /></td>
-                <td className="px-1 py-2 text-center"><NumberWithTier value={row.secondNumber} /></td>
-                <td className="py-2 pl-2 text-sm">
-                  <InteractionLabel interaction={row.interaction} />
-                </td>
+      {/* The chosen cycle crossfades in place */}
+      <ViewTransition update={{ "compare-cycle": "panel-swap", default: "none" }} default="none">
+        <div
+          id="compare-cycle-panel"
+          {...(cycleStarts.length > 1 && { role: "tabpanel", "aria-labelledby": `compare-cycle-tab-${cycleStart}` })}
+        >
+          <div className="mt-4">
+            <CompatibilitySummary
+              people={people}
+              assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
+              summary={summarizeComparison(years, activeYear)}
+              cycle={{ start: cycleStart, end: cycleStart + 11 }}
+            />
+          </div>
+
+          {/* Year by year through the chosen cycle */}
+          <table className="mt-6 w-full border-collapse text-left">
+            <caption className="sr-only">
+              Year by year from {cycleStart} to {cycleStart + 11}: each person&apos;s number and how they meet
+            </caption>
+            <thead>
+              <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
+                <th scope="col" className="py-2 pr-2 font-normal">Year</th>
+                <th scope="col" className="px-1 py-2 text-center font-normal">You</th>
+                <th scope="col" className="px-1 py-2 text-center font-normal">Partner</th>
+                <th scope="col" className="py-2 pl-2 font-normal">Together</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {years.map((row) => {
+                const isNow = row.year === activeYear;
+                return (
+                  <tr key={row.year} className="border-t border-border-light">
+                    <th scope="row" className={`py-2 pr-2 text-sm ${isNow ? "font-semibold text-gold-deep" : "font-normal text-ink-light"}`}>
+                      {row.year}
+                      {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
+                    </th>
+                    <td className="px-1 py-2 text-center"><NumberWithTier value={row.firstNumber} /></td>
+                    <td className="px-1 py-2 text-center"><NumberWithTier value={row.secondNumber} /></td>
+                    <td className="py-2 pl-2 text-sm">
+                      {row.interaction ? (
+                        <InteractionLabel interaction={row.interaction} />
+                      ) : (
+                        <span className="text-ink-light">Not born yet</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </ViewTransition>
 
       {/* What each word means */}
       <dl className="mt-5 grid gap-1.5 text-sm">

@@ -4,8 +4,9 @@
  * The preview card for a comparison link (/r/A+B): the compatibility
  * summary as a 1200×630 image, so chat apps show how the two cycles meet and
  * "Download image" on the comparison saves the same card. It mirrors
- * CompatibilitySummary: both totals, the stability assessment, this year's
- * interaction and a count of each interaction over 12 years.
+ * CompatibilitySummary for the first person's current cycle: both totals,
+ * the stability assessment, the current year's interaction and a count of
+ * each interaction over the cycle.
  *
  * Satori draws it, so every div with more than one child sets
  * display: flex, and the interaction symbols are SVG shapes rather than
@@ -17,6 +18,7 @@ import type { ReactNode } from "react";
 import {
   assessStability,
   compareCycles,
+  cycleStartYear,
   INTERACTION_ORDER,
   INTERACTION_TEXT,
   STABILITY_TEXT,
@@ -58,10 +60,12 @@ export function comparisonImage({ first, second }: DecodedComparison, size: { wi
   const [a, b] = [first, second].map((share) =>
     computeCycleFromBirthDate(share.year, share.month, share.day, share.rule)
   );
-  // Counted from the first person's current cycle year, as on the page.
+  // The first person's current cycle, as the page opens on.
   const activeYear = getActiveYear(new Date().getFullYear(), first.month, first.day);
-  const years = compareCycles(a.cycle, a.birthYear, b.cycle, b.birthYear, activeYear);
+  const cycleStart = cycleStartYear(a.birthYear, activeYear);
+  const years = compareCycles(a.cycle, a.birthYear, b.cycle, b.birthYear, cycleStart);
   const summary = summarizeComparison(years, activeYear);
+  const current = summary.current?.interaction ?? null;
   const stability = STABILITY_TEXT[assessStability(a.totalScore, b.totalScore)];
   const people = [
     { share: first, reading: a },
@@ -129,13 +133,13 @@ export function comparisonImage({ first, second }: DecodedComparison, size: { wi
           {stability.description}
         </div>
 
-        {/* This year */}
-        {summary.current && (
+        {/* The current year */}
+        {current && (
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 26, fontSize: 28 }}>
-            <div style={{ display: "flex", color: OG_COLORS.goldDeep }}>{`This year, ${summary.current.year}:`}</div>
-            <InteractionIcon interaction={summary.current.interaction} size={26} />
-            <div style={{ display: "flex", color: OG_INTERACTION_COLORS[summary.current.interaction] }}>
-              {INTERACTION_TEXT[summary.current.interaction].label}
+            <div style={{ display: "flex", color: OG_COLORS.goldDeep }}>{`Now, ${activeYear}:`}</div>
+            <InteractionIcon interaction={current} size={26} />
+            <div style={{ display: "flex", color: OG_INTERACTION_COLORS[current] }}>
+              {INTERACTION_TEXT[current].label}
             </div>
           </div>
         )}
@@ -177,7 +181,7 @@ export function comparisonImage({ first, second }: DecodedComparison, size: { wi
             letterSpacing: "0.06em",
           }}
         >
-          {`Over ${years.length} years from ${activeYear}  ·  Compare yours at ${OG_SITE_LABEL}`}
+          {`Cycle ${cycleStart}–${cycleStart + 11}  ·  Compare yours at ${OG_SITE_LABEL}`}
         </div>
       </div>
     ),
