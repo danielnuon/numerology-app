@@ -8,6 +8,10 @@
  * validates the date on submission, and emits the cycle result via an
  * `onResult` callback. Also holds the Khmer/Chinese New Year toggle, since
  * it decides the animal the preview and the reading use.
+ *
+ * In "partner" mode the same form takes a second person's date for a
+ * comparison: it saves nothing to this browser, its fields get their own
+ * ids, and the button reads "Compare".
  */
 
 import { useState, useMemo, useRef } from "react";
@@ -35,7 +39,28 @@ const WEEKDAY_NAMES = [
   "Saturday",
 ];
 
+/** Whose date the form takes: the visitor's own, or a partner's for a comparison. */
+export type BirthDataFormMode = "primary" | "partner";
+
+/** Wording and ids that differ between the two modes. */
+const MODE_TEXT: Record<BirthDataFormMode, { idPrefix: string; formLabel: string; submit: string; footnote: string }> = {
+  primary: {
+    idPrefix: "birth",
+    formLabel: "Birth date form",
+    submit: "Reveal my cycle",
+    footnote: "Free, no sign-up. Your birth date stays in this browser.",
+  },
+  partner: {
+    idPrefix: "partner",
+    formLabel: "Partner's birth date form",
+    submit: "Compare",
+    footnote: "Their birth date isn't saved anywhere.",
+  },
+};
+
 interface Props {
+  /** "partner" takes a second person's date for a comparison and saves nothing. Defaults to "primary". */
+  mode?: BirthDataFormMode;
   /** Called with the computed cycle result after successful form submission. */
   onResult: (result: CycleResultWithYear) => void;
   /** Optional initial values for pre-filling the form (e.g., from share URL). */
@@ -129,6 +154,7 @@ function DateField({
   onBackspaceEmpty,
   className = "",
 }: DateFieldProps) {
+  // "birth-day" → "error-day"; partner fields keep their prefix ("error-partner-day")
   const errorId = `error-${id.replace("birth-", "")}`;
   return (
     <div className={`flex flex-col min-w-0 ${className}`}>
@@ -185,6 +211,7 @@ function DateField({
 }
 
 export function BirthDataForm({
+  mode = "primary",
   onResult,
   initialValues,
   newYearRule,
@@ -198,6 +225,7 @@ export function BirthDataForm({
   const dayRef = useRef<HTMLInputElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
   const yearRef = useRef<HTMLInputElement>(null);
+  const text = MODE_TEXT[mode];
 
   // Parse current field values as numbers (NaN if empty/invalid)
   const dayNum = parseInt(day, 10);
@@ -241,10 +269,12 @@ export function BirthDataForm({
 
     setErrors({});
     const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum, newYearRule);
-    saveBirthDate(dayNum, monthNum, yearNum);
-    // A date saved now is read with the current rules, so the note about
-    // the 2026 changes would only confuse this visitor later.
-    markUpdateNoticeSeen();
+    if (mode === "primary") {
+      saveBirthDate(dayNum, monthNum, yearNum);
+      // A date saved now is read with the current rules, so the note about
+      // the 2026 changes would only confuse this visitor later.
+      markUpdateNoticeSeen();
+    }
     onResult(result);
   }
 
@@ -270,12 +300,12 @@ export function BirthDataForm({
     <form
       onSubmit={handleSubmit}
       noValidate
-      aria-label="Birth date form"
+      aria-label={text.formLabel}
     >
       {/* Date inputs */}
       <div className="mt-6 sm:mt-8 grid grid-cols-[1fr_1fr_1.5fr] gap-3 sm:gap-4">
         <DateField
-          id="birth-day"
+          id={`${text.idPrefix}-day`}
           label="Day"
           placeholder="DD"
           maxLength={2}
@@ -291,7 +321,7 @@ export function BirthDataForm({
           }}
         />
         <DateField
-          id="birth-month"
+          id={`${text.idPrefix}-month`}
           label="Month"
           placeholder="MM"
           maxLength={2}
@@ -308,7 +338,7 @@ export function BirthDataForm({
           }}
         />
         <DateField
-          id="birth-year"
+          id={`${text.idPrefix}-year`}
           label="Year"
           placeholder="YYYY"
           maxLength={4}
@@ -383,10 +413,10 @@ export function BirthDataForm({
             "pressable active:scale-[0.97]",
           ].join(" ")}
         >
-          Reveal my cycle
+          {text.submit}
         </button>
         <p className="mt-3 text-center text-sm text-ink-light">
-          Free, no sign-up. Your birth date stays in this browser.
+          {text.footnote}
         </p>
       </div>
     </form>

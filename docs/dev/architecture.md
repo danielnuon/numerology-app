@@ -69,6 +69,22 @@ BirthDataForm (on successful submit)
   +- ShareRedirectClient (client): redirects to /?day=D&month=M&year=Y
       -> HomeClient reads searchParams, passes initialValues to BirthDataForm
       -> auto-computes cycle via useEffect
+
+--- Partner comparison (under any reading) ---
+
+PartnerComparison (client), partner date held in HomeClient state, never saved
+  |- BirthDataForm mode="partner" -> onPartnerChange({ year, month, day, rule })
+  |- computeCycleFromBirthDate() for the partner [derive.ts]
+  |- compareCycles() [compatibility.ts] -- 12 years from getActiveYear()
+  |    +- getYearNumber() per person, yearInteraction() per year
+  |- assessStability() [compatibility.ts] -- from both total scores
+  +- "Share this comparison" -> buildComparisonSharePath() [url-encoding.ts] -> shareLink() [share.ts]
+
+/r/A+B (comparison link): decodeComparisonSegment() [url-encoding.ts]
+  |- generateMetadata(): both totals -> "<assessment>: see how these two cycles meet"
+  |- opengraph-image.tsx: the first person's card
+  +- ShareRedirectClient: /?day=&month=&year=&ny=&pday=&pmonth=&pyear=&pny=
+      -> HomeClient opens the first reading with the comparison already showing
 ```
 
 `deriveBirthData()` and `computeCycleFromBirthDate()` are separate entry points from the form. The form calls `deriveBirthData()` reactively via `useMemo` whenever field values change (for the zodiac/weekday preview), and calls `computeCycleFromBirthDate()` imperatively on submit. They are not a linear chain -- `computeCycleFromBirthDate` internally calls `deriveBirthData` then feeds the result into `computeCycle`.
@@ -223,7 +239,7 @@ Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the 
 
 ### URL encoding: plain ISO dates, no obfuscation
 
-Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
+Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. A comparison joins two of them with `+` (`/r/1997-07-24+2000-03-15`); each part keeps its own `-cny` suffix, and `%2B` decodes the same as `+`. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
 
 ### Analytics: Vercel, cookieless, with redacted URLs
 
@@ -282,6 +298,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Shows total score summary with `interpretTotal()`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
+- **PartnerComparison**: Rests as a "Compare with a partner" button under the reading. Opens `BirthDataForm` in partner mode, then shows both totals, the stability assessment and a 12-year table of each person's number and the interaction (`compatibility.ts`), with share and remove actions. HomeClient owns the partner's date, so a comparison link opens straight onto it.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
 ## Styling Architecture

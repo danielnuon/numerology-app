@@ -1,5 +1,9 @@
 import { ImageResponse } from "next/og";
-import { decodeShareSegment, encodeBirthDate } from "@/lib/numerology/url-encoding";
+import {
+  decodeComparisonSegment,
+  decodeShareSegment,
+  encodeBirthDate,
+} from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
@@ -19,7 +23,8 @@ type Props = {
 
 export default async function OgImage({ params }: Props) {
   const { date } = await params;
-  const decoded = decodeShareSegment(date);
+  // A comparison link previews the first person's reading.
+  const decoded = decodeShareSegment(date) ?? decodeComparisonSegment(date)?.first ?? null;
 
   // Invalid date: show the site's own card.
   if (!decoded) return GenericOgImage();

@@ -221,6 +221,34 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Size budget:** a 1900 birth renders about 157 buttons. That is well within what the browser handles without windowing, so the track renders every year.
 
+### Partner Comparison
+**Type:** Section under the reading (`src/components/partner-comparison.tsx`)
+**Purpose:** See how the reading on the page meets a partner's, year by year, using the family's compatibility rules (docs/system-overview.md, "Compatibility")
+
+**States:**
+- **Resting:** one full-width outlined "Compare with a partner" button, with a line under it saying what it does.
+- **Entering a date:** a glass card with the heading "Compare with a partner", the prompt "Enter your partner's birth date to see compatibility.", the birth date form in partner mode (its own New Year toggle, a "Compare" button, and "Their birth date isn't saved anywhere.") and a Cancel link.
+- **Comparing:** a glass card, up to 640px wide, headed "Your cycles together":
+  - Two small bordered panels, You and Partner, each with the birth date, animal and total score in `gold-deep` display type.
+  - The overall assessment (Strong, Moderate or Mixed stability, or Challenging) and one calm sentence.
+  - A table of the 12 years from the visitor's current cycle year: Year, You, Partner, Together. The current year's row label is bold `gold-deep` with "Now" under it. Each number has its tier symbol beside it.
+  - A legend that says what each interaction means.
+  - "Share this comparison" (gold outline, like Share) and a "Remove comparison" text link.
+
+A table, not two charts side by side: the comparison is about the same calendar year for two people, and a row per year reads the same at 320px and 1920px with no stacking.
+
+**Interactions:** each is a symbol and a word, so color is never the only signal (all at least 5.5:1 on cards):
+
+| Interaction | Symbol | Color |
+|---|---|---|
+| Amplified | ★ | `gold-deep` |
+| Stabilized | ▲ | `tier-strong` |
+| Neutral | — | `ink-light` |
+| Risk | ▼ | `tier-weak` |
+| Unstable | ⊙ | `ink-light` |
+
+**Privacy:** the partner's date is never saved to the browser. The comparison link `/r/A+B` shows both dates to anyone who opens it, and the copied message says so.
+
 ### Section Dividers
 **Type:** Decorative horizontal rule
 **Purpose:** Separate manuscript "pages"

@@ -12,44 +12,6 @@ Stories from **Next** are being built in order, one PR at a time.
 
 ## Next
 
-### Partner Comparison View
-
-**Story:** As a visitor in a relationship, I want to enter my partner's birth data and see how our cycles interact year by year, so that I can understand which years our luck strengthens or challenges each other.
-
-**Priority:** Medium
-**Effort:** L
-
-**Acceptance Criteria:**
-- [ ] A "Compare with partner" button below the user's cycle chart reveals a second birth data form (reusing the existing BirthDataForm component in partner mode — the form submits partner data to local state without triggering the main cycle re-computation)
-- [ ] Before partner data is entered, the comparison section shows a prompt: "Enter your partner's birth date to see compatibility"
-- [ ] Both cycles are computed independently and displayed side by side: the user's 12-pillar chart on the left, the partner's on the right, aligned to calendar years. On viewports below 768px, the charts stack vertically (user on top, partner below) instead of side by side
-- [ ] Each shared year is annotated with the interaction result: stabilized, amplified, risk, unstable, or neutral
-- [ ] Compatibility uses the tier system: 1–3 = low, 4–6 = moderate, 7–11 = high (merging high and very high for interaction purposes). **Zero (value = 0) is a dedicated override: any pair containing a 0 is always "unstable", regardless of the other person's tier — this takes precedence over all tier-based rules**
-- [ ] Complete non-zero interaction rules — all 6 unique tier pairs are defined: low+low = risk, low+moderate = neutral, low+high = stabilized, moderate+moderate = neutral, moderate+high = stabilized, high+high = amplified
-- [ ] Visual annotations for each interaction type use both a color AND a text label or icon — color is never the sole indicator (WCAG SC 1.4.1). Specifically: stabilized = green + ▲ label, amplified = gold + ★ label, risk = red-brown + ▼ label, unstable = charcoal + ⊙ label, neutral = muted + — label. Verify contrast of annotation colors against background during verification with tooling.
-- [ ] Total scores for both people are displayed with a relationship stability assessment: "Strong stability" if both totals ≥ 68, "Moderate stability" if both ≥ 60, "Mixed stability" if one is ≥ 68 and the other < 60, "Challenging" if both < 60
-- [ ] A "Remove comparison" button hides the partner section and returns the page to single-person view, clearing partner state but preserving the user's own cycle
-- [ ] The comparison view is shareable via URL: two birth dates encoded as `/r/YYYY-MM-DD+YYYY-MM-DD` (user date first, partner date second). Existing single-person share URLs (`/r/YYYY-MM-DD`) remain valid — the presence of a `+` distinguishes one-person from two-person URLs
-
-**Tasks:**
-- [ ] Add "Compare with partner" button below the user's cycle chart that reveals the partner form section (animated slide-down, consistent with detail panel)
-- [ ] Parameterize BirthDataForm to accept a `mode` prop: `'primary'` (current behavior — triggers main cycle computation) or `'partner'` (submits to partner-specific state handler without affecting main cycle). Verify existing form tests still pass after parameterization
-- [ ] Define `CompatibilityResult` type: `{ year: number; userValue: number; partnerValue: number; userTier: Tier; partnerTier: Tier; interaction: 'stabilized' | 'amplified' | 'risk' | 'unstable' | 'neutral' }`
-- [ ] Define compatibility tier mapping: 0 = zero (override), 1–3 = low, 4–6 = moderate, 7–11 = high (merging high and very high for interaction purposes)
-- [ ] Implement `computeCompatibility(cycleA: number[], cycleB: number[], birthYearA: number, birthYearB: number): CompatibilityResult[]` with zero-override rule applied first, then the 6 tier-based interaction types
-- [ ] Build side-by-side chart showing both cycles aligned to calendar years; implement responsive stacking (vertical on mobile < 768px)
-- [ ] Implement visual annotations for each interaction type using color + text label (not color alone): stabilized (green + ▲), amplified (gold + ★), risk (red-brown + ▼), unstable (charcoal + ⊙), neutral (muted + —)
-- [ ] Implement total-score relationship stability assessment with 4 defined thresholds
-- [ ] Add "Remove comparison" button that clears partner state and returns to single-person view
-- [ ] Extend URL encoding: add `decodeTwoPersonUrl(dateStr: string)` that splits on `+` to parse two dates; existing single-date decoding remains unchanged. Add `buildComparisonSharePath(userDate, partnerDate)` → `/r/YYYY-MM-DD+YYYY-MM-DD`
-- [ ] Update `/r/[date]/page.tsx` to detect `+` in the date param: if present, decode both dates and render the comparison view; if absent, use existing single-person flow. Existing single-person share URLs must not break.
-- [ ] Write unit tests for zero-override precedence: 0+high → unstable, 0+low → unstable, 0+moderate → unstable, 0+0 → unstable
-- [ ] Write unit tests for all 6 non-zero tier pairs: low+low → risk, low+moderate → neutral, low+high → stabilized, moderate+moderate → neutral, moderate+high → stabilized, high+high → amplified
-- [ ] Test with edge cases: same birthday, opposite cycles, both contain zero in same year, both moderate (5+5), low+high (2+9), high+high (8+10), low+moderate (2+5), moderate+high (5+8)
-- [ ] Test URL encoding: `/r/1997-07-24+2000-03-15` decodes both dates correctly; `/r/1997-07-24` still works as single-person; `/r/invalid+also-invalid` falls back gracefully
-
-**Notes:** Depends on Numerology Calculation Core, Interactive Cycle Chart, and URL State Encoding (all complete). The `+` separator in the URL encoding is safe because ISO dates never contain `+`; it's visually readable and doesn't require percent-encoding. The BirthDataForm parameterization (primary vs. partner mode) is a prerequisite — do not attempt to reuse the form before adding the mode prop. The complete 6-pair interaction matrix resolves the domain gap identified during story review.
-
 ### Compatibility Summary Card
 
 **Story:** As a visitor comparing with my partner, I want a summary card showing our overall compatibility, so that I get a quick read without studying the full chart.
@@ -175,3 +137,4 @@ These need real devices or a public URL and can't be automated here.
 - Read each year by life area and number together
 - Year Timeline Explorer
 - Update notice for returning visitors
+- Partner Comparison View

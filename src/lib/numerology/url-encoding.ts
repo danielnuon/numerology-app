@@ -5,6 +5,9 @@
  * Uses YYYY-MM-DD format in the URL path (e.g., /r/1997-07-24). A reading
  * counted from Chinese New Year adds a suffix (/r/1997-07-24-cny), so the
  * recipient sees the same cycle; no suffix means the default Khmer New Year.
+ * A comparison joins two readings with "+" (/r/1997-07-24+2000-03-15-cny),
+ * each with its own suffix. ISO dates never contain "+", so one "+" always
+ * means two people.
  * The computed cycle is never stored — it is always recomputed server-side.
  */
 
@@ -118,4 +121,37 @@ export function buildSharePath(
   rule: NewYearRule = DEFAULT_NEW_YEAR_RULE
 ): string {
   return `/r/${encodeShareSegment(year, month, day, rule)}`;
+}
+
+/** Joins the two readings in a comparison share segment. */
+const COMPARISON_SEPARATOR = "+";
+
+/** A shared comparison: two readings, the visitor's first. */
+export interface DecodedComparison {
+  first: DecodedShare;
+  second: DecodedShare;
+}
+
+/**
+ * Decodes a comparison share segment ("1997-07-24+2000-03-15").
+ * Returns null unless there is exactly one "+" and both halves decode.
+ * Next.js may hand the route the "+" percent-encoded, so that is accepted too.
+ */
+export function decodeComparisonSegment(segment: string): DecodedComparison | null {
+  const parts = segment.replace(/%2B/gi, COMPARISON_SEPARATOR).split(COMPARISON_SEPARATOR);
+  if (parts.length !== 2) return null;
+  const first = decodeShareSegment(parts[0]);
+  const second = decodeShareSegment(parts[1]);
+  return first && second ? { first, second } : null;
+}
+
+/**
+ * Builds the share URL path for a comparison of two readings.
+ *
+ * @returns URL path, e.g. "/r/1997-07-24+2000-03-15-cny"
+ */
+export function buildComparisonSharePath(first: DecodedShare, second: DecodedShare): string {
+  const encode = (share: DecodedShare) =>
+    encodeShareSegment(share.year, share.month, share.day, share.rule);
+  return `/r/${encode(first)}${COMPARISON_SEPARATOR}${encode(second)}`;
 }

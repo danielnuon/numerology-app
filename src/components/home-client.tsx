@@ -14,6 +14,8 @@
  * - The New Year rule (Khmer or Chinese) that turns the animal year: from a
  *   share link (?ny=), else the visitor's remembered choice, else Khmer.
  *   Changing it recomputes the reading in place.
+ * - A partner comparison under the reading. A shared comparison link
+ *   (/r/A+B) arrives with the partner's date as ?pday=&pmonth=&pyear=&pny=.
  *
  * The first visit asks one question, with the intro and the New Year choice
  * folded away. The reading opens on this year's reading; on phones the
@@ -42,6 +44,8 @@ import { ThisYearCard } from "@/components/this-year-card";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
 import { UpdateNotice } from "@/components/update-notice";
+import { PartnerComparison } from "@/components/partner-comparison";
+import type { DecodedShare } from "@/lib/numerology/url-encoding";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import {
   computeCycleFromBirthDate,
@@ -115,6 +119,23 @@ export interface HomeSearchParams {
   year?: string;
   /** New Year rule of a shared reading: "khmer" or "chinese". */
   ny?: string;
+  /** Partner's birth date and rule, from a shared comparison link. */
+  pday?: string;
+  pmonth?: string;
+  pyear?: string;
+  pny?: string;
+}
+
+/** The partner from a shared comparison link, or null if absent or invalid. */
+function partnerFromSearchParams(params: HomeSearchParams): DecodedShare | null {
+  if (!params.pday || !params.pmonth || !params.pyear) return null;
+  const date = validDateParts(
+    parseInt(params.pyear, 10),
+    parseInt(params.pmonth, 10),
+    parseInt(params.pday, 10)
+  );
+  if (!date) return null;
+  return { ...date, rule: isNewYearRule(params.pny) ? params.pny : DEFAULT_NEW_YEAR_RULE };
 }
 
 interface Props {
@@ -192,6 +213,11 @@ export function HomeClient({ searchParams }: Props) {
     [isHydrated]
   );
   const [noticeDismissed, setNoticeDismissed] = useState(false);
+
+  // The partner being compared with, if any. Never saved to the browser.
+  const [partner, setPartner] = useState<DecodedShare | null>(() =>
+    hasShareParams ? partnerFromSearchParams(searchParams) : null
+  );
 
   // On phones the 12-year wheel and timeline wait behind "See all 12 years".
   const [cycleOpen, setCycleOpen] = useState(false);
@@ -508,6 +534,14 @@ export function HomeClient({ searchParams }: Props) {
               />
             </div>
 
+
+            <PartnerComparison
+              reading={result}
+              readingRule={newYearRule}
+              activeYear={activeYear}
+              partner={partner}
+              onPartnerChange={setPartner}
+            />
 
             <ShareReading
               year={result.birthYear}

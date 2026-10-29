@@ -12,6 +12,7 @@
 import { useState } from "react";
 import { buildSharePath, encodeBirthDate } from "@/lib/numerology/url-encoding";
 import { SHARED_READING_TITLE } from "@/lib/site-copy";
+import { shareLink } from "@/lib/share";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 
 interface Props {
@@ -46,27 +47,10 @@ export function ShareReading({ year, month, day, rule }: Props) {
   const [status, setStatus] = useState<Status>("idle");
   const sharePath = buildSharePath(year, month, day, rule);
 
-  async function copyLink(url: string) {
-    try {
-      await navigator.clipboard.writeText(url);
-      setStatus("copied");
-    } catch {
-      setStatus("failed");
-    }
-  }
-
   async function handleShare() {
     const url = new URL(sharePath, window.location.origin).toString();
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({ title: SHARED_READING_TITLE, text: SHARE_TEXT, url });
-        return;
-      } catch (error) {
-        // Closing the share sheet is not a failure; anything else falls back to copying.
-        if (error instanceof DOMException && error.name === "AbortError") return;
-      }
-    }
-    await copyLink(url);
+    const outcome = await shareLink({ title: SHARED_READING_TITLE, text: SHARE_TEXT, url });
+    if (outcome === "copied" || outcome === "failed") setStatus(outcome);
   }
 
   return (
