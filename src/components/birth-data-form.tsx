@@ -27,6 +27,7 @@ import { markUpdateNoticeSeen, saveBirthDate } from "@/lib/storage";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { NewYearToggle } from "@/components/new-year-toggle";
+import { Reveal } from "@/components/ui/reveal";
 
 const WEEKDAY_NAMES = [
   "", // 1-indexed padding
@@ -246,6 +247,11 @@ export function BirthDataForm({
     return deriveBirthData(yearNum, monthNum, dayNum, newYearRule);
   }, [dayNum, monthNum, yearNum, newYearRule]);
 
+  // The last complete date's preview, kept so the line can fold away
+  // showing it once a field is cleared
+  const [shownDerived, setShownDerived] = useState(derived);
+  if (derived && derived !== shownDerived) setShownDerived(derived);
+
   // The animal under each rule, once the date is complete, so the toggle can
   // say whether the choice matters for this birth date.
   const animalsByRule = useMemo(
@@ -362,36 +368,30 @@ export function BirthDataForm({
       )}
 
       {/* Auto-derived zodiac and weekday. Takes no space until the date is
-          complete, then the slot opens smoothly (grid rows 0fr → 1fr) so the
-          button glides down rather than jumping. */}
-      <div
-        aria-live="polite"
-        className={[
-          "grid transition-[grid-template-rows] duration-[var(--duration-gentle)] ease-[var(--ease-enter)]",
-          derived ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-        ].join(" ")}
-      >
-        <div className="overflow-hidden">
-          {derived && (
-            <p className="animate-settle-in mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
+          complete, then opens in place so the button glides down rather
+          than jumping. While it closes it keeps showing the last date. */}
+      <div aria-live="polite">
+        <Reveal open={derived !== null}>
+          {shownDerived && (
+            <p className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-ink-light">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-gold-deep/[0.06] py-1 pl-2 pr-4">
-                <ZodiacIcon animal={derived.zodiacAnimal} className="size-6 text-gold-deep" />
+                <ZodiacIcon animal={shownDerived.zodiacAnimal} className="size-6 text-gold-deep" />
                 <span>
                   Year of the{" "}
-                  <span className="font-display text-base text-gold-deep">{derived.zodiacAnimal}</span>
+                  <span className="font-display text-base text-gold-deep">{shownDerived.zodiacAnimal}</span>
                 </span>
               </span>
               <span className="inline-flex items-center rounded-full border border-border bg-gold-deep/[0.06] px-4 py-1.5">
                 <span>
                   Born on a{" "}
                   <span className="font-display text-base text-gold-deep">
-                    {WEEKDAY_NAMES[derived.weekday]}
+                    {WEEKDAY_NAMES[shownDerived.weekday]}
                   </span>
                 </span>
               </span>
             </p>
           )}
-        </div>
+        </Reveal>
       </div>
 
       <NewYearToggle

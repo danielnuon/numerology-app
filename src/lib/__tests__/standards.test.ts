@@ -3,6 +3,7 @@
  * where each rule is enforced):
  * - American spelling across code, comments, copy and docs
  * - Motion tokens agree between CSS (globals.css) and JavaScript (motion.ts)
+ * - Nothing animates a property that changes layout
  * - Colors repeated outside CSS (preview images, browser theme, manifest)
  *   agree with the color tokens
  */
@@ -70,6 +71,27 @@ describe("motion tokens", () => {
     expect(cssVar("ease-enter")).toBe(bezier(EASE.enter));
     expect(cssVar("ease-standard")).toBe(bezier(EASE.standard));
     expect(cssVar("ease-exit")).toBe(bezier(EASE.exit));
+  });
+});
+
+describe("compositor-only motion", () => {
+  // Properties that lay out the page on every frame they animate
+  const LAYOUT = "height|max-height|min-height|width|grid-template-rows|grid-template-columns|letter-spacing|margin[a-z-]*|padding[a-z-]*|top|bottom|left|right";
+
+  it("CSS never transitions or keyframes a layout property", () => {
+    const transitions = css.match(/transition(-property)?:[^;]+;/g) ?? [];
+    const offending = transitions.filter((rule) => new RegExp(`(^|[\\s:,])(${LAYOUT})(\\s|,|;)`).test(rule.replace(/^transition(-property)?:/, " ")));
+    const keyframes = (css.match(/@keyframes[^{]+\{([^{}]*\{[^}]*\})*\s*\}/g) ?? []).filter((block) =>
+      new RegExp(`[{;\\s](${LAYOUT})\\s*:`).test(block.replace(/^@keyframes[^{]+\{/, ""))
+    );
+    expect([...offending, ...keyframes]).toEqual([]);
+  });
+
+  it("components never use Tailwind transitions on layout properties", () => {
+    const offending = filesUnder("src", /\.tsx$/)
+      .filter((file) => !file.includes("__tests__"))
+      .filter((file) => new RegExp(`transition-\\[(${LAYOUT})\\]|transition-all`).test(read(file)));
+    expect(offending).toEqual([]);
   });
 });
 

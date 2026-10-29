@@ -582,9 +582,12 @@ body {
   animation: rise 900ms var(--ease-enter) both;
   animation-delay: var(--rise-delay, 0ms);
 }
+/* The title's letters gather in from wide spacing. It stretches the word
+ * rather than animating letter-spacing, which would lay out the page on every
+ * frame; under the blur the two read the same. */
 @keyframes kindle {
-  from { opacity: 0; letter-spacing: 0.3em; filter: blur(10px); }
-  to { opacity: 1; filter: none; }
+  from { opacity: 0; transform: scaleX(1.25); filter: blur(10px); }
+  to { opacity: 1; transform: none; filter: none; }
 }
 .kindle {
   animation: kindle 1600ms var(--ease-enter) both;
@@ -628,38 +631,11 @@ button:not(:disabled),
 }
 
 /* === Reveal: disclosures open and close in place ===
- * The slot's height eases open (grid rows 0fr -> 1fr) so the page below
- * glides; the content fades and settles in after it, and leaves quicker
- * than it came. Used by <Reveal> in components/ui/reveal.tsx. */
-.reveal {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-standard) var(--ease-exit);
-}
-.reveal[data-open="true"] {
-  grid-template-rows: 1fr;
-  transition: grid-template-rows var(--duration-gentle) var(--ease-enter);
-}
-.reveal-clip {
-  min-height: 0;
-  overflow: hidden;
-  /* Keep focus rings visible at the edges where supported */
-  overflow: clip;
-  overflow-clip-margin: 6px;
-}
-.reveal-content {
-  opacity: 0;
-  transform: translateY(-4px);
-  transition:
-    opacity var(--duration-quick) var(--ease-exit),
-    transform var(--duration-quick) var(--ease-exit);
-}
-.reveal[data-open="true"] .reveal-content {
-  opacity: 1;
-  transform: none;
-  transition:
-    opacity var(--duration-gentle) var(--ease-enter) 60ms,
-    transform var(--duration-gentle) var(--ease-enter) 60ms;
+ * Closed content takes no space. <Reveal> (components/ui/reveal.tsx) lays
+ * the page out once and glides what moved with transforms and clips, so no
+ * frame of the motion lays out or repaints the page. */
+.reveal:not([data-shown]) {
+  display: none;
 }
 
 /* Sections settle into place as they scroll into view. Compositor-driven

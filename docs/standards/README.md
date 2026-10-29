@@ -36,6 +36,7 @@ Prose is the last resort. Where a rule can be checked by a machine, it is.
 | No stray `console.log` | ESLint |
 | American spelling in code, copy and docs | `src/lib/__tests__/standards.test.ts` |
 | Motion durations and curves match between CSS and JavaScript | `src/lib/__tests__/standards.test.ts` |
+| No transition or keyframe animates a layout property (height, grid rows, letter-spacing, margins) | `src/lib/__tests__/standards.test.ts` |
 | Preview-image and browser theme colors match the CSS tokens | `src/lib/__tests__/standards.test.ts` |
 | Reduce Motion stops all CSS animation and view transitions | `src/lib/numerology/__tests__/reduced-motion.test.ts` |
 | Lint, types, tests and build pass | CI (`.github/workflows/ci.yml`) |

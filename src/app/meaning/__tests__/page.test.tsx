@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import MeaningPage from "../page";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
@@ -25,9 +25,18 @@ describe("What the numbers mean page", () => {
     ]);
   });
 
-  it("states the only totals a cycle can have", () => {
+  it("explains the total score by the three totals a cycle can have, not by ranges", () => {
     render(<MeaningPage />);
-    expect(screen.getByText(/every cycle totals 52, 64 or 76/)).toBeInTheDocument();
+    expect(screen.getByText(/Every cycle totals exactly 52, 64 or 76/)).toBeInTheDocument();
+    const section = document.getElementById("total-score")!;
+    const totals = within(section).getAllByRole("term").map((term) => term.textContent);
+    expect(totals).toEqual([
+      "52 · Weak / difficult cycle",
+      "64 · Balanced / moderate cycle",
+      "76 · Strong / favorable cycle",
+    ]);
+    expect(section).toHaveTextContent("About 1 in 2 cycles total 64.");
+    expect(section).not.toHaveTextContent(/and above|Below 60|60–67/);
   });
 });
 
