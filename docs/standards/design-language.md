@@ -70,7 +70,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - **Gutters** come from `.safe-gutter`: 16px on phones and 32px from 640px, widened to clear the notch in landscape.
 - **Widths.** The form card is at most 480px, reading text at most 640px, the cycle card at most 900px (1200px from `xl`).
 - **Radii.** Cards and panels `rounded-2xl`. Buttons, pills, toggles and orbs `rounded-full`. Small cells and inputs `rounded-md` to `rounded-xl`. Nothing square-cornered, nothing bubbly.
-- **Surfaces.** Cards are `.glass`: the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`. Raised overlays use `--shadow-raised`; gold glows use `--shadow-glow`.
+- **Surfaces.** Cards are `.glass`: the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`. A faint gold glint slides along each card's rim as it scrolls (see the glass light row under motion). With Reduce Transparency the card is solid manuscript with no blur and no glint. Raised overlays use `--shadow-raised`; gold glows use `--shadow-glow`.
 - **Dividers** are a hairline that fades out at both ends with a gold ◇ in the middle (`SectionDivider`).
 - **Breakpoints.** Every screen must work from 320px wide up. Check at least 320px (small phone), 768px (tablet) and 1280px (desktop). No horizontal page scroll and no clipped or truncated text at any width.
 
@@ -146,6 +146,7 @@ These are deliberate and approved. Add new ones here, with their limits, in the 
 |--------|-------|--------|
 | Drifting dust | `LanternSky` canvas, behind every page | 38 specks rising over 20–60s with a slow flicker. Paused while the tab is hidden. Drawn once, still, with Reduce Motion. |
 | Rising lantern glows (parallax) | `.sky-glow` | Scroll-linked, not time-based: about 0.4× and 0.15× the page speed over the first 1300px. `transform` only. Still with Reduce Motion or without scroll-driven animation support. |
+| Glass light | `.glass::before`, `.glass::after` | Scroll-linked (`view()` timeline), not time-based: as a card crosses the viewport a gold glint (`gold-light` at 45%) slides along its rim from right to left and a 3.5% candle-white glow crosses its face. `background-position` on the card's own pseudo-elements only. Hidden with Reduce Motion, Reduce Transparency, or without scroll-driven animation support. |
 | Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A soft gold halo that breathes in and out, 1.8s each way, on the current year only. |
 | Lantern breathing and number float | Every wheel orb (`.wheel-orb::before`, `.wheel-orb-number`) | Each orb's light breathes at its own pace (5–8.6s) while its number floats about 1px. |
 | Ring glint and tick ring | `.wheel-glint`, `.wheel-ticks` | A faint gold glint travels the ring every 14s; a fine tick ring turns once every 3 minutes. |
@@ -172,4 +173,4 @@ Accessibility is part of the design language, not a separate pass.
 - Every interactive element is reachable and operable by keyboard, with the focus ring visible.
 - Icons and symbols that repeat nearby text are `aria-hidden`; the accessible name is on the control.
 - Live changes that matter are announced: notes and confirmations with `aria-live="polite"` or `role="status"`, form errors with `role="alert"`.
-- Reduce Motion is honored everywhere, as above.
+- Reduce Motion is honored everywhere, as above. Reduce Transparency makes cards solid and removes the glass light.

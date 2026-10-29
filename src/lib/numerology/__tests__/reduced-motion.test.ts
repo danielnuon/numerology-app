@@ -58,5 +58,18 @@ describe("prefers-reduced-motion CSS rules", () => {
     expect(cssContent).toMatch(
       /@media\s*\(prefers-reduced-motion:\s*no-preference\)\s*\{\s*\.sky-glow/
     );
+    expect(cssContent).toMatch(
+      /@media\s*\(prefers-reduced-motion:\s*no-preference\)\s*\{\s*\.glass\s*\{\s*view-timeline/
+    );
+  });
+
+  it("the glass light is hidden under Reduce Motion and Reduce Transparency", () => {
+    for (const query of ["prefers-reduced-motion", "prefers-reduced-transparency"]) {
+      expect(cssContent).toMatch(
+        new RegExp(
+          `@media\\s*\\(${query}:\\s*reduce\\)\\s*\\{[^@]*?\\.glass::before,\\s*\\.glass::after\\s*\\{\\s*display:\\s*none`
+        )
+      );
+    }
   });
 });
