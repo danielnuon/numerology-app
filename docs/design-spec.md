@@ -90,7 +90,7 @@ Color (the "Temple Lantern" palette and tier light), typography, spacing, shape 
 ──────────── ◇ ────────────
 ```
 
-**Cards:** Frosted glass (`.glass`): the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`, with `rounded-2xl` corners.
+**Cards:** Frosted glass (`.glass`): the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`, with `rounded-2xl` corners. As a card scrolls through the viewport, a faint gold glint slides along its rim from right to left and a barely visible glow crosses its face; both rest when the page does. With Reduce Motion the glint is hidden; with Reduce Transparency the card is solid.
 
 **Background:** The dusk sky (`.dusk-sky`): soft lantern glows that rise slowly as the page scrolls, with drifting dust (`LanternSky`) above them. See the approved exceptions in the design language.
 
