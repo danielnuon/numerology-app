@@ -60,10 +60,26 @@ describe("CycleChart (cycle wheel)", () => {
     const tab = screen.getByRole("tab", { selected: true });
     expect(tab).toHaveAttribute("id", "pillar-5");
     expect(tab).toHaveAccessibleName(
-      "2026, Allies, cycle number 11, Very strong luck, Year of the Horse, current year"
+      "2026, Allies, cycle number 11, Very strong luck, Year of the Horse, current year, month 4 of 12"
     );
     expect(tab).toHaveClass("wheel-orb-current");
     expect(tab).toHaveAttribute("tabindex", "0");
+  });
+
+  it("shows the month of the current year, counted from the birthday", () => {
+    // October 28 is month 4 after a July 24 birthday
+    const { container } = render(<CycleChart {...defaultProps} />);
+    const dial = screen.getByRole("tab", { selected: true }).querySelectorAll(".wheel-month");
+    expect(dial).toHaveLength(12);
+    expect(container.querySelectorAll(".wheel-month-past")).toHaveLength(3);
+    expect(container.querySelectorAll(".wheel-month-now")).toHaveLength(1);
+    expect(screen.getByText("The ring around 2026 shows month 4 of 12, counted from the birthday.")).toBeInTheDocument();
+  });
+
+  it("leaves the month dial off when the wheel shows another cycle", () => {
+    const { container } = render(<CycleChart {...defaultProps} selectedYear={2040} />);
+    expect(container.querySelector(".wheel-month")).toBeNull();
+    expect(screen.queryByText(/shows month/)).not.toBeInTheDocument();
   });
 
   it("names each orb's year and zodiac animal from the shared data layer", () => {

@@ -29,7 +29,7 @@ const MONTH_NAMES = [
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const RULE_NAMES: Record<NewYearRule, string> = { khmer: "Khmer New Year", chinese: "Chinese New Year" };
 
-/** The worked example from the system spec: Thursday 24 July 1997. */
+/** The worked example from the system spec: Thursday, July 24, 1997. */
 export const EXAMPLE_DATE: WalkthroughDate = { year: 1997, month: 7, day: 24, rule: DEFAULT_NEW_YEAR_RULE };
 
 export interface WalkthroughDate {
@@ -54,9 +54,9 @@ function storedDate(): WalkthroughDate | null {
   return { ...stored, rule: readStoredNewYearRule() ?? DEFAULT_NEW_YEAR_RULE };
 }
 
-/** "24 July 1997" */
+/** "July 24, 1997", the American order used everywhere else */
 function formatDate({ year, month, day }: WalkthroughDate): string {
-  return `${day} ${MONTH_NAMES[month - 1]} ${year}`;
+  return `${MONTH_NAMES[month - 1]} ${day}, ${year}`;
 }
 
 interface Props {
@@ -103,20 +103,20 @@ export function CycleWalkthrough({ date }: Props) {
       <Section title="1. Three starting numbers">
         <ul className="space-y-3">
           <li>
-            <span className="font-display text-xl text-gold-deep tabular-nums">{rows.month[0]}</span>
+            <span className="font-sans text-xl font-medium text-gold-deep tabular-nums">{rows.month[0]}</span>
             <span className="text-ink"> · Month.</span> {MONTH_NAMES[shown.month - 1]} is month{" "}
             {rows.month[0]}, counting from <em>Mikasar</em>, the lunar month
             around December, as 1.
           </li>
           <li>
-            <span className="font-display text-xl text-gold-deep tabular-nums">{birthData.zodiacNumber}</span>
+            <span className="font-sans text-xl font-medium text-gold-deep tabular-nums">{birthData.zodiacNumber}</span>
             <span className="text-ink"> · Animal.</span> The Year of the{" "}
             {birthData.zodiacAnimal}, number {birthData.zodiacNumber} counting
             from the Rat as 1. The animal year here turns at{" "}
             {RULE_NAMES[shown.rule]}.
           </li>
           <li>
-            <span className="font-display text-xl text-gold-deep tabular-nums">{birthData.weekday}</span>
+            <span className="font-sans text-xl font-medium text-gold-deep tabular-nums">{birthData.weekday}</span>
             <span className="text-ink"> · Weekday.</span> Born on a{" "}
             {WEEKDAY_NAMES[birthData.weekday - 1]}, number {birthData.weekday}{" "}
             counting from Sunday as 1.
@@ -160,7 +160,7 @@ export function CycleWalkthrough({ date }: Props) {
                 </span>
                 <span className="tabular-nums text-ink-light">
                   {parts.join(" + ")} = {sum} →{" "}
-                  <span className="font-display text-base text-gold-deep">{n}</span>
+                  <span className="font-medium text-base text-gold-deep">{n}</span>
                 </span>
               </li>
             );

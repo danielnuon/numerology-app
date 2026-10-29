@@ -127,32 +127,40 @@ describe("PartnerComparison", () => {
 
   it("leads with the summary and offers its card as an image", () => {
     render(<Harness initialPartner={PARTNER} />);
-    expect(screen.getByText(/^Now, 2026:/)).toBeInTheDocument();
+    expect(screen.getByText("Now, 2026")).toBeInTheDocument();
     expect(screen.getByText("Cycle 2021–2032")).toBeInTheDocument();
     const download = screen.getByRole("link", { name: "Download image" });
     expect(download).toHaveAttribute("href", "/r/1997-07-24+2000-03-15/opengraph-image");
     expect(download).toHaveAttribute("download", "solini-comparison-1997-07-24-2000-03-15.png");
   });
 
-  it("switches between the current cycle and the two before it", () => {
+  it("steps back through the current cycle and the two before it", () => {
     render(<Harness initialPartner={PARTNER} />);
-    const current = screen.getByRole("tab", { name: "Current cycle, 2021 to 2032" });
-    expect(current).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("button", { name: "Later cycle" })).toBeDisabled();
 
     act(() => {
-      fireEvent.click(screen.getByRole("tab", { name: "Previous cycle, 2009 to 2020" }));
+      fireEvent.click(screen.getByRole("button", { name: "Earlier cycle" }));
     });
     const rows = within(screen.getByRole("table")).getAllByRole("row");
     expect(within(rows[1]).getByRole("rowheader")).toHaveTextContent("2009");
-    expect(screen.queryByText(/^Now,/)).not.toBeInTheDocument();
     expect(screen.getByText("Cycle 2009–2020")).toBeInTheDocument();
+    // This year's interaction stays in the summary whichever cycle the table shows
+    expect(screen.getByText("Now, 2026")).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Later cycle" }));
+    });
+    expect(screen.getByText("Cycle 2021–2032")).toBeInTheDocument();
   });
 
   it("marks years before the partner's birth as not born yet", () => {
     render(<Harness initialPartner={PARTNER} />);
-    act(() => {
-      fireEvent.click(screen.getByRole("tab", { name: "Cycle before that, 1997 to 2008" }));
-    });
+    for (let i = 0; i < 2; i++) {
+      act(() => {
+        fireEvent.click(screen.getByRole("button", { name: "Earlier cycle" }));
+      });
+    }
+    expect(screen.getByRole("button", { name: "Earlier cycle" })).toBeDisabled();
     const rows = within(screen.getByRole("table")).getAllByRole("row");
     // 1997 to 1999 come before a 2000 birth
     for (const row of rows.slice(1, 4)) expect(row).toHaveTextContent("Not born yet");
@@ -160,14 +168,19 @@ describe("PartnerComparison", () => {
     expect(screen.getByText("Cycle 1997–2008 · 9 years together")).toBeInTheDocument();
   });
 
-  it("moves between cycles with the arrow keys", () => {
+  it("keeps the interaction meanings and the totals link under How to read this", () => {
     render(<Harness initialPartner={PARTNER} />);
-    act(() => {
-      fireEvent.keyDown(screen.getByRole("tab", { name: /^Current cycle/ }), { key: "ArrowRight" });
-    });
-    const previous = screen.getByRole("tab", { name: /^Previous cycle/ });
-    expect(previous).toHaveAttribute("aria-selected", "true");
-    expect(previous).toHaveFocus();
+    const toggle = screen.getByRole("button", { name: "How to read this" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "How the totals are read" })).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("The stronger year steadies the weaker one.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "How the totals are read" })).toHaveAttribute(
+      "href",
+      "/how-it-works#total-score"
+    );
   });
 
   it("returns to the resting button when the comparison is removed", () => {

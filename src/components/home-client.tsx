@@ -10,7 +10,8 @@
  * - Returning visitors: reads localStorage on mount and shows their reading
  * - Share URL precedence: a shared link shows that person's chart, not the
  *   visitor's own saved one
- * - "Not you?" forgets a restored saved date and returns to the first-visit form
+ * - "Forget my date", under the form that "Someone else?" opens, forgets a
+ *   restored saved date and returns to the first-visit form
  * - The New Year rule (Khmer or Chinese) that turns the animal year: from a
  *   share link (?ny=), else the visitor's remembered choice, else Khmer.
  *   Changing it recomputes the reading in place.
@@ -39,10 +40,12 @@ import {
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
+import { MorePages } from "@/components/ui/page-parts";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
 import { ThisYearCard } from "@/components/this-year-card";
+import { BirthReading } from "@/components/birth-reading";
 import {
   ReadingViewTabs,
   READING_VIEW_PANEL_IDS,
@@ -86,6 +89,10 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+// The quiet underlined text link used for the card's way back and forth
+const QUIET_LINK =
+  "pressable flex min-h-[44px] items-center px-1 text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70";
 
 /** A birth date as day, month and year numbers. */
 type BirthDateParts = StoredBirthDate;
@@ -182,7 +189,7 @@ export function HomeClient({ searchParams }: Props) {
     : undefined;
 
   // The birth date chosen in this visit: from a share link, a form
-  // submission, or null after "Not you?". undefined means nothing has been
+  // submission, or null after "Forget my date". undefined means nothing has been
   // chosen yet, so a returning visitor's saved date is shown instead.
   const [sessionDate, setSessionDate] = useState<
     BirthDateParts | null | undefined
@@ -219,7 +226,7 @@ export function HomeClient({ searchParams }: Props) {
         : null,
     [birthDate, newYearRule]
   );
-  // A returning visitor's restored date, which "Not you?" can forget.
+  // A returning visitor's restored date, which "Forget my date" can forget.
   const isRestoredDate = sessionDate === undefined && storedDate !== null;
 
   // The one-time note about the 2026 changes, for readings restored from a
@@ -297,11 +304,12 @@ export function HomeClient({ searchParams }: Props) {
     });
   }, []);
 
-  // "Not you?" forgets the saved date and returns to the first-visit form.
+  // "Forget my date" forgets the saved date and returns to the first-visit form.
   const handleReset = useCallback(() => {
     clearStoredBirthDate();
     setSessionDate(null);
     setPickedYear(null);
+    setFormOpen(false);
   }, []);
 
   // Focus moves to the reading so it isn't lost with the removed button.
@@ -383,7 +391,7 @@ export function HomeClient({ searchParams }: Props) {
       <SectionDivider compact />
 
       <ErrorBoundary>
-        {/* Form card: first visit, after "Not you?", or "Read for someone else" */}
+        {/* Form card: first visit, after "Forget my date", or "Read for someone else" */}
         {showForm && (
           <ViewTransition name="reading-card" share="reading-bloom" default="none">
             <div
@@ -393,8 +401,9 @@ export function HomeClient({ searchParams }: Props) {
               {formOpen ? (
                 <p className="text-center text-ink-light text-base leading-relaxed">
                   {isShared
-                    ? "Enter your birth date to see your own 12-year cycle."
-                    : "Enter another birth date to read that person's 12-year cycle."}
+                    ? "Enter your birth date to see your own "
+                    : "Enter another birth date to read that person's "}
+                  <span className="whitespace-nowrap">12-year</span> cycle.
                 </p>
               ) : (
                 <>
@@ -403,7 +412,9 @@ export function HomeClient({ searchParams }: Props) {
                   </h2>
                   {/* What the visitor gets, said before the form asks for anything */}
                   <p className="mt-2 text-center text-base leading-relaxed text-ink-light text-balance">
-                    See a luck number for every year of your 12-year cycle,
+                    {/* Kept whole so the line never breaks after "12-" */}
+                    See a luck number for every year of your{" "}
+                    <span className="whitespace-nowrap">12-year</span> cycle,
                     from Khmer numerology.
                   </p>
                 </>
@@ -418,13 +429,17 @@ export function HomeClient({ searchParams }: Props) {
               />
 
               {formOpen && result && (
-                <button
-                  type="button"
-                  onClick={handleBackToReading}
-                  className="pressable mx-auto mt-3 flex min-h-[44px] items-center px-2 text-base text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
-                >
-                  Back to the reading
-                </button>
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4">
+                  <button type="button" onClick={handleBackToReading} className={`${QUIET_LINK} text-base`}>
+                    Back to the reading
+                  </button>
+                  {/* A restored date can be forgotten here, without entering a new one */}
+                  {isRestoredDate && (
+                    <button type="button" onClick={handleReset} className={`${QUIET_LINK} text-base`}>
+                      Forget my date
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </ViewTransition>
@@ -474,26 +489,15 @@ export function HomeClient({ searchParams }: Props) {
                     {WEEKDAY_NAMES[result.birthData.weekday - 1]}
                   </p>
                 </div>
-                {/* Quiet text links on the date's line, styled like "Back to the reading" */}
-                <div className="-mt-2 flex shrink-0 flex-col items-end sm:flex-row sm:items-center sm:gap-x-3">
-                  <button
-                    type="button"
-                    onClick={handleReadAgain}
-                    aria-label={isShared ? "Read your own" : "Read for someone else"}
-                    className="pressable flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
-                  >
-                    {isShared ? "Read your own" : "Someone else?"}
-                  </button>
-                  {isRestoredDate && (
-                    <button
-                      type="button"
-                      onClick={handleReset}
-                      className="pressable flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
-                    >
-                      Not you?
-                    </button>
-                  )}
-                </div>
+                {/* One quiet text link on the date's line, styled like "Back to the reading" */}
+                <button
+                  type="button"
+                  onClick={handleReadAgain}
+                  aria-label={isShared ? "Read your own" : "Read for someone else"}
+                  className={`-mt-2 shrink-0 ${QUIET_LINK} text-sm`}
+                >
+                  {isShared ? "Read your own" : "Someone else?"}
+                </button>
               </div>
 
               <ReadingViewTabs view={readingView} onChange={handleReadingViewChange} />
@@ -515,6 +519,7 @@ export function HomeClient({ searchParams }: Props) {
                     weekday={result.birthData.weekday}
                     isShared={isShared}
                   />
+                  <BirthReading weekday={result.birthData.weekday} animal={result.birthData.zodiacAnimal} />
                 </div>
 
                 <div
@@ -622,11 +627,9 @@ export function HomeClient({ searchParams }: Props) {
 
       <p className="mt-16 max-w-[480px] text-center text-sm leading-relaxed text-ink-light">
         Solini follows a Khmer numerology tradition. A reading is a lantern
-        for reflection, not a prediction or advice.{" "}
-        <Link href="/about" className="underline underline-offset-4 decoration-border hover:text-gold-deep">
-          About the tradition
-        </Link>
+        for reflection, not a prediction or advice.
       </p>
+      <MorePages current="/" />
     </main>
     </MotionConfig>
   );

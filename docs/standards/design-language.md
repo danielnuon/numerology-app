@@ -41,6 +41,18 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Weak | 1–3 | `tier-weak` | `#D98A62` ember, also used for form errors | ◔ |
 | Reset | 0 | `tier-zero` | `#0E0B11` an unlit niche | ⊙ |
 
+**Weekday colors.** The cloth traditionally worn on each day, used only as a small swatch beside the color's name in the birth day panel. Never for text or surfaces.
+
+| Token | Value | Day |
+|-------|-------|-----|
+| `day-sunday` | `#C4553F` | Red |
+| `day-monday` | `#DB8F3C` | Orange |
+| `day-tuesday` | `#9C6DC2` | Purple |
+| `day-wednesday` | `#A8C66C` | Light green |
+| `day-thursday` | `#3F8B56` | Dark green |
+| `day-friday` | `#5182C6` | Blue |
+| `day-saturday` | `#6B4B88` | Dark purple |
+
 **Rules**
 
 - Meaningful text uses `ink`, `ink-light` or `gold-deep`. `ink-faint` and `gold` are never used for text a reader needs.
@@ -57,13 +69,13 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Label | Hanken Grotesk, uppercase | 14px (`text-sm`), `tracking-[0.12em]`–`0.18em` | Eyebrow text and short captions |
 | Field label | Hanken Grotesk, sentence case | 16px (`text-base`) | Form field labels |
 | Button | Hanken Grotesk 500–600, sentence case | 16–18px (`text-base`/`text-lg`) | Primary and pill buttons |
-| Numbers | Hanken Grotesk, tabular lining figures | Varies | Cycle numbers on the wheel, dates, form fields |
+| Numbers | Hanken Grotesk 500, tabular lining figures | Varies | Every cycle number (the wheel, this year's number, lantern orbs, the worked example on How your cycle is made), dates, form fields |
 | Khmer | Noto Serif Khmer | Matches its context | Any Khmer script (in both font stacks) |
 
-- Marcellus draws 0 like the letter O and 11 like "ll", so numbers people must read precisely use the sans face with `tabular-nums`.
+- Marcellus draws 0 like the letter O and 11 like "ll", so any number from 0 to 11 uses the sans face with `tabular-nums`, even where it sits beside display type. The total score (52, 64 or 76) is the one number set in Marcellus, since none of its digits can be misread.
 - Guidance and quiet asides may be italic body text. Do not add new typefaces.
 - Keep letter spacing to the values above, so labels and buttons share one rhythm.
-- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px for the wheel's own labels, where space is fixed.
+- Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px, and nothing smaller, for labels inside the wheel, the timeline and the worked rows on How your cycle is made, where space is fixed.
 
 ## Spacing, layout and shape
 
@@ -170,6 +182,7 @@ Glows breathe and floating things carry weight. Add a new living surface to this
 | Drifting dust | `LanternSky` canvas, behind every page | 38 specks rising over 20–60s with a slow flicker, sliding a little with the scroll. Paused while the tab is hidden. Drawn once, still, with Reduce Motion. |
 | Glass light | `.glass::before`, `.glass::after` | Scroll-linked (`view()` timeline), not time-based: as a card crosses the viewport a gold glint (`gold-light` at 45%) slides along its rim from right to left and a 3.5% candle-white glow crosses its face. `background-position` on the card's own pseudo-elements only. Hidden with Reduce Motion, Reduce Transparency, or without scroll-driven animation support. |
 | Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A soft gold halo that breathes in and out, 1.8s each way, on the current year only. Faster than other glows on purpose: it marks "now". |
+| Month dial | Cycle wheel, this month's arc around this year's orb (`.wheel-month-now`) | The arc for the current month of the year breathes between half and full light, 2.4s each way, in step with "now" rather than with the slower lanterns. |
 | Lantern breathing and number float | Every lantern orb (`.wheel-orb::before`, `.wheel-orb-number`): the wheel and the number orbs on What the numbers mean | Each orb's light breathes at its own pace (5–8.6s) while a wheel orb's number floats about 1px. |
 | Ring glint and tick ring | `.wheel-glint`, `.wheel-ticks` | A faint gold glint travels the ring every 14s; a fine tick ring turns once every 3 minutes. |
 | Tap ripple | `.wheel-ripple-run` | One ring spreads from a tapped orb (600ms). Runs once per tap, not a loop. |
@@ -187,7 +200,7 @@ Every change of state uses one of these. Old content leaves quickly (`--duration
 | Page change | Every route change (`src/app/template.tsx`) | The page being left fades out in 150ms; the new page rises 8px and fades in over 400ms. Named elements inside a page keep their own transitions. |
 | Reveal | Disclosures: the New Year toggle's "Change", the total score's scale and the date form's derived zodiac line (`<Reveal>` in `components/ui/reveal.tsx`) | The page takes its new shape in one layout. Content below then slides from where it was to its new place (`transform`), every card around the disclosure grows by sweeping its bottom edge with a rounded `clip-path`, and the content is wiped open with the same sweep while it fades and settles in. Opening takes 400ms, closing 250ms, both on `--ease-standard` so the motion starts gently instead of leaping. Closing plays the glide back and only then lets the page shrink; toggling mid-way reverses it from where it is. Closed content takes no space and is inert. |
 | Settle in | Content that appears in place: errors, notices, share messages, a partner's form (`.animate-settle-in`) | Fades in and rises 4px over 250ms. A status message is keyed so each new one settles in. |
-| Selection glide | The wheel, the timeline, the New Year toggle, the reading's "Year / Cycle" switch and the partner comparison's Cycle switch | The ink outline glides to the new choice; the content beneath crossfades (out in 150ms, in over 250ms, class `panel-swap`). |
+| Selection glide | The wheel, the timeline, the New Year toggle, and the reading's "Year / Cycle" switch; the partner comparison's cycle stepper crossfades its table the same way without an outline | The ink outline glides to the new choice; the content beneath crossfades (out in 150ms, in over 250ms, class `panel-swap`). |
 | Wheel bloom | The cycle wheel | Tapping the wheel's center, or the selected orb again, grows the full reading out of the center with a shared-element view transition and folds it back the same way. |
 | Form morph ("Bloom") | The birth date form | Submitting the birth date form morphs the form card into the reading in place instead of scrolling down the page. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card over 520ms (`--ease-standard`); the form fades out in 320ms and the reading scales up from 0.96 over 520ms (`--ease-enter`). A gold glow swells and fades inside the card over 900ms. A quiet "Someone else?" text link beside the date folds it back the same way with a quick fade-out (`--duration-quick`), and "Back to the reading" returns. The page scrolls only if the card's top would sit above the viewport. |
 | Scroll settle | Sections entering the viewport (`.scroll-settle`) | Scroll-linked: fades in and rises 12px over the first 60% of its entry. |

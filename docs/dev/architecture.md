@@ -47,6 +47,9 @@ HomeClient (useEffect on mount)
                  |    |- getYearNumber() [year-lookup.ts]
                  |    |- interpretAreaYear() [interpretation.ts]
                  |    +- describeYearPlanet() [interpretation.ts]
+                 |- BirthReading (display, under ThisYearCard)
+                 |    |- BIRTH_DAYS [birth-day-data.ts], DAY_PLANETS [day-planet-data.ts]
+                 |    +- ZODIAC_READINGS [zodiac-data.ts]
                  +- ReadingViewTabs (below lg) → swaps this year for the 12-year wheel
                  +- CycleChart (display) — same as form-submission path
 
@@ -75,7 +78,7 @@ BirthDataForm (on successful submit)
 PartnerComparison (client), partner date held in HomeClient state, never saved
   |- BirthDataForm mode="partner" -> onPartnerChange({ year, month, day, rule })
   |- computeCycleFromBirthDate() for the partner [derive.ts]
-  |- comparisonCycleStarts() [compatibility.ts] -- current cycle + up to 2 before, for the Cycle switch
+  |- comparisonCycleStarts() [compatibility.ts] -- current cycle + up to 2 before, for the cycle stepper
   |- compareCycles() [compatibility.ts] -- the chosen cycle's 12 years; null before a birth year
   |    +- getYearNumber() per person, yearInteraction() per year
   |- assessStability() [compatibility.ts] -- from both total scores
@@ -251,7 +254,7 @@ Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or
 
 ### Interpretation data is separated from logic
 
-`interpretation-data.ts` holds all tier definitions (labels, descriptions, guidance text, score ranges) as exported const arrays, and `life-area-data.ts` holds what each life area covers and its reading at each tier (`AREA_READINGS`, 12 areas x 5 tiers). `interpretation.ts` contains the lookup logic. This separation enables future i18n by swapping the data module without touching the lookup functions.
+`interpretation-data.ts` holds all tier definitions (labels, descriptions, guidance text, score ranges) as exported const arrays, `birth-day-data.ts` and `zodiac-data.ts` hold the birth day and animal readings, and `life-area-data.ts` holds what each life area covers and its reading at each tier (`AREA_READINGS`, 12 areas x 5 tiers). `interpretation.ts` contains the lookup logic. This separation enables future i18n by swapping the data module without touching the lookup functions.
 
 ### Day row is 7 elements, not 12
 
@@ -269,7 +272,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |           |- <h1> "Khmer Numerology"
   |           |- SectionDivider
   |           +- ErrorBoundary ....... "use client", class component
-  |               |- (first visit, "Not you?" or "Read for someone else")
+  |               |- (first visit, "Forget my date" or "Read for someone else")
   |               |   +- BirthDataForm "use client", day/month/year inputs
   |               |       |- deriveBirthData() via useMemo (zodiac + weekday preview)
   |               |       |- validateBirthDate() on submit
@@ -279,6 +282,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |               +- (replaces the form in place, after submit OR localStorage load)
   |                   |- reading summary: birth date, animal, weekday, "Read for someone else"
   |                   |- ThisYearCard  this year's number, tier, life area, guidance
+  |                   |- BirthReading  birth day and zodiac animal panels
   |                   |- ReadingViewTabs  "Year / Cycle" switch, below lg
   |                   +- CycleChart .. "use client", cycle wheel of 12 orbs
   |                       |- 12x motion.button (orbs, respects reduced motion)
@@ -296,14 +300,15 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
 - **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
 - **Home**: Server component wrapping `HomeClient` in `<Suspense>` (required for `useSearchParams()`).
-- **HomeClient**: Client component holding the birth date, New Year rule, selected year and the `formOpen` and `bloomed` flags and `readingView`. Share URL params take precedence over the date saved in localStorage. The first visit asks one question, "When were you born?", with one line under it saying what the reading gives. A share link sets `isShared` until the visitor reads their own date: `ThisYearCard`, `ShareReading` and `PartnerComparison` then say "their" or "this" instead of "your", and a primary "See your own cycle" button sits under the reading card. The form card and the reading card share one place on the page: on submit, `startTransition` swaps the form for the reading inside a `<ViewTransition name="reading-card">`, so the card blooms in place instead of scrolling down to a separate result. "Read for someone else" swaps back to an empty form (`formOpen` state), "Back to the reading" returns without re-entering the date, and "Not you?" forgets a restored saved date. The reading card opens on `ThisYearCard`. Below `lg`, `ReadingViewTabs` switches the card between it and the wheel plus timeline in the same place (a `reading-view` transition type crossfades the swap); from `lg` the wheel sits beside it.
+- **HomeClient**: Client component holding the birth date, New Year rule, selected year and the `formOpen` and `bloomed` flags and `readingView`. Share URL params take precedence over the date saved in localStorage. The first visit asks one question, "When were you born?", with one line under it saying what the reading gives. A share link sets `isShared` until the visitor reads their own date: `ThisYearCard`, `ShareReading` and `PartnerComparison` then say "their" or "this" instead of "your", and a primary "See your own cycle" button sits under the reading card. The form card and the reading card share one place on the page: on submit, `startTransition` swaps the form for the reading inside a `<ViewTransition name="reading-card">`, so the card blooms in place instead of scrolling down to a separate result. "Read for someone else" swaps back to an empty form (`formOpen` state), "Back to the reading" returns without re-entering the date, and "Forget my date", beside it, forgets a restored saved date. The reading card opens on `ThisYearCard`. Below `lg`, `ReadingViewTabs` switches the card between it and the wheel plus timeline in the same place (a `reading-view` transition type crossfades the swap); from `lg` the wheel sits beside it.
+- **BirthReading**: Two lit panels under `ThisYearCard` that read the person rather than a year: the birth weekday (Khmer day name, planet and strength, character, traditional color) from `BIRTH_DAYS` and `DAY_PLANETS`, and the zodiac animal (Khmer name, popular traits labeled as such) from `ZODIAC_READINGS`. Each links to its section of the meaning page. Neither changes a cycle number. Sources are in [docs/reading-model.md](../reading-model.md).
 - **ThisYearCard**: The active year's cycle number, luck tier, life area, tier description and guidance, as a lit panel inside the reading card. Used for every reading: a fresh submission, a saved date and a shared link. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ReadingViewTabs**: A two-way tabs switch ("Year" for this year's reading, "Cycle" for the 12-year wheel and timeline) at the top of the reading card below `lg`. Switching swaps the view in place instead of opening a section below it; the ink outline glides between the tabs, and arrow keys move the choice and focus together.
 - **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Ends with `TotalScoreCard`, which shows the total with `interpretTotal()` and opens in place onto the three possible totals from `TOTAL_SCALE`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
-- **PartnerComparison**: Rests as a "Compare with a partner" button under the reading. Opens `BirthDataForm` in partner mode, then shows a Cycle switch (current cycle and up to two before it), `CompatibilitySummary` (both totals, the stability assessment with a link to how the totals are read, the current year's interaction and a count of each) and the chosen cycle's 12-year table of each person's number and the interaction (`compatibility.ts`), with share and remove actions. HomeClient owns the partner's date, so a comparison link opens straight onto it.
+- **PartnerComparison**: Rests as a "Compare with a partner" button under the reading. Opens `BirthDataForm` in partner mode, then shows `CompatibilitySummary` (both totals, the stability assessment and the current year's interaction), a cycle stepper (current cycle and up to two before it), the chosen cycle's 12-year table of each person's number and the interaction (`compatibility.ts`), share, download and remove actions, and a closed "How to read this" with the interaction meanings and a link to how the totals are read. HomeClient owns the partner's date, so a comparison link opens straight onto it.
 - **SectionDivider**: Horizontal rule with a centered diamond glyph on a parchment background.
 
 ## Styling Architecture

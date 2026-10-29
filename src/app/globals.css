@@ -24,6 +24,17 @@
   --color-tier-weak: #D98A62;
   --color-tier-zero: #0E0B11; /* an unlit niche, darker than the page */
 
+  /* Weekday colors: the cloth traditionally worn on each day, shown only as
+   * a small swatch beside the color's name (BIRTH_DAYS in birth-day-data.ts).
+   * Never used for text. Toned to sit in the lantern light. */
+  --color-day-sunday: #C4553F;
+  --color-day-monday: #DB8F3C;
+  --color-day-tuesday: #9C6DC2;
+  --color-day-wednesday: #A8C66C;
+  --color-day-thursday: #3F8B56;
+  --color-day-friday: #5182C6;
+  --color-day-saturday: #6B4B88;
+
 /* === Typography === */
   --font-serif: var(--font-marcellus), var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
   --font-sans: var(--font-hanken), var(--font-noto-serif-khmer), "Helvetica Neue", Arial, sans-serif;
@@ -402,13 +413,35 @@ body {
   background: var(--color-tier-zero);
 }
 .wheel-orb-current {
-  box-shadow: 0 0 0 1.5px var(--color-gold-deep), 0 0 30px -2px rgba(226, 182, 90, 0.55);
+  box-shadow: 0 0 30px -2px rgba(226, 182, 90, 0.55), inset 0 0 0 1px rgba(241, 232, 216, 0.09);
+}
+/* This year's month dial: twelve segments around the current orb */
+.wheel-month {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.wheel-month-past {
+  stroke: var(--color-gold);
+  stroke-width: 1.5px;
+  opacity: 0.85;
+}
+.wheel-month-now {
+  stroke: var(--color-gold-light);
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 0 2px var(--color-gold-deep));
+}
+.wheel-month-ahead {
+  stroke: var(--color-ink-faint);
+  stroke-width: 1px;
+  opacity: 0.45;
 }
 /* === The living wheel ===
  * The wheel is the one place the interface moves on its own, so it reads as
  * lit rather than printed. Everything is slow, animates only opacity and
  * transform (compositor work, no repaints), and is still under Reduce Motion:
  * - the current year's number breathes with a soft gold halo
+ * - this month's segment of the current year's month dial breathes
  * - every number's light breathes at its own pace, like lanterns
  * - the numbers float about a pixel
  * - a glint travels the ring every 14 s; a fine tick ring turns every 3 min
@@ -451,6 +484,10 @@ body {
   from { opacity: 0.15; transform: scale(1); }
   to { opacity: 0.85; transform: scale(1.08); }
 }
+@keyframes month-breathe {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
 @keyframes lantern-breathe {
   from { opacity: 0.2; }
   to { opacity: 0.9; }
@@ -483,6 +520,9 @@ body {
 @media (prefers-reduced-motion: no-preference) {
   .wheel-orb-current::after {
     animation: current-pulse 1.8s var(--ease-sine) infinite alternate;
+  }
+  .wheel-month-now {
+    animation: month-breathe 2.4s var(--ease-sine) infinite alternate;
   }
   .wheel-orb::before {
     animation: lantern-breathe var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;

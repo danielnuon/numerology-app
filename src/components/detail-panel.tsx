@@ -48,7 +48,7 @@ export function DetailPanel({
 
   return (
     <div className="text-ink">
-      <p className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 pr-12 text-xs uppercase tracking-[0.14em] text-ink-light">
+      <p className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 pr-12 text-sm uppercase tracking-[0.14em] text-ink-light">
         <span className="font-semibold">{year}{isCurrent ? " · Now" : ""}</span>
         <span>{interp.area}</span>
       </p>
@@ -81,7 +81,7 @@ export function DetailPanel({
       </p>
 
       {otherYears.length > 0 && (
-        <p className="mt-3 text-xs text-ink-light">
+        <p className="mt-3 text-sm text-ink-light">
           This number also falls in {otherYears.join(" and ")}.
         </p>
       )}
