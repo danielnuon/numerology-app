@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { interpretYear } from "@/lib/numerology/interpretation";
 import { OG_COLORS, OG_SITE_LABEL, pillarColors } from "@/lib/og-theme";
+import { SITE_TAGLINE } from "@/lib/site-copy";
 
 export const alt = "Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.";
 export const size = { width: 1200, height: 630 };
@@ -45,7 +46,7 @@ export default function OgImage() {
             marginTop: 8,
           }}
         >
-          Khmer numerology, year by year
+          Khmer numerology
         </div>
 
         {/* Divider */}
@@ -90,7 +91,7 @@ export default function OgImage() {
             letterSpacing: "0.06em",
           }}
         >
-          {`A lantern for your twelve years  ·  ${OG_SITE_LABEL}`}
+          {`${SITE_TAGLINE}  ·  ${OG_SITE_LABEL}`}
         </div>
       </div>
     ),

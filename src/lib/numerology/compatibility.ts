@@ -23,7 +23,13 @@ export type YearInteraction = "stabilized" | "amplified" | "risk" | "unstable" |
 /** Overall assessment from both people's total scores. */
 export type StabilityAssessment = "strong" | "moderate" | "mixed" | "challenging";
 
-/** Each overall assessment's heading and one calm sentence, for the page and link previews. */
+/**
+ * Each overall assessment's heading and one calm sentence, for the page and
+ * link previews. The family calls the "challenging" assessment Challenging;
+ * Solini shows it as "Low stability", in line with the other three, so a
+ * comparison of two people never reads as a warning. How your cycle is made
+ * names the family's word.
+ */
 export const STABILITY_TEXT: Record<StabilityAssessment, { label: string; description: string }> = {
   strong: {
     label: "Strong stability",
@@ -38,7 +44,7 @@ export const STABILITY_TEXT: Record<StabilityAssessment, { label: string; descri
     description: "One cycle runs steadier than the other, so the steadier one often carries more.",
   },
   challenging: {
-    label: "Challenging",
+    label: "Low stability",
     description: "Both cycles run low overall, so be patient with each other in the harder years.",
   },
 };
@@ -54,13 +60,15 @@ export const INTERACTION_ORDER: readonly YearInteraction[] = [
 
 /**
  * Each interaction's symbol, word and one-line meaning. The symbol is
- * decoration beside the word, so color is never the only cue.
+ * decoration beside the word, so color is never the only cue. The family
+ * calls the "risk" interaction Risk; Solini shows it as "Low together" for
+ * the same reason as "Low stability" above.
  */
 export const INTERACTION_TEXT: Record<YearInteraction, { symbol: string; label: string; meaning: string }> = {
   amplified: { symbol: "★", label: "Amplified", meaning: "Both years are strong, so the luck builds." },
   stabilized: { symbol: "▲", label: "Stabilized", meaning: "The stronger year steadies the weaker one." },
   neutral: { symbol: "—", label: "Neutral", meaning: "No strong pull either way." },
-  risk: { symbol: "▼", label: "Risk", meaning: "Both years are low, so weakness compounds. Go gently." },
+  risk: { symbol: "▼", label: "Low together", meaning: "Both years are low, so weakness compounds. Go gently." },
   unstable: { symbol: "⊙", label: "Unstable", meaning: "A reset year on either side unsettles the pair." },
 };
 

@@ -22,7 +22,8 @@ Solini speaks like a calm, knowledgeable guide to a family tradition: warm, plai
 
 ## Names
 
-- The product is **Solini** in anything a visitor sees: titles, metadata, share text, help text. "Khmer numerology" is the descriptive subtitle.
+- The product is **Solini** in anything a visitor sees: titles, metadata, share text, help text. "Khmer numerology" is the descriptive subtitle, and "A lantern for your twelve years" is the one brand line (`SITE_TAGLINE` in `site-copy.ts`). Don't coin other taglines.
+- A reading opened from someone else's share link isn't the visitor's. Say "their" or "this reading" there, never "your".
 - The repo, package and internal identifiers keep `numerology-app`, `numerology` and `cycle`. Do not rename them for branding.
 - Use the app's own terms consistently: cycle, cycle number, luck tier (very strong, strong, moderate, weak, reset), life area, zodiac animal, New Year rule, reading.
 - Shared copy (site title, descriptions, share text) lives in `src/lib/site-copy.ts`, so it is written once.

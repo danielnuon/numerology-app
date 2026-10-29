@@ -146,3 +146,26 @@ function validateYear(year: number, label: string): void {
     );
   }
 }
+
+/**
+ * The day the reading after `activeYear` begins: the birthday in the
+ * following year. A February 29 birthday falls on March 1 in common years,
+ * the first day getActiveYear counts as past it.
+ *
+ * @param activeYear - The year whose reading is showing now (from getActiveYear).
+ * @param birthMonth - Birth month (1–12).
+ * @param birthDay - Birth day (1–31).
+ * @returns The next reading's year and the month and day it begins.
+ */
+export function getNextReadingStart(
+  activeYear: number,
+  birthMonth: number,
+  birthDay: number
+): { year: number; month: number; day: number } {
+  const year = activeYear + 1;
+  const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  if (birthMonth === 2 && birthDay === 29 && !isLeapYear) {
+    return { year, month: 3, day: 1 };
+  }
+  return { year, month: birthMonth, day: birthDay };
+}

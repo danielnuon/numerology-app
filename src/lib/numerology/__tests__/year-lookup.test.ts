@@ -6,6 +6,7 @@ import {
   getYearNumber,
   getLifeArea,
   getActiveYear,
+  getNextReadingStart,
 } from "../year-lookup";
 
 /** A simple ascending cycle for deterministic testing. */
@@ -226,5 +227,25 @@ describe("getLifeArea", () => {
 
   it("throws for negative column", () => {
     expect(() => getLifeArea(-1)).toThrow("Invalid column position");
+  });
+});
+
+describe("getNextReadingStart", () => {
+  it("begins on the birthday in the year after the active year", () => {
+    expect(getNextReadingStart(2026, 7, 24)).toEqual({ year: 2027, month: 7, day: 24 });
+  });
+
+  it("keeps February 29 in a leap year", () => {
+    expect(getNextReadingStart(2027, 2, 29)).toEqual({ year: 2028, month: 2, day: 29 });
+  });
+
+  it("moves February 29 to March 1 in a common year, as getActiveYear does", () => {
+    expect(getNextReadingStart(2028, 2, 29)).toEqual({ year: 2029, month: 3, day: 1 });
+    expect(getActiveYear(2029, 2, 29, new Date(2029, 2, 1))).toBe(2029);
+    expect(getActiveYear(2029, 2, 29, new Date(2029, 1, 28))).toBe(2028);
+  });
+
+  it("treats 2100 as a common year", () => {
+    expect(getNextReadingStart(2099, 2, 29)).toEqual({ year: 2100, month: 3, day: 1 });
   });
 });

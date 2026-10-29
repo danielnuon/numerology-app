@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { InfoPage, MORE_LINK, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { YEAR_TIERS } from "@/lib/numerology/interpretation-data";
-import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME } from "@/lib/site-copy";
+import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME, SITE_TAGLINE } from "@/lib/site-copy";
 
 export const metadata: Metadata = {
   title: ABOUT_TITLE,
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <InfoPage title="A lantern for your twelve years">
+    <InfoPage title={SITE_TAGLINE}>
       <SectionDivider compact />
 
       <Section title="The tradition">

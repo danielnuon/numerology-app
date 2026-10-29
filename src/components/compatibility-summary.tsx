@@ -35,7 +35,7 @@ export const INTERACTION_COLOR_CLASS: Record<YearInteraction, string> = {
 
 /** One person in the comparison. */
 export interface SummaryPerson {
-  /** "You" or "Partner". */
+  /** What the comparison calls this person: "You", "Them", "First" or "Second". */
   term: string;
   date: { year: number; month: number; day: number };
   animal: ZodiacAnimal;

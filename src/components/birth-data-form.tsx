@@ -52,9 +52,9 @@ const MODE_TEXT: Record<BirthDataFormMode, { idPrefix: string; formLabel: string
   },
   partner: {
     idPrefix: "partner",
-    formLabel: "Partner's birth date form",
+    formLabel: "Comparison birth date form",
     submit: "Compare",
-    footnote: "Their birth date isn't saved anywhere.",
+    footnote: "This birth date isn't saved anywhere.",
   },
 };
 

@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { decodeComparisonSegment, decodeShareSegment } from "@/lib/numerology/url-encoding";
 import { assessStability, STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
-import { interpretTotal } from "@/lib/numerology/interpretation";
+import { interpretAreaYear } from "@/lib/numerology/interpretation";
+import { getActiveYear, getCycleIndex, getYearNumber } from "@/lib/numerology/year-lookup";
 import {
   SHARED_COMPARISON_TITLE,
   SHARED_READING_TITLE,
@@ -49,10 +50,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     decoded.day,
     decoded.rule
   );
-  const description = sharedReadingDescription(
-    result.totalScore,
-    interpretTotal(result.totalScore).label
+  // This year's reading, the same one the preview image lights
+  const activeYear = getActiveYear(new Date().getFullYear(), decoded.month, decoded.day);
+  const thisYear = interpretAreaYear(
+    getCycleIndex(decoded.year, activeYear) + 1,
+    getYearNumber(result.cycle, decoded.year, activeYear)
   );
+  const description = sharedReadingDescription({
+    year: activeYear,
+    label: thisYear.label,
+    area: thisYear.area,
+  });
 
   return previewMetadata(SHARED_READING_TITLE, description);
 }

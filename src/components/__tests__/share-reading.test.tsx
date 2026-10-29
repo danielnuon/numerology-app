@@ -5,7 +5,13 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { ShareReading } from "../share-reading";
 
-const props = { year: 1997, month: 7, day: 24, rule: "khmer" as const };
+const props = {
+  year: 1997,
+  month: 7,
+  day: 24,
+  rule: "khmer" as const,
+  headline: { year: 2026, label: "Very strong luck", area: "Allies" },
+};
 const SHARE_URL = "http://localhost/r/1997-07-24";
 
 function setNavigator(values: { share?: unknown; clipboard?: unknown }) {
@@ -24,6 +30,9 @@ describe("ShareReading", () => {
 
     await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
     expect(share.mock.calls[0][0].url).toBe(SHARE_URL);
+    expect(share.mock.calls[0][0].text).toBe(
+      "My 2026 Khmer numerology reading: Very strong luck · Allies. See yours on Solini."
+    );
     expect(writeText).not.toHaveBeenCalled();
   });
 
@@ -81,5 +90,15 @@ describe("ShareReading", () => {
       "href",
       "/r/1997-07-24-cny/opengraph-image"
     );
+  });
+
+  it("calls a reading from someone else's link \"this reading\", not \"yours\"", async () => {
+    const share = jest.fn().mockResolvedValue(undefined);
+    setNavigator({ share });
+    render(<ShareReading {...props} isShared />);
+    expect(screen.getByText("Share this reading")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Share" }));
+    await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
+    expect(share.mock.calls[0][0].text).toMatch(/^A 2026 Khmer numerology reading: /);
   });
 });
