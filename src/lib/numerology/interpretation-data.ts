@@ -128,3 +128,27 @@ export const TOTAL_TIERS: readonly TotalTierEntry[] = [
     max: Infinity,
   },
 ] as const;
+
+/** One of the three totals a cycle can have, as a stop on the total score scale. */
+export interface TotalScaleStop {
+  /** The total itself */
+  total: number;
+  /** Short name of its band, shown under the stop */
+  band: string;
+  /** How common the total is, in words */
+  share: string;
+}
+
+/**
+ * The three totals any cycle can have, lowest first.
+ *
+ * Before the mod-12 step the twelve columns always add up to 184 (78 + 78 +
+ * 28), and a whole cycle always sheds 9, 10 or 11 full twelves, so every
+ * total is 76, 64 or 52. The shares come from every birth date from 1900 to
+ * 2099 under either New Year rule: 52 about 14%, 64 about 55%, 76 about 31%.
+ */
+export const TOTAL_SCALE: readonly TotalScaleStop[] = [
+  { total: 52, band: "Weak", share: "About 1 in 7" },
+  { total: 64, band: "Balanced", share: "About 1 in 2" },
+  { total: 76, band: "Strong", share: "About 1 in 3" },
+] as const;
