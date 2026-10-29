@@ -26,6 +26,22 @@ const SOURCES = [
     label: "Buckley and others, climate and the decline of Angkor (PNAS, 2010)",
   },
   {
+    href: "https://arxiv.org/abs/1604.05674",
+    label: "Giulio Magli, Archaeoastronomy in the Khmer heartland (2016)",
+  },
+  {
+    href: "https://english.cambodiadaily.com/brief/national-museum-to-show-first-zero-inscription-122866/",
+    label: "The Cambodia Daily, the K-127 zero inscription",
+  },
+  {
+    href: "https://angkordatabase.asia/publications/the-lost-horoscope-of-cambodia-s-astrologers",
+    label: "François Bizot, The lost horoscope of Cambodia's astrologers (2013, in French)",
+  },
+  {
+    href: "https://khmer-manuscripts.bdrc.io/scripts/static//aboutkm.en.html",
+    label: "Khmer Manuscript Heritage Project",
+  },
+  {
     href: "https://ich.unesco.org/en/RL/royal-ballet-of-cambodia-00060",
     label: "UNESCO Intangible Cultural Heritage, the Royal Ballet of Cambodia",
   },
@@ -44,9 +60,11 @@ const SOURCES = [
 ] as const;
 
 /**
- * Our heritage: who the Khmer are, a short history of Cambodia from its first
- * kingdoms to today, the Khmer Rouge years, and the family story behind
- * Solini. Contested points are named as contested where they come up.
+ * Our heritage: who the Khmer are, and Cambodia's history told through the
+ * Khmer tradition of reading time (inscriptions, the zero, Angkor's
+ * alignments, the calendar), then the Khmer Rouge years, the family story
+ * behind Solini and where its method comes from. Contested points, and what
+ * isn't known about the method's age, are named where they come up.
  */
 export default function HeritagePage() {
   return (
@@ -54,11 +72,14 @@ export default function HeritagePage() {
       <SectionDivider compact />
 
       <p className="w-full max-w-[640px] text-ink-light leading-relaxed">
-        Solini was made to honor where we come from. This page is a short
-        introduction to Cambodia and the Khmer people, written by the family
-        behind Solini. It isn&apos;t a history book; the{" "}
+        For as long as there are records, the Khmer have read the sky to keep
+        time: to date the reigns of kings, to set the New Year and to choose
+        the right day to build, marry or plant. Solini&apos;s numerology comes
+        from that tradition. This page tells its story, and the story of the
+        people who carried it, as told by the family behind Solini. Where
+        historians disagree, or where nobody knows, it says so, and the{" "}
         <a href="#sources" className={MORE_LINK}>sources</a> at the end go
-        much further.
+        further.
       </p>
 
       <SectionDivider />
@@ -100,31 +121,56 @@ export default function HeritagePage() {
       <Section title="The first kingdoms" id="origins">
         <p>
           People have farmed and fished along the Mekong River and the Tonle
-          Sap lake for thousands of years. Khmer is one of the oldest written
-          languages of mainland Southeast Asia: the earliest dated stone
-          inscription in Khmer was carved in the early 600s at Angkor Borei,
-          in the south of today&apos;s Cambodia.
+          Sap lake for thousands of years. The first kingdom in the region
+          that history records is the one Chinese envoys called Funan. From
+          about the 1st to the 6th century it was a trading power on the
+          Mekong delta, its ports linked to India, China and beyond. It was
+          followed by Chenla, in the 7th and 8th centuries. How far Funan was
+          a Khmer kingdom is still debated, because most of what is known
+          about it comes from Chinese records.
         </p>
         <p>
-          The first kingdom in the region that history records is the one
-          Chinese envoys called Funan. From about the 1st to the 6th century
-          it was a trading power on the Mekong delta, its ports linked to
-          India, China and beyond. It was followed by Chenla, in the 7th and
-          8th centuries. How far Funan was a Khmer kingdom is still debated,
-          because most of what is known about it comes from Chinese records.
+          With Indian trade came Sanskrit, Hindu and Buddhist ideas, and
+          India&apos;s science of the stars. Over the centuries Khmer scholars
+          blended that knowledge with older beliefs of their own into an
+          elaborate system of calendars, astrology and prediction.
         </p>
         <p>
-          A Khmer founding legend tells it another way. Preah Thong, a prince
-          from across the sea, married Neang Neak, daughter of the Naga, the
-          serpent king of the waters. As a wedding gift the Naga drank the
-          sea that covered the land, and gave the couple the kingdom that
-          became Cambodia. Khmer weddings still honor the two of them today.
+          A Khmer founding legend tells the beginning another way. Preah
+          Thong, a prince from across the sea, married Neang Neak, daughter
+          of the Naga, the serpent king of the waters. As a wedding gift the
+          Naga drank the sea that covered the land, and gave the couple the
+          kingdom that became Cambodia. Khmer weddings still honor the two of
+          them today.
         </p>
       </Section>
 
       <SectionDivider />
 
-      <Section title="Angkor" id="angkor">
+      <Section title="Masters of number and time" id="number-and-time">
+        <p>
+          Khmer is one of the oldest written languages of mainland Southeast
+          Asia, and its earliest stone inscriptions, from the 600s, already
+          keep time with care. They count years in the Saka era, which began
+          in the year 78, and name the phase of the moon on the day.
+        </p>
+        <p>
+          One of them holds one of the oldest dated zeros written as a
+          numeral anywhere in the world. A stone known as K-127 gives its
+          date as the fifth day of the waning moon in the year 605, which is
+          683, with the zero written as a dot. The zero is what lets a few
+          digits stand for any number, and the Khmer were writing it more
+          than a thousand years ago. Whether K-127 holds the very oldest
+          zero depends on how other early examples are dated, which scholars
+          still debate. The stone was lost during the Khmer Rouge years and
+          found again in 2013, and it is now kept at the National Museum in
+          Phnom Penh.
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="Angkor, built to the sky" id="angkor">
         <p>
           In 802, a king named Jayavarman II declared himself universal
           monarch on the sacred hill of Phnom Kulen. Historians use that year
@@ -133,16 +179,32 @@ export default function HeritagePage() {
           mainland Southeast Asia.
         </p>
         <p>
-          Its builders were engineers as much as artists. A web of
-          reservoirs and canals watered the rice fields of greater Angkor,
-          which archaeologists now count among the largest cities of the
-          world before the industrial age. Angkor Wat, built for King
-          Suryavarman II in the early 1100s, is the largest religious
-          monument on earth, and it stands on Cambodia&apos;s flag. King
-          Jayavarman VII, who came to the throne in 1181, built the walled
-          city of Angkor Thom and the Bayon temple with its calm stone faces,
-          and inscriptions credit him with founding more than a hundred
-          hospitals across the empire.
+          Its temples were built as models of the universe. Their towers
+          stand for Mount Meru, the mountain at the center of the cosmos, and
+          their moats for the ocean that surrounds it. Almost every temple in
+          the Angkor heartland faces east, toward the rising sun, to within a
+          few degrees.
+        </p>
+        <p>
+          Angkor Wat, built for King Suryavarman II in the early 1100s, is
+          the largest religious monument on earth, and it stands on
+          Cambodia&apos;s flag. On the spring equinox, seen from its western
+          entrance, the sun rises directly over its central tower, and
+          thousands of people gather each March to watch. Some researchers
+          go further and argue that the temple&apos;s measurements encode
+          calendar cycles and the lengths of cosmic ages. Others, including
+          the archaeoastronomer Giulio Magli, find that reading unconvincing,
+          so it remains an open question.
+        </p>
+        <p>
+          Angkor&apos;s builders were engineers as much as astronomers and
+          artists. A web of reservoirs and canals watered the rice fields of
+          greater Angkor, which archaeologists now count among the largest
+          cities of the world before the industrial age. King Jayavarman VII,
+          who came to the throne in 1181, built the walled city of Angkor
+          Thom and the Bayon temple with its calm stone faces, and
+          inscriptions credit him with founding more than a hundred hospitals
+          across the empire.
         </p>
         <p>
           In 1431 the Siamese kingdom of Ayutthaya sacked Angkor, the date
@@ -234,18 +296,52 @@ export default function HeritagePage() {
 
       <Section title="What endured" id="what-endured">
         <p>
-          The Khmer Rouge tried to erase the past, and nearly did. The Royal
-          Ballet of Cambodia lost almost all of its master dancers and
-          musicians. The survivors began teaching again soon after 1979, and
-          in 2003 UNESCO named the ballet a masterpiece of the world&apos;s
-          intangible heritage.
+          The Khmer Rouge tried to erase the past, and nearly did. An
+          estimated 95 to 98 percent of Cambodia&apos;s traditional
+          manuscripts were destroyed in the 1970s and 1980s, among them the
+          handwritten manuals of astrology and divination. Some survived only
+          because someone hid or carried them: in 1975 the scholar François
+          Bizot saved five such manuals from the Khmer Rouge. The Royal
+          Ballet lost almost all of its master dancers and musicians, but the
+          survivors began teaching again soon after 1979, and in 2003 UNESCO
+          named the ballet a masterpiece of the world&apos;s intangible
+          heritage.
+        </p>
+        <p>
+          The reading of time endured too. The Khmer calendar still follows
+          the moon. The moment Khmer New Year begins each April is still
+          worked out from an old astronomical text, the Moha Sangkran. Each
+          spring, at the Royal Ploughing Ceremony, a Brahmin reads the coming
+          harvest from what the royal oxen choose to eat. And families still
+          ask a <em>krou</em> or an <em>achar</em> to choose a good day for a
+          wedding, a new house or a journey.
         </p>
         <p>
           Today Cambodians live and keep their culture all over the world,
           from Phnom Penh and Battambang to Long Beach, Lowell, Paris and
           Melbourne. They celebrate Khmer New Year, cook the food, speak the
-          language and pass on what they were taught. Solini is one small
-          part of that: a piece of Khmer knowledge, kept and handed on.
+          language and pass on what they were taught.
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="Where Solini's method comes from" id="solini-method">
+        <p>
+          Solini&apos;s numerology belongs to this tradition. It works with
+          the tools of Khmer time-keeping: the lunar months, counted from{" "}
+          <em>Mikasar</em>; the twelve animals of the zodiac, whose year
+          turns at Khmer New Year; and the seven planets that give the days
+          of the week their names.
+        </p>
+        <p>
+          We want to be honest about what we know. This method came to us by
+          word of mouth, from Solini to my mother. We haven&apos;t found it
+          written in an inscription or an old manuscript, so we can&apos;t
+          say how far back this particular method goes. Its building blocks
+          are centuries old; how and when they were put together this way,
+          nobody has recorded. And like any reading, it is for reflection,
+          not a promise about what will happen.
         </p>
       </Section>
 
@@ -254,7 +350,11 @@ export default function HeritagePage() {
       <Section title="Sources" id="sources">
         <p>
           The history here follows the standard accounts, such as David
-          Chandler&apos;s <em>A History of Cambodia</em>, and these sources:
+          Chandler&apos;s <em>A History of Cambodia</em>. The idea that Angkor
+          Wat&apos;s measurements encode time comes from Robert Stencel, Fred
+          Gifford and Eleanor Morón (<em>Science</em>, 1976) and Eleanor
+          Mannikka&apos;s <em>Angkor Wat: Time, Space, and Kingship</em>
+          (1996). The other sources:
         </p>
         <ul className="list-disc space-y-2 pl-5">
           {SOURCES.map((source) => (
