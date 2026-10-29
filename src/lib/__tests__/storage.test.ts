@@ -6,6 +6,9 @@ import {
   readStoredNewYearRule,
   saveNewYearRule,
   NEW_YEAR_RULE_STORAGE_KEY,
+  readUpdateNoticeSeen,
+  markUpdateNoticeSeen,
+  UPDATE_NOTICE_STORAGE_KEY,
 } from "../storage";
 
 // ---------------------------------------------------------------------------
@@ -282,5 +285,32 @@ describe("New Year rule", () => {
       throw new Error("blocked");
     });
     expect(readStoredNewYearRule()).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Update notice
+// ---------------------------------------------------------------------------
+
+describe("Update notice", () => {
+  it("is unseen until marked", () => {
+    expect(readUpdateNoticeSeen()).toBe(false);
+    markUpdateNoticeSeen();
+    expect(readUpdateNoticeSeen()).toBe(true);
+    expect(localStorage.getItem(UPDATE_NOTICE_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it("counts as seen when localStorage throws, so it never shows", () => {
+    localStorageMock.getItem.mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    expect(readUpdateNoticeSeen()).toBe(true);
+  });
+
+  it("does not throw when saving fails", () => {
+    localStorageMock.setItem.mockImplementationOnce(() => {
+      throw new Error("quota");
+    });
+    expect(() => markUpdateNoticeSeen()).not.toThrow();
   });
 });

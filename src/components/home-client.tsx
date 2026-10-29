@@ -41,6 +41,7 @@ import { YearTimeline } from "@/components/year-timeline";
 import { ThisYearCard } from "@/components/this-year-card";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
+import { UpdateNotice } from "@/components/update-notice";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import {
   computeCycleFromBirthDate,
@@ -56,6 +57,8 @@ import {
   clearStoredBirthDate,
   readStoredNewYearRule,
   saveNewYearRule,
+  readUpdateNoticeSeen,
+  markUpdateNoticeSeen,
   type StoredBirthDate,
 } from "@/lib/storage";
 import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
@@ -182,6 +185,14 @@ export function HomeClient({ searchParams }: Props) {
   // A returning visitor's restored date, which "Not you?" can forget.
   const isRestoredDate = sessionDate === undefined && storedDate !== null;
 
+  // The one-time note about the 2026 changes, for readings restored from a
+  // date saved before them. Read only after hydration, like all storage.
+  const noticeSeenBefore = useMemo(
+    () => (isHydrated ? readUpdateNoticeSeen() : true),
+    [isHydrated]
+  );
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
+
   // On phones the 12-year wheel and timeline wait behind "See all 12 years".
   const [cycleOpen, setCycleOpen] = useState(false);
 
@@ -239,6 +250,13 @@ export function HomeClient({ searchParams }: Props) {
     setPickedYear(null);
   }, []);
 
+  // Focus moves to the reading so it isn't lost with the removed button.
+  const handleDismissNotice = useCallback(() => {
+    markUpdateNoticeSeen();
+    setNoticeDismissed(true);
+    readingCardRef.current?.focus({ preventScroll: true });
+  }, []);
+
   // Switching the New Year rule recomputes the reading and is remembered.
   const handleNewYearRuleChange = useCallback((rule: NewYearRule) => {
     setChosenRule(rule);
@@ -270,6 +288,7 @@ export function HomeClient({ searchParams }: Props) {
   // visitor asked for the form again.
   const showReading = !!result && !formOpen;
   const showForm = !showReading;
+  const showNotice = showReading && isRestoredDate && !noticeSeenBefore && !noticeDismissed;
 
   // The reading opens where the form was, so the page doesn't jump. If the
   // visitor had scrolled past the top of the form, bring the card's top back
@@ -363,6 +382,19 @@ export function HomeClient({ searchParams }: Props) {
             </p>
           </details>
         )}
+
+        {/* Present from the server render, so the note is announced when it appears */}
+        <div aria-live="polite" className="flex w-full justify-center">
+          {showNotice && storedDate && (
+            <UpdateNotice
+              birthYear={storedDate.year}
+              birthMonth={storedDate.month}
+              birthDay={storedDate.day}
+              hasChosenRule={storedRule !== null}
+              onDismiss={handleDismissNotice}
+            />
+          )}
+        </div>
 
         {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
         {showReading && result && (

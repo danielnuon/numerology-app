@@ -5,7 +5,11 @@ import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from "react
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { HomeClient } from "../home-client";
-import { BIRTH_DATE_STORAGE_KEY } from "@/lib/storage";
+import {
+  BIRTH_DATE_STORAGE_KEY,
+  NEW_YEAR_RULE_STORAGE_KEY,
+  UPDATE_NOTICE_STORAGE_KEY,
+} from "@/lib/storage";
 
 // Render Motion components as plain elements, dropping animation props
 jest.mock("motion/react", () => {
@@ -146,5 +150,107 @@ describe("HomeClient: a calm first visit, this year first", () => {
     fireEvent.click(screen.getByRole("button", { name: "Not you?" }));
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
+  });
+});
+
+describe("HomeClient: the one-time note about the 2026 changes", () => {
+  beforeAll(() => {
+    window.matchMedia = ((query: string) => ({ matches: false, media: query })) as unknown as typeof window.matchMedia;
+    Element.prototype.scrollIntoView = jest.fn();
+    Element.prototype.scrollTo = jest.fn() as never;
+    window.scrollTo = jest.fn() as never;
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    jest.useFakeTimers({ now: new Date(2026, 9, 28) });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const NOTICE = { name: "Your reading has changed a little" };
+
+  function saveDate(day: number, month: number, year: number) {
+    localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day, month, year }));
+  }
+
+  it("shows above a returning visitor's restored reading, in a live region", () => {
+    saveDate(24, 7, 1997);
+    render(<HomeClient searchParams={{}} />);
+    const heading = screen.getByRole("heading", NOTICE);
+    expect(heading.closest("[aria-live=polite]")).toBeInTheDocument();
+    expect(screen.getByText(/Each year of your cycle now begins on your birthday/)).toBeInTheDocument();
+  });
+
+  it("names both animals when Khmer New Year changes this birth date's animal", () => {
+    // February 10, 1997 is after Chinese New Year (Ox) but before Khmer New Year (Rat).
+    saveDate(10, 2, 1997);
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.getByText(/your animal is the Rat rather than the Ox/)).toBeInTheDocument();
+  });
+
+  it("leaves out the animal line when the visitor had already chosen a New Year rule", () => {
+    saveDate(10, 2, 1997);
+    localStorage.setItem(NEW_YEAR_RULE_STORAGE_KEY, "chinese");
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.getByRole("heading", NOTICE)).toBeInTheDocument();
+    expect(screen.queryByText(/your animal is the/)).not.toBeInTheDocument();
+  });
+
+  it("leaves out the animal line when both New Years give the same animal", () => {
+    saveDate(24, 7, 1997);
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.queryByText(/your animal is the/)).not.toBeInTheDocument();
+  });
+
+  it("goes away for good with \"Got it\", and focus moves to the reading", () => {
+    saveDate(24, 7, 1997);
+    const { unmount } = render(<HomeClient searchParams={{}} />);
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Got it" }));
+    });
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(document.getElementById("cycle-chart-section"));
+    expect(localStorage.getItem(UPDATE_NOTICE_STORAGE_KEY)).not.toBeNull();
+
+    unmount();
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+  });
+
+  it("never shows on a first visit", () => {
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+  });
+
+  it("never shows on a shared link, even with a saved date", () => {
+    saveDate(24, 7, 1997);
+    render(<HomeClient searchParams={{ day: "10", month: "2", year: "1997" }} />);
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+  });
+
+  it("never shows after a fresh submission, now or on a later visit", () => {
+    const { unmount } = render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+
+    unmount();
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+  });
+
+  it("never shows when storage can't be read", () => {
+    saveDate(24, 7, 1997);
+    const getItem = jest.spyOn(Storage.prototype, "getItem").mockImplementation((key: string) => {
+      if (key === UPDATE_NOTICE_STORAGE_KEY) throw new Error("blocked");
+      return key === BIRTH_DATE_STORAGE_KEY ? JSON.stringify({ day: 24, month: 7, year: 1997 }) : null;
+    });
+    render(<HomeClient searchParams={{}} />);
+    expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
+    getItem.mockRestore();
   });
 });

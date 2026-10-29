@@ -19,7 +19,7 @@ import {
   type CycleResultWithYear,
 } from "@/lib/numerology/derive";
 import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
-import { saveBirthDate } from "@/lib/storage";
+import { markUpdateNoticeSeen, saveBirthDate } from "@/lib/storage";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { NewYearToggle } from "@/components/new-year-toggle";
@@ -242,6 +242,9 @@ export function BirthDataForm({
     setErrors({});
     const result = computeCycleFromBirthDate(yearNum, monthNum, dayNum, newYearRule);
     saveBirthDate(dayNum, monthNum, yearNum);
+    // A date saved now is read with the current rules, so the note about
+    // the 2026 changes would only confuse this visitor later.
+    markUpdateNoticeSeen();
     onResult(result);
   }
 

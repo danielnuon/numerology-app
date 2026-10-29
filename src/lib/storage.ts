@@ -120,3 +120,31 @@ export function saveNewYearRule(rule: NewYearRule): void {
     // Silently fail — quota exceeded, private browsing, etc.
   }
 }
+
+/**
+ * Remembers that the visitor has seen the note about the 2026 changes to the
+ * reading (birthday timing and the Khmer New Year default). The key names the
+ * update, so a later update can show a new note under a new key.
+ */
+export const UPDATE_NOTICE_STORAGE_KEY = "khmer-numerology:update-2026-notice-seen";
+
+/**
+ * Whether the update note has been seen. Unreadable storage counts as seen,
+ * so a browser that can't remember a dismissal never shows the note at all.
+ */
+export function readUpdateNoticeSeen(): boolean {
+  try {
+    return localStorage.getItem(UPDATE_NOTICE_STORAGE_KEY) !== null;
+  } catch {
+    return true;
+  }
+}
+
+/** Marks the update note as seen, on dismissal or when a new date is saved. */
+export function markUpdateNoticeSeen(): void {
+  try {
+    localStorage.setItem(UPDATE_NOTICE_STORAGE_KEY, "1");
+  } catch {
+    // Silently fail — quota exceeded, private browsing, etc.
+  }
+}
