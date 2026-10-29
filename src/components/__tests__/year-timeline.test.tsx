@@ -64,24 +64,16 @@ describe("YearTimeline", () => {
   // Tier symbols
   // ---------------------------------------------------------------------------
 
-  it("renders ⊙ for zero years", () => {
-    render(<YearTimeline {...defaultProps} />);
-    // cycle index 7 is 0 (zero tier) — year 1997 + 7 = 2004
-    const zeroYear = 1997 + 7;
-    const option = screen.getByRole("option", { name: new RegExp(`Year ${zeroYear}`) });
-    expect(option).toHaveTextContent("⊙");
-  });
-
-  it("renders the correct 5-tier symbols matching cycle chart", () => {
+  it("draws each year's tier symbol, hidden from screen readers", () => {
     render(<YearTimeline {...defaultProps} />);
     const options = screen.getAllByRole("option");
-    // Check a few specific years
-    // year 1997 (index 0): cycle[0]=3 → weak → ◔
-    expect(options[0]).toHaveTextContent("◔");
-    // year 2002 (index 5): cycle[5]=11 → very-strong → ●
-    expect(options[5]).toHaveTextContent("●");
-    // year 2005 (index 8): cycle[8]=2 → weak → ◔
-    expect(options[8]).toHaveTextContent("◔");
+    for (const option of options) {
+      expect(option.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    }
+    // cycle index 7 is 0 (zero tier), year 1997 + 7 = 2004: a ring with a dot, no filled share
+    expect(options[7].querySelector("svg path")).toBeNull();
+    // year 2002 (index 5): cycle[5]=11 → very strong → filled
+    expect(options[5].querySelector("svg path")).not.toBeNull();
   });
 
   // ---------------------------------------------------------------------------

@@ -201,7 +201,7 @@ Each person's total score also influences the relationship:
 | One ≥ 68, other < 60 | | Mixed stability |
 | Both < 60 | | Challenging |
 
-The table leaves out one total from 60 to 67 with the other under 60. Solini reads that as **Mixed stability** too, since one person is on steady ground and the other isn't (`assessStability()` in `src/lib/numerology/compatibility.ts`). The comparison says so under the assessment ("Why mixed?"), so visitors can judge that reading themselves.
+The table leaves out one total from 60 to 67 with the other under 60. Solini reads that as **Mixed stability** too, since one person is on steady ground and the other isn't (`assessStability()` in `src/lib/numerology/compatibility.ts`). The total score section of How your cycle is made says so, and the comparison links there from the assessment ("How the totals are read"), so visitors can judge that reading themselves.
 
 Solini compares a pair one 12-year cycle at a time, counted from the visitor's birth year: their current cycle by default, or either of the two complete cycles before it. A year before either person's birth has no interaction and isn't counted. A person's number for a calendar year is the one their cycle gives that year, which starts on their birthday in it (see `getYearNumber()`).
 

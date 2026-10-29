@@ -6,6 +6,13 @@
 
 import Link from "next/link";
 
+/** An underlined gold link inside running text. */
+export const MORE_LINK =
+  "text-gold-deep underline underline-offset-4 decoration-gold-deep/40 hover:decoration-gold-deep";
+
+/** Anchor of the total score section on How your cycle is made; the comparison links to it. */
+export const TOTAL_SCORE_SECTION_ID = "total-score";
+
 /** Page shell: the Solini wordmark linking home, then a lit title. */
 export function InfoPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (
