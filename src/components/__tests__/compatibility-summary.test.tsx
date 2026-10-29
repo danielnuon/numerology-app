@@ -1,0 +1,69 @@
+/**
+ * @jest-environment jsdom
+ */
+import { render, screen, within } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import { CompatibilitySummary, type SummaryPerson } from "../compatibility-summary";
+import type { ComparisonSummary } from "@/lib/numerology/compatibility";
+
+const people: [SummaryPerson, SummaryPerson] = [
+  { term: "You", date: { year: 1997, month: 7, day: 24 }, animal: "Ox", total: 64 },
+  { term: "Partner", date: { year: 2000, month: 3, day: 15 }, animal: "Rabbit", total: 70 },
+];
+
+const summary: ComparisonSummary = {
+  counts: { amplified: 2, stabilized: 5, neutral: 2, risk: 1, unstable: 2 },
+  current: { year: 2026, firstNumber: 11, secondNumber: 7, interaction: "amplified" },
+};
+
+describe("CompatibilitySummary", () => {
+  it("shows both people with their totals and the assessment", () => {
+    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} yearCount={12} />);
+    expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
+    expect(screen.getByText("Year of the Rabbit")).toBeInTheDocument();
+    expect(screen.getByText("70")).toBeInTheDocument();
+    expect(screen.getByText("Moderate stability")).toBeInTheDocument();
+  });
+
+  it("highlights this year's interaction in words", () => {
+    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} yearCount={12} />);
+    const line = screen.getByText("This year, 2026:").parentElement as HTMLElement;
+    expect(line).toHaveTextContent(/Amplified$/);
+  });
+
+  it("counts every interaction, zeros included", () => {
+    render(
+      <CompatibilitySummary
+        people={people}
+        assessment="moderate"
+        summary={{ ...summary, counts: { ...summary.counts, amplified: 0 } }}
+        yearCount={12}
+      />
+    );
+    expect(screen.getByText("Over 12 years")).toBeInTheDocument();
+    const items = within(screen.getByRole("list")).getAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual([
+      "0★Amplified",
+      "5▲Stabilized",
+      "2—Neutral",
+      "1▼Risk",
+      "2⊙Unstable",
+    ]);
+  });
+
+  it("leaves out the this-year line when the current year isn't compared", () => {
+    render(
+      <CompatibilitySummary people={people} assessment="mixed" summary={{ ...summary, current: null }} yearCount={12} />
+    );
+    expect(screen.queryByText(/This year/)).not.toBeInTheDocument();
+  });
+
+  it("hides the symbols from screen readers", () => {
+    const { container } = render(
+      <CompatibilitySummary people={people} assessment="moderate" summary={summary} yearCount={12} />
+    );
+    for (const symbol of container.querySelectorAll("li [aria-hidden='true']")) {
+      expect(symbol.textContent).toMatch(/^[★▲—▼⊙]$/);
+    }
+  });
+});

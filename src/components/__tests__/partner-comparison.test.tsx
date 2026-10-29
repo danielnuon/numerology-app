@@ -123,6 +123,15 @@ describe("PartnerComparison", () => {
     expect(await screen.findByText(/Link copied/)).toBeInTheDocument();
   });
 
+  it("leads with the summary and offers its card as an image", () => {
+    render(<Harness initialPartner={PARTNER} />);
+    expect(screen.getByText(/^This year, 2026:/)).toBeInTheDocument();
+    expect(screen.getByText("Over 12 years")).toBeInTheDocument();
+    const download = screen.getByRole("link", { name: "Download image" });
+    expect(download).toHaveAttribute("href", "/r/1997-07-24+2000-03-15/opengraph-image");
+    expect(download).toHaveAttribute("download", "solini-comparison-1997-07-24-2000-03-15.png");
+  });
+
   it("returns to the resting button when the comparison is removed", () => {
     render(<Harness initialPartner={PARTNER} />);
     fireEvent.click(screen.getByRole("button", { name: "Remove comparison" }));

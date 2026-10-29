@@ -43,6 +43,27 @@ export const STABILITY_TEXT: Record<StabilityAssessment, { label: string; descri
   },
 };
 
+/** Every interaction, from most to least supportive: the order of legends and counts. */
+export const INTERACTION_ORDER: readonly YearInteraction[] = [
+  "amplified",
+  "stabilized",
+  "neutral",
+  "risk",
+  "unstable",
+];
+
+/**
+ * Each interaction's symbol, word and one-line meaning. The symbol is
+ * decoration beside the word, so color is never the only cue.
+ */
+export const INTERACTION_TEXT: Record<YearInteraction, { symbol: string; label: string; meaning: string }> = {
+  amplified: { symbol: "★", label: "Amplified", meaning: "Both years are strong, so the luck builds." },
+  stabilized: { symbol: "▲", label: "Stabilized", meaning: "The stronger year steadies the weaker one." },
+  neutral: { symbol: "—", label: "Neutral", meaning: "No strong pull either way." },
+  risk: { symbol: "▼", label: "Risk", meaning: "Both years are low, so weakness compounds. Go gently." },
+  unstable: { symbol: "⊙", label: "Unstable", meaning: "A reset year on either side unsettles the pair." },
+};
+
 /** One calendar year of a comparison. */
 export interface ComparedYear {
   year: number;
@@ -129,4 +150,25 @@ export function compareCycles(
     const secondNumber = getYearNumber(secondCycle, secondBirthYear, year);
     return { year, firstNumber, secondNumber, interaction: yearInteraction(firstNumber, secondNumber) };
   });
+}
+
+/** A comparison at a glance: how many years of each interaction, and this year's. */
+export interface ComparisonSummary {
+  /** How many of the compared years have each interaction. */
+  counts: Record<YearInteraction, number>;
+  /** The compared year that is the current one, if it is among them. */
+  current: ComparedYear | null;
+}
+
+/**
+ * Counts each interaction across the compared years and picks out the
+ * current year.
+ *
+ * @param years - Output of compareCycles()
+ * @param currentYear - The calendar year to highlight (the visitor's active year)
+ */
+export function summarizeComparison(years: ComparedYear[], currentYear: number): ComparisonSummary {
+  const counts: Record<YearInteraction, number> = { amplified: 0, stabilized: 0, neutral: 0, risk: 0, unstable: 0 };
+  for (const year of years) counts[year.interaction] += 1;
+  return { counts, current: years.find((year) => year.year === currentYear) ?? null };
 }
