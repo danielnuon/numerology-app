@@ -18,7 +18,7 @@ const STANDARDS_SYNTAX = [
   },
   {
     selector: "Literal[value=/\\banimate-(pulse|spin|bounce|ping)\\b/], TemplateElement[value.raw=/\\banimate-(pulse|spin|bounce|ping)\\b/]",
-    message: "Looping animation is limited to the approved exceptions in docs/standards/design-language.md#motion.",
+    message: "Tailwind's loops are too fast and too large for Solini. Glows breathe with .title-glow or .breathe-glow; see Living surfaces in docs/standards/design-language.md#motion.",
   },
 ];
 

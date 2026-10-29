@@ -183,7 +183,8 @@ describe("CycleChart (cycle wheel)", () => {
 
   it("shows the total score below the wheel", () => {
     render(<CycleChart {...defaultProps} />);
-    expect(screen.getByText("64")).toBeInTheDocument();
+    // The folded scale also lists 64, so look inside the card's button
+    expect(screen.getByRole("button", { name: /Total score/ })).toHaveTextContent("64");
   });
 
   describe("returning to the current year", () => {

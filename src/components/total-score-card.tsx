@@ -10,6 +10,7 @@
  */
 
 import { useId, useState } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { interpretTotal } from "@/lib/numerology/interpretation";
 import { TOTAL_SCALE, type TotalTier } from "@/lib/numerology/interpretation-data";
 
@@ -65,43 +66,41 @@ export function TotalScoreCard({ totalScore }: TotalScoreCardProps) {
         </span>
       </button>
 
-      {open && (
-        <div id={panelId} className="animate-settle-in px-5 pb-5">
-          <div className="relative pt-1">
-            {/* The rail the three lanterns hang on */}
-            <div aria-hidden="true" className="absolute left-[16%] right-[16%] top-[38px] h-px bg-border" />
-            <ol aria-label="Every cycle totals 52, 64 or 76" className="relative grid grid-cols-3 gap-2 text-center">
-              {TOTAL_SCALE.map((stop) => {
-                const yours = stop.total === totalScore;
-                const tier = interpretTotal(stop.total).tier;
-                return (
-                  <li key={stop.total} className="flex flex-col items-center gap-1">
-                    <span className="min-h-[1.25rem] text-sm uppercase tracking-[0.14em] text-ink">
-                      {yours ? "Yours" : ""}
-                    </span>
-                    <span
-                      className={[
-                        "grid size-11 place-items-center rounded-full border bg-parchment font-display text-lg tabular-nums",
-                        yours ? `text-ink ring-1 ring-ink ring-offset-2 ring-offset-manuscript ${STOP_LIGHT[tier]}` : "border-border text-ink-light",
-                      ].join(" ")}
-                    >
-                      {stop.total}
-                    </span>
-                    <span className="text-sm text-ink">{stop.band}</span>
-                    <span className="text-sm text-ink-light">{stop.share}</span>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-          <p className="mt-4 max-w-[65ch] text-sm text-ink-light">
-            Why only three? Before anything is taken away, the twelve columns
-            always add up to 184. Each year keeps what is left after every full
-            12 is removed, and a whole cycle always sheds 9, 10 or 11 twelves,
-            so every total is 76, 64 or 52.
-          </p>
+      <Reveal open={open} id={panelId} className="px-5 pb-5">
+        <div className="relative pt-1">
+          {/* The rail the three lanterns hang on */}
+          <div aria-hidden="true" className="absolute left-[16%] right-[16%] top-[38px] h-px bg-border" />
+          <ol aria-label="Every cycle totals 52, 64 or 76" className="relative grid grid-cols-3 gap-2 text-center">
+            {TOTAL_SCALE.map((stop) => {
+              const yours = stop.total === totalScore;
+              const tier = interpretTotal(stop.total).tier;
+              return (
+                <li key={stop.total} className="flex flex-col items-center gap-1">
+                  <span className="min-h-[1.25rem] text-sm uppercase tracking-[0.14em] text-ink">
+                    {yours ? "Yours" : ""}
+                  </span>
+                  <span
+                    className={[
+                      "grid size-11 place-items-center rounded-full border bg-parchment font-display text-lg tabular-nums",
+                      yours ? `text-ink ring-1 ring-ink ring-offset-2 ring-offset-manuscript ${STOP_LIGHT[tier]}` : "border-border text-ink-light",
+                    ].join(" ")}
+                  >
+                    {stop.total}
+                  </span>
+                  <span className="text-sm text-ink">{stop.band}</span>
+                  <span className="text-sm text-ink-light">{stop.share}</span>
+                </li>
+              );
+            })}
+          </ol>
         </div>
-      )}
+        <p className="mt-4 max-w-[65ch] text-sm text-ink-light">
+          Why only three? Before anything is taken away, the twelve columns
+          always add up to 184. Each year keeps what is left after every full
+          12 is removed, and a whole cycle always sheds 9, 10 or 11 twelves,
+          so every total is 76, 64 or 52.
+        </p>
+      </Reveal>
     </div>
   );
 }

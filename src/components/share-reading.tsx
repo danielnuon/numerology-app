@@ -88,7 +88,10 @@ export function ShareReading({ year, month, day, rule }: Props) {
       </div>
 
       <p role="status" className="mt-3 min-h-[1.25rem] text-sm text-ink-light">
-        {STATUS_TEXT[status]}
+        {/* Keyed so each new message settles in rather than swapping in place */}
+        {STATUS_TEXT[status] && (
+          <span key={status} className="animate-settle-in inline-block">{STATUS_TEXT[status]}</span>
+        )}
       </p>
       <p className="mt-1 text-sm text-ink-light">
         The link shows this birth date to anyone who opens it.

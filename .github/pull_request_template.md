@@ -12,7 +12,7 @@
 - [ ] Checked at 320px, 768px and 1280px: no horizontal scroll, no clipped or truncated text, touch targets at least 44px
 - [ ] Keyboard: new controls are reachable and show the focus ring
 - [ ] Reduce Motion: nothing moves, scales or loops with it on
-- [ ] Follows the design language: tokens only, shared pressed/hover/focus/selected states, new loops listed as approved exceptions
+- [ ] Follows the design language: tokens only, shared pressed/hover/focus/selected states, new loops listed as living surfaces, state changes use the shared transitions
 - [ ] Tests cover new logic; a bug fix includes a test that fails without it
 - [ ] Docs describe the new state (design spec, architecture, backlog, standards), in American English
 

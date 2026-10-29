@@ -37,6 +37,7 @@ import {
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
+import { Reveal } from "@/components/ui/reveal";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
@@ -215,6 +216,7 @@ export function HomeClient({ searchParams }: Props) {
     [isHydrated]
   );
   const [noticeDismissed, setNoticeDismissed] = useState(false);
+  const [introOpen, setIntroOpen] = useState(false);
 
   // The partner being compared with, if any. Never saved to the browser.
   const [partner, setPartner] = useState<DecodedShare | null>(() =>
@@ -410,16 +412,24 @@ export function HomeClient({ searchParams }: Props) {
 
         {/* The intro, word for word, for visitors who want it before they start */}
         {showForm && !formOpen && (
-          <details className="mt-5 max-w-[480px] w-full text-center">
-            <summary className="pressable mx-auto inline-flex min-h-[44px] cursor-pointer list-none items-center px-2 text-base text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep [&::-webkit-details-marker]:hidden">
+          <div className="mt-5 flex max-w-[480px] w-full flex-col items-center text-center">
+            <button
+              type="button"
+              aria-expanded={introOpen}
+              aria-controls="intro-more"
+              onClick={() => setIntroOpen((open) => !open)}
+              className="pressable inline-flex min-h-[44px] items-center px-2 text-base text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep"
+            >
               What will I see?
-            </summary>
-            <p className="animate-settle-in mt-2 text-base leading-relaxed text-ink-light">
-              Enter your birth date to see a luck number for every year of
-              your 12-year cycle, read from your birth month, zodiac animal
-              and weekday.
-            </p>
-          </details>
+            </button>
+            <Reveal open={introOpen} id="intro-more">
+              <p className="mt-2 text-base leading-relaxed text-ink-light">
+                Enter your birth date to see a luck number for every year of
+                your 12-year cycle, read from your birth month, zodiac animal
+                and weekday.
+              </p>
+            </Reveal>
+          </div>
         )}
 
         {/* Present from the server render, so the note is announced when it appears */}

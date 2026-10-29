@@ -308,7 +308,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 
 Tailwind CSS v4, imported via `@import "tailwindcss"` in `src/app/globals.css`. Color, font, shadow and easing tokens are declared in its `@theme inline` block, durations in `:root`, and reusable effects (the glass card, lantern glows, wheel orbs, form fields, entrance and view-transition animations) as named classes below it. JavaScript animation reads the matching tokens from `src/lib/motion.ts`.
 
-The palette, type, spacing, motion rules and their approved exceptions are defined in [the design language](../standards/design-language.md); this file does not repeat them.
+The palette, type, spacing, motion rules, living surfaces and transitions are defined in [the design language](../standards/design-language.md); this file does not repeat them.
 
 ### Reduced motion support
 

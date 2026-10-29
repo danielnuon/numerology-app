@@ -39,7 +39,7 @@ npm run build
 - Keyboard: every new control is reachable, operable and shows the focus ring.
 - Reduce Motion: with it on, nothing moves, scales or loops.
 - Contrast: meaningful text uses `ink`, `ink-light` or `gold-deep`.
-- Any new looping or ambient motion is listed under "Approved exceptions" in the design language.
+- Any new looping or ambient motion is listed under "Living surfaces" in the design language, and any new state change uses one of its shared transitions.
 
 **Code and docs**
 

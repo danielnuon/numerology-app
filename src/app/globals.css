@@ -49,6 +49,13 @@
   --duration-quick: 150ms;
   --duration-standard: 250ms;
   --duration-gentle: 400ms;
+  /* Living surfaces: every glow breathes between --breathe-low and full
+   * light over --breathe-duration each way (see "Living surfaces" in the
+   * design language). The glows are drawn about 22% brighter than their
+   * resting look so that, breathing, they average out where they were. */
+  --breathe-duration: 6.5s;
+  --breathe-low: 0.64;
+  --breathe-rest: 0.82;
 }
 
 html {
@@ -103,11 +110,14 @@ body {
 .sky-glow {
   --drift: 0px;
   position: absolute;
+  opacity: var(--breathe-rest);
   background: radial-gradient(closest-side, var(--glow), transparent);
 }
 .sky-glow-dusk {
   --drift: 520px;
-  --glow: rgba(120, 72, 120, 0.35);
+  --breathe-period: 7.4s;
+  --breathe-delay: -1.3s;
+  --glow: rgba(120, 72, 120, 0.43);
   left: calc(50% - 840px);
   top: calc(-10% - 420px);
   width: 1680px;
@@ -116,7 +126,9 @@ body {
 /* Starts below the fold and rises into view as the page scrolls */
 .sky-glow-lantern {
   --drift: 520px;
-  --glow: rgba(226, 170, 90, 0.12);
+  --breathe-period: 6.5s;
+  --breathe-delay: -3.9s;
+  --glow: rgba(226, 170, 90, 0.15);
   left: calc(30% - 532px);
   top: calc(100svh + 260px - 266px);
   width: 1064px;
@@ -124,7 +136,9 @@ body {
 }
 .sky-glow-ember {
   --drift: 200px;
-  --glow: rgba(226, 150, 70, 0.14);
+  --breathe-period: 5.8s;
+  --breathe-delay: -5.2s;
+  --glow: rgba(226, 150, 70, 0.17);
   left: calc(50% - 630px);
   top: calc(100svh - 200px - 294px);
   width: 1260px;
@@ -138,13 +152,24 @@ body {
 @keyframes glow-rise {
   to { transform: translate3d(0, calc(var(--drift) * -1), 0); }
 }
+@keyframes breathe {
+  from { opacity: var(--breathe-low); }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sky-glow {
+    animation: breathe var(--breathe-period) var(--ease-sine) var(--breathe-delay) infinite alternate;
+  }
+}
 @supports (animation-timeline: scroll()) {
   @media (prefers-reduced-motion: no-preference) {
     .sky-glow {
-      will-change: transform;
-      animation: glow-rise linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0px 1300px;
+      will-change: transform, opacity;
+      animation:
+        glow-rise linear both,
+        breathe var(--breathe-period) var(--ease-sine) var(--breathe-delay) infinite alternate;
+      animation-timeline: scroll(root block), auto;
+      animation-range: 0px 1300px, normal;
     }
   }
 }
@@ -312,8 +337,49 @@ body {
   }
 }
 
+/* === Living glows ===
+ * Every gold glow is a light that breathes. The light is a layer of its own
+ * behind the element, and only its opacity moves, so the compositor does the
+ * work. Each kind starts at a different point in the breath so neighbors
+ * never pulse together. With Reduce Motion the light rests at its usual
+ * strength. */
+.title-glow,
+.breathe-glow {
+  position: relative;
+  isolation: isolate;
+}
 .title-glow {
-  text-shadow: 0 0 40px rgba(226, 182, 90, 0.28);
+  text-shadow: 0 0 40px rgba(226, 182, 90, 0.2);
+  --breathe-delay: 0s;
+}
+.title-glow::after,
+.breathe-glow::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--breathe-rest);
+}
+/* A soft pool of light behind lettering. It bleeds above and below the
+ * words only: a full-width title would otherwise push past the screen. */
+.title-glow::after {
+  inset: -45% 0;
+  background: radial-gradient(closest-side, rgba(226, 182, 90, 0.2), transparent);
+}
+/* The same glow as --shadow-glow, on the element's own shape */
+.breathe-glow {
+  --breathe-delay: -2.2s;
+}
+.breathe-glow::after {
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 40px -6px var(--glow-color, rgba(226, 182, 90, 0.52));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .title-glow::after,
+  .breathe-glow::after {
+    animation: breathe var(--breathe-duration) var(--ease-sine) var(--breathe-delay) infinite alternate;
+  }
 }
 
 /* Each tier lights its pillar from below; stronger years burn brighter. */
@@ -561,6 +627,41 @@ button:not(:disabled),
   animation: settle-in var(--duration-standard) var(--ease-enter) both;
 }
 
+/* === Reveal: disclosures open and close in place ===
+ * The slot's height eases open (grid rows 0fr -> 1fr) so the page below
+ * glides; the content fades and settles in after it, and leaves quicker
+ * than it came. Used by <Reveal> in components/ui/reveal.tsx. */
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-standard) var(--ease-exit);
+}
+.reveal[data-open="true"] {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--duration-gentle) var(--ease-enter);
+}
+.reveal-clip {
+  min-height: 0;
+  overflow: hidden;
+  /* Keep focus rings visible at the edges where supported */
+  overflow: clip;
+  overflow-clip-margin: 6px;
+}
+.reveal-content {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--duration-quick) var(--ease-exit),
+    transform var(--duration-quick) var(--ease-exit);
+}
+.reveal[data-open="true"] .reveal-content {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--duration-gentle) var(--ease-enter) 60ms,
+    transform var(--duration-gentle) var(--ease-enter) 60ms;
+}
+
 /* Sections settle into place as they scroll into view. Compositor-driven
  * where supported; elsewhere they simply appear. */
 @keyframes scroll-settle {
@@ -597,6 +698,18 @@ button:not(:disabled),
 }
 @keyframes vt-fade-in {
   from { opacity: 0; transform: translateY(4px); }
+}
+
+/* Route changes (app/template.tsx): the old page leaves quickly, the new
+ * one rises 8px and settles, the same shape as every in-page entrance. */
+::view-transition-old(.page-exit) {
+  animation: var(--duration-quick) var(--ease-exit) both vt-fade-out;
+}
+::view-transition-new(.page-enter) {
+  animation: var(--duration-gentle) var(--ease-enter) both page-rise;
+}
+@keyframes page-rise {
+  from { opacity: 0; transform: translateY(8px); }
 }
 
 /* === Bloom: the form card becomes the reading ===

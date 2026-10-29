@@ -25,7 +25,7 @@ The project's standards live in [docs/standards/](docs/standards/README.md). Rea
 
 | Standard | Covers |
 |----------|--------|
-| [Design language](docs/standards/design-language.md) | Principles, color, type, spacing, iconography, interaction states, motion and its approved exceptions, accessibility |
+| [Design language](docs/standards/design-language.md) | Principles, color, type, spacing, iconography, interaction states, motion (living surfaces and transitions), accessibility |
 | [Code](docs/standards/code.md) | Structure, TypeScript and React conventions, styling with tokens, comments, naming, tests |
 | [Writing](docs/standards/writing.md) | Voice, American spelling, naming, commit messages and PR text |
 | [Shipping](docs/standards/shipping.md) | Definition of done, the PR checklist, CI, review and deploy |
@@ -81,7 +81,7 @@ The full rules are in the standards above. The ones most often missed:
 - Colors come from tokens (`text-ink`, `bg-manuscript`, `text-gold-deep`, `tier-*`). Never hardcode hex; ESLint rejects it.
 - `ink-faint` and `gold` are for decoration and placeholders only. Meaningful text uses `ink`, `ink-light` or `gold-deep`. The focus ring is the global 2px `gold-deep` outline.
 - Pressed controls use `pressable active:scale-[0.97]` or `PRESS` from `@/lib/motion`. Selection is an ink outline that glides with `<ViewTransition>`; gold means "now".
-- No looping animation outside the approved exceptions in the design language. Everything stops with Reduce Motion.
+- Living surfaces: glows breathe (`.title-glow`, `.breathe-glow`) and floating things carry scroll weight, as listed under Living surfaces in the design language. No other loops. Every state change uses a shared transition (page change, `<Reveal>`, `.animate-settle-in`, selection glide). Everything stops with Reduce Motion.
 - Tier symbols and decorative icons are `aria-hidden="true"`; the parent's label carries the meaning.
 - Next.js 16: route `params` and `searchParams` are Promises, so always `await` them. `useSearchParams()` needs a `<Suspense>` boundary.
 - Lib tests run in Node. Component tests opt into jsdom with a `/** @jest-environment jsdom */` docblock.
@@ -92,5 +92,6 @@ The full rules are in the standards above. The ones most often missed:
 - Share URLs are `/r/YYYY-MM-DD`. A DD-MM-YYYY URL redirects to `/` by design, and that's not a bug.
 - Don't run `npm install` just to verify or QA something. It rewrites `package-lock.json` against your local npm version. If the lock file does change, commit it.
 - To see the error boundary's fallback without editing code, set `hasError: true` on the `ErrorBoundary` instance through React fiber traversal in the browser console (snippet in `docs/dev/contributing.md`).
+- Scroll weight moves `.glass` cards and `.sky-glow` with paused Web Animations on `translate` (`LanternSky`). Don't give those elements a CSS `translate` of their own; the held animation overrides it. Writing inline styles there instead costs a full style recalc per frame, which showed up in phone profiling.
 - Unicode tier glyphs (● ◕ ◑ ◔ ⊙) render at different sizes depending on the fallback font, most visibly on iOS. Use `TierIcon` on the page.
 - OG images use Satori. Every `div` with more than one child needs `display: flex`, or the route returns a 500.
