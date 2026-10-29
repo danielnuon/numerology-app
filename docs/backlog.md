@@ -8,37 +8,11 @@ The full story-by-story history up to October 2026 is in `docs/dev/product-roadm
 
 ## Now
 
-Stories from **Next** are being built in order, one PR at a time.
+Nothing in progress.
 
 ## Next
 
-### Shareable Results Card
-
-> Part of this may already exist: the `/r/[date]` share route and its OG image shipped with Page Metadata & SEO. Check before building.
-
-**Story:** As a visitor who has received my reading, I want to share my cycle as a visual card on social media, so that I can show friends and invite them to try the app.
-
-**Priority:** Low
-**Effort:** M
-
-**Acceptance Criteria:**
-- [ ] A "Share" button generates a visual card image containing: the 12-number cycle, the current year highlight, and the total score interpretation
-- [ ] The card includes the app URL as a subtle watermark or footer
-- [ ] Cycle data is encoded in the URL so the server can generate correct OG meta tags without client-side JavaScript
-- [ ] OG meta tags produce a correct preview card on Twitter, Facebook, iMessage, and Discord
-- [ ] The share flow supports: copy link, download image, native share (on mobile)
-- [ ] Generated image is under 500KB for a standard 12-number cycle in English (baseline scenario)
-
-**Tasks:**
-- [ ] Integrate URL State Encoding to produce shareable links with embedded cycle data
-- [ ] Implement server-side OG image generation using the encoded URL data (Satori / @vercel/og)
-- [ ] Set dynamic OG meta tags (`og:image`, `og:title`, `og:description`) on the share route
-- [ ] Build share button with copy-link, download, and native share options
-- [ ] Implement fallback OG image for invalid/missing URL data
-- [ ] Test OG preview on Twitter, Facebook, iMessage, Discord
-- [ ] Optimize generated image size
-
-**Notes:** Depends on Interactive Cycle Chart and URL State Encoding. OG image generation requires server-side rendering — the URL must contain enough data for the server to recompute the cycle.
+Empty. Add the next story with `/story`.
 
 ## Blocked
 
@@ -83,7 +57,7 @@ Stories from **Next** are being built in order, one PR at a time.
 These need real devices or a public URL and can't be automated here.
 
 - [ ] Fonts render correctly on macOS, Windows, iOS and Android (Design Token Setup)
-- [ ] Sharing the root URL on Discord, iMessage, X and Facebook shows the OG title and image (Page Metadata & SEO)
+- [ ] Sharing the root URL, a reading link (`/r/YYYY-MM-DD`) and a comparison link (`/r/A+B`) on Discord, iMessage, X and Facebook shows the right title, description and card (Page Metadata & SEO, Shareable Results Card)
 - [ ] Screen reader pass with VoiceOver and one other screen reader (Accessibility)
 - [ ] Cross-browser pass on real iOS Safari and Android Chrome (Responsive Layout)
 
@@ -117,3 +91,4 @@ These need real devices or a public URL and can't be automated here.
 - Update notice for returning visitors
 - Partner Comparison View
 - Compatibility Summary Card
+- Shareable Results Card
