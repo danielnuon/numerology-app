@@ -32,7 +32,7 @@ export function TotalScoreCard({ totalScore }: TotalScoreCardProps) {
   const interp = interpretTotal(totalScore);
 
   return (
-    <div className="pressable mt-6 rounded-xl border border-border bg-parchment/40 has-[>button:hover]:border-gold has-[>button:active]:scale-[0.97]">
+    <div className="pressable mt-6 origin-top rounded-xl border border-border bg-parchment/40 has-[>button:hover]:border-gold has-[>button:active]:scale-[0.97]">
       <button
         type="button"
         aria-expanded={open}

@@ -49,6 +49,15 @@ function seedMotes(): Mote[] {
   }));
 }
 
+/**
+ * Pixels per CSS pixel for the dust canvas. Specks this soft look the same
+ * at 2x as at 3x, and a 3x phone would otherwise clear and redraw more than
+ * twice the pixels every frame.
+ */
+function canvasScale(): number {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
 /** Settled closer than this (in pixels), the page holds still and nothing is written. */
 const REST = 0.05;
 
@@ -150,7 +159,7 @@ export function LanternSky() {
     // Match the canvas to its box, which is the large viewport (taller than
     // innerHeight while mobile toolbars are showing).
     function resize() {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = canvasScale();
       canvas!.width = canvas!.clientWidth * dpr;
       canvas!.height = canvas!.clientHeight * dpr;
     }
@@ -159,7 +168,7 @@ export function LanternSky() {
       const elapsed = Math.min(now - last, 100);
       last = now;
       if (!prefersReducedMotion) applyWeight(elapsed / 1000, now);
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = canvasScale();
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
       for (const mote of motes) {
         if (!prefersReducedMotion) {

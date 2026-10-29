@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { InfoPage, MorePages, PillLink, Section } from "@/components/ui/page-parts";
-import { TOTAL_TIERS, YEAR_TIERS } from "@/lib/numerology/interpretation-data";
+import { TOTAL_SCALE, YEAR_TIERS } from "@/lib/numerology/interpretation-data";
+import { interpretTotal } from "@/lib/numerology/interpretation";
 import type { Weekday } from "@/lib/numerology/calculate";
 import { BIRTH_DAYS } from "@/lib/numerology/birth-day-data";
 import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
@@ -38,13 +39,6 @@ function orbBreath(n: number): React.CSSProperties {
     "--breathe-duration": `${(5 + ((n * 7) % 5) * 0.9).toFixed(1)}s`,
     "--breathe-delay": `${(-n * 1.3).toFixed(1)}s`,
   } as React.CSSProperties;
-}
-
-/** Total score range as text, e.g. "60–67" or "68 and above". */
-function scoreRange(min: number, max: number): string {
-  if (max === Infinity) return `${min} and above`;
-  if (min === 0) return `Below ${max + 1}`;
-  return `${min}–${max}`;
 }
 
 export default function MeaningPage() {
@@ -225,21 +219,26 @@ export default function MeaningPage() {
       <Section title="The total score" id="total-score">
         <p>
           Adding all twelve numbers gives the total score, a reading of the
-          cycle as a whole. Because of the way the three rows line up, every
-          cycle totals 52, 64 or 76, one in each of these bands.
+          cycle as a whole. Every cycle totals exactly 52, 64 or 76, never
+          anything in between. Before each year drops its full twelves, the
+          twelve columns always add up to 184, and a whole cycle always drops
+          9, 10 or 11 twelves, which leaves 76, 64 or 52.
         </p>
         <dl className="space-y-3">
-          {TOTAL_TIERS.map((tier) => (
-            <div key={tier.tier}>
-              <dt className="text-ink">
-                <span className="font-medium text-gold-deep tabular-nums">
-                  {scoreRange(tier.min, tier.max)}
-                </span>{" "}
-                · {tier.label}
-              </dt>
-              <dd className="text-sm">{tier.description}</dd>
-            </div>
-          ))}
+          {TOTAL_SCALE.map((stop) => {
+            const reading = interpretTotal(stop.total);
+            return (
+              <div key={stop.total}>
+                <dt className="text-ink">
+                  <span className="font-medium text-gold-deep tabular-nums">{stop.total}</span> ·{" "}
+                  {reading.label}
+                </dt>
+                <dd className="text-sm">
+                  {reading.description} {stop.share} cycles total {stop.total}.
+                </dd>
+              </div>
+            );
+          })}
         </dl>
       </Section>
 
