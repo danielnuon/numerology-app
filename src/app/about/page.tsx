@@ -20,11 +20,11 @@ export default function AboutPage() {
 
       <Section title="The tradition">
         <p>
-          Across Cambodia, people have long turned to a <em>krou</em> (a
-          fortune teller) or an <em>achar</em> (a lay ceremony leader) to
-          read the years: to choose a wedding date, to know when to wait and
-          when to begin. One of their tools is numerology, prized because its
-          working is plain to see.
+          Across Cambodia, people have long turned to a <em>kru teay</em>{" "}
+          (<span lang="km">គ្រូទាយ</span>, a fortune teller) or an{" "}
+          <em>achar</em> (a lay ceremony leader) to read the years: to choose
+          a wedding date, to know when to wait and when to begin. One of their
+          tools is numerology, prized because its working is plain to see.
         </p>
         <p>
           Much of this knowledge was lost in the{" "}

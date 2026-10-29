@@ -62,7 +62,7 @@ The day planet never changes the number or the tier, which stay as the method gi
 | 11 | Karma | Labha: gains | No |
 | 12 | Protection | Phayaya: loss, sickness | Opposite |
 
-The labels date from the first version of `system-overview.md` (March 2026), and the repo doesn't say where they came from. They may come from a Khmer source not yet found, or be a later relabeling. **A Khmer numerology practitioner (*kru*) or a written chart would settle this**, so the readings are written for the current labels.
+The labels date from the first version of `system-overview.md` (March 2026), and the repo doesn't say where they came from. They may come from a Khmer source not yet found, or be a later relabeling. **A Khmer numerology practitioner (*kru teay*, a fortune teller) or a written chart would settle this**, so the readings are written for the current labels.
 
 If the columns move to the traditional houses, the readings for the hard houses (Ari, Marana, Phayaya) have to run the other way: a high number there reads as weathering rivals, loss or illness well, not as more of them. Every current label names something people hope goes well, so for now a higher tier always reads better.
 
@@ -118,7 +118,7 @@ Beside the year readings, the birth day panel reads the weekday on its own. Its 
 
 ## Open questions
 
-These need a Khmer numerology practitioner (*kru*) or a written source to settle.
+These need a Khmer numerology practitioner (*kru teay*, a fortune teller) or a written source to settle.
 
 1. Where did the twelve life-area labels come from, and does a Khmer chart name the columns differently?
 2. Is "higher number, better year" how Khmer numerology reads a mod-12 value? The outside sources read numbers as planets, not as a scale.
