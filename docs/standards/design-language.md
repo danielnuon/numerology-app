@@ -41,6 +41,18 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Weak | 1–3 | `tier-weak` | `#D98A62` ember, also used for form errors | ◔ |
 | Reset | 0 | `tier-zero` | `#0E0B11` an unlit niche | ⊙ |
 
+**Weekday colors.** The cloth traditionally worn on each day, used only as a small swatch beside the color's name in the birth day panel. Never for text or surfaces.
+
+| Token | Value | Day |
+|-------|-------|-----|
+| `day-sunday` | `#C4553F` | Red |
+| `day-monday` | `#DB8F3C` | Orange |
+| `day-tuesday` | `#9C6DC2` | Purple |
+| `day-wednesday` | `#A8C66C` | Light green |
+| `day-thursday` | `#3F8B56` | Dark green |
+| `day-friday` | `#5182C6` | Blue |
+| `day-saturday` | `#6B4B88` | Dark purple |
+
 **Rules**
 
 - Meaningful text uses `ink`, `ink-light` or `gold-deep`. `ink-faint` and `gold` are never used for text a reader needs.

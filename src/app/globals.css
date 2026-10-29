@@ -24,6 +24,17 @@
   --color-tier-weak: #D98A62;
   --color-tier-zero: #0E0B11; /* an unlit niche, darker than the page */
 
+  /* Weekday colors: the cloth traditionally worn on each day, shown only as
+   * a small swatch beside the color's name (BIRTH_DAYS in birth-day-data.ts).
+   * Never used for text. Toned to sit in the lantern light. */
+  --color-day-sunday: #C4553F;
+  --color-day-monday: #DB8F3C;
+  --color-day-tuesday: #9C6DC2;
+  --color-day-wednesday: #A8C66C;
+  --color-day-thursday: #3F8B56;
+  --color-day-friday: #5182C6;
+  --color-day-saturday: #6B4B88;
+
 /* === Typography === */
   --font-serif: var(--font-marcellus), var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
   --font-sans: var(--font-hanken), var(--font-noto-serif-khmer), "Helvetica Neue", Arial, sans-serif;
