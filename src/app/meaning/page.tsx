@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { InfoPage, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { TOTAL_TIERS, YEAR_TIERS } from "@/lib/numerology/interpretation-data";
+import type { Weekday } from "@/lib/numerology/calculate";
+import { BIRTH_DAYS } from "@/lib/numerology/birth-day-data";
 import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
+import { ZODIAC_ANIMALS } from "@/lib/numerology/zodiac";
+import { ZODIAC_READINGS } from "@/lib/numerology/zodiac-data";
 import { LIFE_AREA_DESCRIPTIONS } from "@/lib/numerology/life-area-data";
 import { LIFE_AREA_MAP } from "@/lib/numerology/year-lookup";
 import { MEANING_DESCRIPTION, MEANING_TITLE, SITE_NAME } from "@/lib/site-copy";
@@ -14,6 +18,11 @@ export const metadata: Metadata = {
   openGraph: { title: MEANING_TITLE, description: MEANING_DESCRIPTION, url: "/meaning", siteName: SITE_NAME },
   twitter: { title: MEANING_TITLE, description: MEANING_DESCRIPTION },
 };
+
+/** The seven weekdays, ordered by their planet's strength in the Khmer count, strongest first. */
+const WEEKDAYS = ([1, 2, 3, 4, 5, 6, 7] as Weekday[]).sort(
+  (a, b) => DAY_PLANETS[b].strength - DAY_PLANETS[a].strength,
+);
 
 /** The numbers a tier covers, e.g. [1, 2, 3]. */
 function numbersIn(min: number, max: number): number[] {
@@ -42,8 +51,9 @@ export default function MeaningPage() {
   return (
     <InfoPage title="What the numbers mean">
       <p className="mt-4 max-w-[480px] text-center text-ink-light leading-relaxed">
-        Each year of your cycle has a number from 0 to 11 and a life area. Here
-        is how the tradition reads them.
+        Each year of your cycle has a number from 0 to 11 and a life area,
+        and your birth day and zodiac animal each have a reading of their own.
+        Here is how they are read, and where each reading comes from.
       </p>
 
       <SectionDivider compact />
@@ -121,9 +131,11 @@ export default function MeaningPage() {
 
       <Section title="Your birth day" id="birth-day">
         <p>
-          Each weekday has its planet. In the Khmer telling, each day&apos;s
-          deity was made from a number of beings, from 6 for the Sun to 21 for
-          Venus, and that number is the planet&apos;s strength.
+          Each weekday has its planet, and in Khmer the days are named for
+          them: Thursday is <span lang="km">ថ្ងៃព្រហស្បតិ៍</span>, Jupiter&apos;s
+          day. In the Khmer telling, each day&apos;s deity was made from a
+          number of beings, from 6 for the Sun to 21 for Venus, and that
+          number is the planet&apos;s strength.
         </p>
         <p>
           Your birth day&apos;s planet stands over the year you were born, the
@@ -133,17 +145,78 @@ export default function MeaningPage() {
           no day planet. The planet adds to the reading but never changes the
           number.
         </p>
-        <dl className="space-y-2">
-          {[...Object.values(DAY_PLANETS)]
-            .sort((a, b) => b.strength - a.strength)
-            .map((p) => (
+        <p>
+          The same Khmer account says what those born on some of the days are
+          like. It gives nothing for Friday or Saturday, so Solini doesn&apos;t
+          either. Beside it, the reading shows the color Cambodians
+          traditionally wear on that weekday. The colors are a custom for
+          dressing day by day, not a rule about birth, so reading your birth
+          day&apos;s color as your own is Solini&apos;s choice.
+        </p>
+        <dl className="space-y-4">
+          {WEEKDAYS.map((weekday) => {
+            const p = DAY_PLANETS[weekday];
+            const day = BIRTH_DAYS[weekday];
+            return (
               <div key={p.day} className="flex gap-3">
-                <dt className="w-8 shrink-0 text-right font-display text-gold-deep tabular-nums">{p.strength}</dt>
+                <dt className="w-8 shrink-0 text-right font-display text-gold-deep tabular-nums">
+                  <span className="sr-only">Strength </span>
+                  {p.strength}
+                </dt>
                 <dd>
-                  <span className="text-ink">{p.day}</span>, {p.planet}
+                  <span className="text-ink">{p.day}</span>, {p.planet} ·{" "}
+                  <span lang="km">{day.khmer}</span>
+                  <span className="mt-1 block text-sm">{day.character}</span>
+                  <span className="mt-1 block text-sm">
+                    Worn on this day: {day.color}, for {day.colorMeaning}.
+                  </span>
                 </dd>
               </div>
-            ))}
+            );
+          })}
+        </dl>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="Your zodiac animal" id="zodiac-animal">
+        <p>
+          Your animal is the one that rules the year you were born, counted
+          from Khmer New Year in mid-April unless you choose Chinese New Year.
+          It sets one row of your cycle, so it shapes every number.
+        </p>
+        <p>
+          In Cambodia the animal is read mostly in two ways. Each Khmer New
+          Year, the almanac from the Ministry of Cults and Religion gives every
+          animal a forecast for the year ahead. And older Khmer manuscripts
+          match the animals of a couple before a marriage, though the
+          manuscripts disagree with each other. Those texts read character from
+          the animal and the birth month together, not the animal alone, and
+          their full tables aren&apos;t published in a form Solini can use.
+        </p>
+        <p>
+          So the traits Solini shows for each animal are the popular reading,
+          the same one Chinese astrology gives and the one Khmer horoscope
+          columns repeat. We found no Khmer text behind them. Take them as a
+          familiar picture, not as Khmer tradition.
+        </p>
+        <dl className="space-y-3">
+          {ZODIAC_ANIMALS.map((animal) => {
+            const z = ZODIAC_READINGS[animal];
+            return (
+              <div key={animal} className="flex gap-3">
+                <dt className="w-24 shrink-0 text-ink">
+                  {animal}
+                  <span className="block text-sm text-gold-deep">
+                    <span lang="km">{z.khmer}</span> · {z.romanized}
+                  </span>
+                </dt>
+                <dd className="text-sm">
+                  Read as {z.traits}
+                </dd>
+              </div>
+            );
+          })}
         </dl>
       </Section>
 

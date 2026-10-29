@@ -43,6 +43,7 @@ import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
 import { ThisYearCard } from "@/components/this-year-card";
+import { BirthReading } from "@/components/birth-reading";
 import {
   ReadingViewTabs,
   READING_VIEW_PANEL_IDS,
@@ -515,6 +516,7 @@ export function HomeClient({ searchParams }: Props) {
                     weekday={result.birthData.weekday}
                     isShared={isShared}
                   />
+                  <BirthReading weekday={result.birthData.weekday} animal={result.birthData.zodiacAnimal} />
                 </div>
 
                 <div

@@ -199,6 +199,15 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Guidance text** in italic body text with a faint gold rule at its left edge — like an annotation in the margin of a manuscript.
 
+### Birth Day and Animal Panels
+
+Under this year's reading, in the same column, two lit panels read the person rather than a year (`BirthReading`). They use `ThisYearCard`'s surface (a `border` hairline over a faint `gold-deep` wash) and stack at every width, so on desktop they sit under this year's card beside the wheel.
+
+- **Birth day.** A small uppercase label, "Born on a Thursday" in display type, then the Khmer day name in Khmer script with its romanization in `gold-deep`. One or two sentences of character from the Khmer account, then the planet with its strength out of 21 and the day's traditional color as a 12px swatch beside its name. The swatch is decorative (`aria-hidden`); the color's name carries the meaning. Swatches use the `day-*` tokens.
+- **Zodiac animal.** "Year of the Ox", the Khmer year name (ឆ្នាំឆ្លូវ · Chhnam Chhlov) and the animal's engraved icon. The traits follow a "Popular reading:" label, with a line saying they are shared with Chinese astrology, not drawn from a Khmer text.
+
+Each panel ends with a gold text link to its section of the meaning page, where what is documented, what is popular and what is Solini's choice is explained.
+
 ### Total Score Card
 
 Below the wheel, the total score sits in a quiet card: the number in `gold-deep` display type, its band ("Balanced / moderate cycle") and one line of description. The whole card is a button (`aria-expanded`): a chevron and "See the scale" show it opens, the border turns `gold` on hover, and the card presses to 0.97.
