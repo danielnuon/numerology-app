@@ -67,7 +67,7 @@ export function NumberRow({
             className={[
               "flex h-8 items-center justify-center rounded-md border text-xs tabular-nums sm:h-10 sm:text-sm",
               highlight
-                ? "border-gold-deep text-gold-deep font-display text-sm sm:text-base"
+                ? "border-gold-deep text-gold-deep font-medium text-sm sm:text-base"
                 : "border-border text-ink",
             ].join(" ")}
           >
