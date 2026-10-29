@@ -97,6 +97,23 @@ describe("HomeClient: the form blooms into the reading", () => {
     });
     expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
   });
+
+  it("opens a shared comparison on both cycles, without saving the partner", () => {
+    render(
+      <HomeClient
+        searchParams={{ day: "24", month: "7", year: "1997", pday: "15", pmonth: "3", pyear: "2000" }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { name: "Your cycles together" })).toBeInTheDocument();
+    expect(screen.getByText("March 15, 2000")).toBeInTheDocument();
+    expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
+  });
+
+  it("ignores partner params without a shared reading", () => {
+    render(<HomeClient searchParams={{ pday: "15", pmonth: "3", pyear: "2000" }} />);
+    expect(screen.queryByRole("heading", { name: "Your cycles together" })).not.toBeInTheDocument();
+  });
 });
 
 describe("HomeClient: a calm first visit, this year first", () => {

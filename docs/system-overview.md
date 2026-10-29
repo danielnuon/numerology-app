@@ -201,6 +201,10 @@ Each person's total score also influences the relationship:
 | One ≥ 68, other < 60 | | Mixed stability |
 | Both < 60 | | Challenging |
 
+The table leaves out one total from 60 to 67 with the other under 60. Solini reads that as **Mixed stability** too, since one person is on steady ground and the other isn't (`assessStability()` in `src/lib/numerology/compatibility.ts`). This is an open question for the family to confirm.
+
+Solini compares a pair over the 12 calendar years from the visitor's current cycle year. A person's number for a calendar year is the one their cycle gives that year, which starts on their birthday in it (see `getYearNumber()`).
+
 Partner influence is strongest in shared living, finances, and emotional state.
 
 ## Cycle Patterns

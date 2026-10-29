@@ -40,6 +40,17 @@ export function sharedReadingDescription(
   return `Total score ${totalScore}: ${totalLabel}. See this 12-year cycle, then find your own in seconds.`;
 }
 
+/** Title for a shared comparison's link preview. */
+export const SHARED_COMPARISON_TITLE = "Two Khmer numerology cycles, compared — Solini";
+
+/**
+ * Link-preview description for a shared comparison. Leaves out the birth
+ * dates, like a shared reading's description.
+ */
+export function sharedComparisonDescription(assessmentLabel: string): string {
+  return `${assessmentLabel}: see how these two 12-year cycles meet, year by year, then compare your own.`;
+}
+
 /** About page title. */
 export const ABOUT_TITLE = "About Solini — the Khmer numerology tradition behind it";
 

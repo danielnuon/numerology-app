@@ -4,6 +4,8 @@ import {
   buildSharePath,
   encodeShareSegment,
   decodeShareSegment,
+  decodeComparisonSegment,
+  buildComparisonSharePath,
 } from "../url-encoding";
 
 describe("encodeBirthDate", () => {
@@ -192,5 +194,47 @@ describe("share segments with a New Year rule", () => {
     expect(decodeShareSegment("1997-02-10-xyz")).toBeNull();
     expect(decodeShareSegment("1997-02-30-cny")).toBeNull();
     expect(decodeShareSegment("-cny")).toBeNull();
+  });
+});
+
+describe("comparison share segments", () => {
+  it("decodes two dates joined by +", () => {
+    expect(decodeComparisonSegment("1997-07-24+2000-03-15")).toEqual({
+      first: { year: 1997, month: 7, day: 24, rule: "khmer" },
+      second: { year: 2000, month: 3, day: 15, rule: "khmer" },
+    });
+  });
+
+  it("keeps each person's New Year rule", () => {
+    const decoded = decodeComparisonSegment("1997-02-10-cny+2000-03-15");
+    expect(decoded?.first.rule).toBe("chinese");
+    expect(decoded?.second.rule).toBe("khmer");
+  });
+
+  it("accepts a percent-encoded +", () => {
+    expect(decodeComparisonSegment("1997-07-24%2B2000-03-15")?.second.year).toBe(2000);
+  });
+
+  it("returns null for a single date, so it stays a one-person link", () => {
+    expect(decodeComparisonSegment("1997-07-24")).toBeNull();
+  });
+
+  it("returns null when either half is invalid or there are three dates", () => {
+    expect(decodeComparisonSegment("invalid+also-invalid")).toBeNull();
+    expect(decodeComparisonSegment("1997-07-24+2000-02-30")).toBeNull();
+    expect(decodeComparisonSegment("1997-07-24+2000-03-15+2001-01-01")).toBeNull();
+  });
+
+  it("builds a path that decodes back to the same readings", () => {
+    const first = { year: 1997, month: 7, day: 24, rule: "khmer" as const };
+    const second = { year: 2000, month: 3, day: 5, rule: "chinese" as const };
+    const path = buildComparisonSharePath(first, second);
+    expect(path).toBe("/r/1997-07-24+2000-03-05-cny");
+    expect(decodeComparisonSegment(path.slice(3))).toEqual({ first, second });
+  });
+
+  it("leaves single-person decoding unchanged", () => {
+    expect(decodeShareSegment("1997-07-24+2000-03-15")).toBeNull();
+    expect(decodeShareSegment("1997-07-24")).not.toBeNull();
   });
 });
