@@ -102,7 +102,7 @@ export default function AboutPage() {
         <ul className="space-y-1">
           {YEAR_TIERS.map((tier) => (
             <li key={tier.tier} className="text-ink">
-              <span className="font-display text-gold-deep tabular-nums">
+              <span className="font-medium text-gold-deep tabular-nums">
                 {tier.min === tier.max ? tier.min : `${tier.min}–${tier.max}`}
               </span>{" "}
               · {tier.label}

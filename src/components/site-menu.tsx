@@ -80,7 +80,7 @@ export function SiteMenu() {
           >
             {SITE_PAGE_GROUPS.map((group) => (
               <div key={group.title} className="py-1">
-                <p className="px-3 pt-2 pb-1 text-xs uppercase tracking-[0.14em] text-ink-light">{group.title}</p>
+                <p className="px-3 pt-2 pb-1 text-sm uppercase tracking-[0.14em] text-ink-light">{group.title}</p>
                 <ul>
                   {group.pages.map((page) => {
                     const isCurrent = page.href === pathname;

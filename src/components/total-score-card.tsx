@@ -41,7 +41,7 @@ export function TotalScoreCard({ totalScore }: TotalScoreCardProps) {
         className="flex w-full flex-col gap-2 rounded-xl px-5 py-4 text-left sm:flex-row sm:items-center sm:gap-4"
       >
         <span className="flex shrink-0 items-baseline gap-2">
-          <span className="text-ink-light text-sm uppercase tracking-widest whitespace-nowrap">
+          <span className="text-ink-light text-sm uppercase tracking-[0.14em] whitespace-nowrap">
             Total score
           </span>
           <span className="font-display text-3xl text-gold-deep title-glow tabular-nums">{totalScore}</span>

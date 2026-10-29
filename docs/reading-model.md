@@ -1,8 +1,8 @@
 # How a year is read
 
-This explains how Solini turns a year's number, life area and day planet into a reading, what Khmer numerology sources support, and what is still open. Read it before changing the readings in `src/lib/numerology/life-area-data.ts`, the day planets in `day-planet-data.ts` or the tiers in `interpretation-data.ts`.
+This explains how Solini turns a year's number, life area and day planet into a reading, what Khmer numerology sources support, and what is still open. Read it before changing the readings in `src/lib/numerology/life-area-data.ts`, the day planets in `day-planet-data.ts`, the birth day and animal readings in `birth-day-data.ts` and `zodiac-data.ts`, or the tiers in `interpretation-data.ts`.
 
-Labels used below: **Documented** means a cited source says it. **Inference** means it's our reasoning from sources, not stated by them. **System rule** means it comes from the method as specified in `docs/system-overview.md`, with no outside source found yet.
+Labels used below: **Documented** means a cited source says it. **Popular** means horoscope columns or general sites say it, with no source of their own. **Inference** means it's our reasoning from sources, not stated by them. **System rule** means it comes from the method as specified in `docs/system-overview.md`, with no outside source found yet.
 
 ## The rule
 
@@ -94,6 +94,28 @@ In Khmer numerology as Solini follows it, birth weekday matters to luck: Tuesday
 
 **Character.** People born on Tuesday are also said to be stubborn. The RFA feature says people born on Tuesday are impatient and quick to fight [13], and popular Khmer horoscope columns call Tuesday births "a little stubborn" [14]. Those columns cite no tradition and disagree with each other elsewhere (one gives stubbornness to Saturday instead [15]), so they count only as support for the RFA account.
 
+### Reading the birth day itself
+
+Beside the year readings, the birth day panel reads the weekday on its own. Its parts:
+
+- **Khmer day name (documented).** The Khmer days are named for their planets: ថ្ងៃអាទិត្យ (Atit, Sun), ថ្ងៃច័ន្ទ (Chan, Moon), ថ្ងៃអង្គារ (Angkear, Mars), ថ្ងៃពុធ (Puth, Mercury), ថ្ងៃព្រហស្បតិ៍ (Prohoah, Jupiter), ថ្ងៃសុក្រ (Sok, Venus), ថ្ងៃសៅរ៍ (Sau, Saturn) [13].
+- **Character (documented).** From the RFA feature [13]: Sunday births are often fine-looking, like the sages the Sun was made from; Monday is a soft, gentle day and those born on it fair to look at; Tuesday is not a very good day, and those born on it are short on patience, quick to fight, warriors; Wednesday births do nothing in haste; Thursday is the royal teacher's day, when children were sent to begin their studies, and those born on it are gifted at teaching, sacred arts (*mon akum*) and medicine. The feature gives no character for Friday or Saturday births, and the panel says so rather than filling the gap.
+- **Color (popular, and Solini's choice to apply it).** Cambodians traditionally wear a set color each weekday: Sunday red (courage), Monday orange or yellow (equality), Tuesday purple (honesty), Wednesday light green (justice), Thursday dark green (hope), Friday blue (forgiveness), Saturday dark purple or brown (sadness) [12][16]. A Khmer language course confirms the custom but not the list [17]. These are colors for dressing day by day, not colors of a birth day, so showing the birth day's color as the visitor's own is our choice, and the meaning page says so.
+
+**Not used: a manuscript's weekday lines.** Porée-Maspero quotes a Khmer manuscript (her ms. B, the *Prohmoçàt*) saying that those born on Sunday, Monday or Tuesday "will amuse themselves" and cannot keep the goods they seek, while those born on Wednesday, Thursday or Friday "will have goods" [18, p. 318]. It agrees in direction with the planet strengths, but the passage sits in the manuscript's section on the Rat year, and the author says the pattern is repeated for each animal with different content. It isn't a general weekday reading, so Solini doesn't present it as one.
+
+## The zodiac animal
+
+**Khmer names (documented).** ជូត Chhut (Rat), ឆ្លូវ Chhlov (Ox), ខាល Khal (Tiger), ថោះ Thos (Rabbit), រោង Rong (Dragon, often drawn as a naga), ម្សាញ់ Msanh (Snake), មមី Momee (Horse), មមែ Momae (Goat), វក Vok (Monkey), រកា Roka (Rooster), ច Cho (Dog), កុរ Kor (Pig). The year is ឆ្នាំ (chhnam), so the Ox year is ឆ្នាំឆ្លូវ. The same RFA feature notes that the cycle's origin is unsettled: some trace it to China, others to India or Brahmanism [19]. Romanizations vary; Solini uses common ones.
+
+**How Cambodians use the animal (documented).** Three ways, and none is a fixed personality profile:
+
+- *The yearly forecast.* Each Khmer New Year, the Ministry of Cults and Religion's *Moha Sangkran* almanac gives a forecast for every birth animal, by gender [20]. This is the most common living use. Solini doesn't reproduce it: the text is the ministry's and changes every year.
+- *Marriage matching.* Khmer manuscripts sort the animals into three races (deities, humans and *yak*) and rate each pairing, but the tables disagree with each other and the author suspects copying errors [18, pp. 315, 321, 327]. Solini's comparison view uses its own rules (`docs/system-overview.md`), not these tables.
+- *Character with the birth month.* Porée-Maspero: the animal's variety, set by the part of the year one is born in, "determines character and destiny". For example, a Rat born in some months is intelligent and supple, and in others badly placed [18, pp. 314, 319]. The full tables for all twelve animals aren't available in a form we could use.
+
+**Traits (popular).** Khmer horoscope sites give each animal a set of traits (Rat quick and clever, Ox patient and stubborn, Tiger brave) without citing a source, and they match the Chinese zodiac's stock traits [21]. **Decision:** the animal panel shows these traits because they are what visitors expect from a zodiac reading, labeled "Popular reading" with a line saying they are shared with Chinese astrology, not drawn from a Khmer text. The meaning page explains the Khmer uses above. If a Khmer source gives the animals' character, it replaces these traits.
+
 ## Open questions
 
 These need a Khmer numerology practitioner (*kru*) or a written source to settle.
@@ -102,7 +124,8 @@ These need a Khmer numerology practitioner (*kru*) or a written source to settle
 2. Is "higher number, better year" how Khmer numerology reads a mod-12 value? The outside sources read numbers as planets, not as a scale.
 3. Should the chart use the lunar birth month rather than the Gregorian one? Solini approximates the lunar month with the Gregorian month (`months.ts`), so a birth in late November or early December can land a month off.
 4. Do the five columns with no weekday value (8 to 12) get read any differently?
-5. Is Friday the luckiest birth day and Sunday the least lucky, as the Khmer planet strengths predict? See "Birth weekday" above.
+5. Does Khmer numerology read character from the animal, and if so, from the animal alone or with the birth month, as the manuscripts do?
+6. Is Friday the luckiest birth day and Sunday the least lucky, as the Khmer planet strengths predict? See "Birth weekday" above.
 
 ## Sources
 
@@ -122,4 +145,11 @@ These need a Khmer numerology practitioner (*kru*) or a written source to settle
 14. San Sarin, "តើអ្នកកើតថ្ងៃណាចូលមើលលក្ខណៈពិតរបស់អ្នកត្រឹមត្រូវឬទេ ?" (which day were you born?), Koh Santepheap Daily, March 18, 2020. https://kohsantepheapdaily.com.kh/article/1050964.html
 15. San Sarin, "ចរិតនិស្ស័យនិងជោគវាសនានៃអ្នកកើតថ្ងៃទាំង៧" (character and fate of those born on the seven days), Koh Santepheap Daily, August 28, 2018. https://kohsantepheapdaily.com.kh/article/694314.html
 
-Sources 3, 4, 6, 7 and 8 are practitioners, not scholars. They're cited for how the method is done in practice, and the main claims rest on sources 1, 2, 5 and 13. Sources 14 and 15 are popular horoscope columns, cited only to show what they say. We found no published Khmer-language description of the twelve-column variant Solini uses.
+16. "The 7 Traditional Colors of Clothes and Uniforms in Cambodia", Phoenix Voyages. https://phoenixvoyages.com/?p=1136
+17. "Do You Know?", *Intermediate Khmer*, Michigan State University Open Books. https://openbooks.lib.msu.edu/intkhmer/chapter/7-2-do-you-know/
+18. Éveline Porée-Maspero, "Le cycle des douze animaux dans la vie des Cambodgiens", *Bulletin de l'École française d'Extrême-Orient* 50(2), 1962, pp. 311–365. https://angkordatabase.asia/publications/le-cycle-des-douze-animaux-dans-la-vie-des-cambodgiens-the-12-animals-cycle-and-cambodian-daily-life
+19. Kaev Pech Metta, "Story of the 12 animals in the Khmer year" (Khmer-language article), Radio Free Asia Khmer, April 13, 2011. https://www.rfa.org/khmer/event/story_of_12_animals_in_khmer_year-04132011102651.html
+20. Khuon Narim, "At Their Peril, Some Blasé About Year of Monkey", *The Cambodia Daily*, April 7, 2016. https://english.cambodiadaily.com/?p=110944
+21. "Khmer Zodiac: A Thousand-Year Tradition in Today's World", Astroreka (Metfone). https://astroreka.metfone.com.kh/language/en/bai-viet/khmer-zodiac-a-thousand-year-tradition-in-todays-world-2875.html
+
+Sources 3, 4, 6, 7 and 8 are practitioners, not scholars. They're cited for how the method is done in practice, and the main claims rest on sources 1, 2, 5 and 13. Sources 14, 15 and 21 are popular horoscope columns, and 12 and 16 are general sites, cited only to show what they say. Source 18 was read through quoted passages, not cover to cover. We found no published Khmer-language description of the twelve-column variant Solini uses.

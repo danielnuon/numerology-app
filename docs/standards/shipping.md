@@ -9,7 +9,7 @@ Solini is live at [solini.vercel.app](https://solini.vercel.app). Vercel deploys
 3. **Verify locally** with the checks below.
 4. **Open a PR** using the template. The template is the checklist; fill it in honestly, and say why when an item does not apply.
 5. **CI** runs lint, type check, tests and a production build on every PR. A red check blocks merging.
-6. **Review.** The owner reviews the PR, and UI changes on the Vercel preview, ideally on a real phone.
+6. **Review.** Before asking the owner to review or merge, merge the latest `main` into the branch, confirm GitHub shows no conflicts, and rerun lint, tests and the build. Then the owner reviews the PR, and UI changes on the Vercel preview, ideally on a real phone.
 7. **Merge** when CI is green and the review is done. Watch the production deploy and check the live site.
 
 New features come from the backlog one at a time, and each is finished, merged and live before the next starts.
