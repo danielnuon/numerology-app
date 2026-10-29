@@ -5,7 +5,8 @@
  *
  * Horizontal "thread of fate" timeline that displays years from birth year
  * through activeYear + 30. Shares one selected year with CycleChart, so
- * picking a year here selects its pillar and vice versa.
+ * picking a year here selects its pillar and vice versa. The edges fade only
+ * on a side where more years are scrolled out of view.
  */
 
 import { useRef, useEffect, useCallback, ViewTransition } from "react";
@@ -20,6 +21,20 @@ import {
 
 /** How many years past the active year the timeline extends. */
 export const TIMELINE_YEARS_AHEAD = 30;
+
+/**
+ * Marks which edges of the track have years scrolled out of view, so the CSS
+ * fades only those edges (`.timeline-fade` in globals.css). Written straight
+ * to the DOM because it changes on every scroll frame and nothing in React
+ * reads it.
+ */
+function markScrollableEdges(track: HTMLElement) {
+  // A pixel of slack absorbs subpixel rounding at either end.
+  const hasMoreBefore = track.scrollLeft > 1;
+  const hasMoreAfter = track.scrollLeft + track.clientWidth < track.scrollWidth - 1;
+  track.toggleAttribute("data-more-before", hasMoreBefore);
+  track.toggleAttribute("data-more-after", hasMoreAfter);
+}
 
 export interface YearTimelineProps {
   /** 12-element array of cycle numbers (each 0–11). */
@@ -73,6 +88,9 @@ export function YearTimeline({
       behavior: hasCentered.current && !prefersReducedMotion ? "smooth" : "auto",
     });
     hasCentered.current = true;
+    // scrollTo fires no scroll event when the position doesn't change, as
+    // when the selected year is near the birth year, so mark the edges here too.
+    markScrollableEdges(container);
   }, [selectedYear, birthYear, prefersReducedMotion]);
 
   const selectAndFocus = useCallback(
@@ -119,6 +137,7 @@ export function YearTimeline({
         style={{ scrollbarWidth: "none" }}
         role="listbox"
         aria-label="Select a year"
+        onScroll={(event) => markScrollableEdges(event.currentTarget)}
       >
         {/* Thread of fate connecting line */}
         <div
@@ -161,7 +180,8 @@ export function YearTimeline({
                 onClick={() => onSelectYear(year)}
                 onKeyDown={(e) => handleKeyDown(e, year)}
                 data-tier={interp.tier}
-                className="group relative flex flex-col items-center rounded-lg"
+                // min-w-11 keeps the tap target 44px wide around the 40px orb
+                className="group relative flex min-w-11 flex-col items-center rounded-lg"
               >
                 <span
                   className={[

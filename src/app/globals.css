@@ -491,8 +491,18 @@ body {
 }
 
 /* The timeline fades into the dark at both edges */
+/* Each edge fades only while years are scrolled out of view on that side;
+ * YearTimeline sets data-more-before and data-more-after as the track scrolls. */
 .timeline-fade {
-  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+  --fade-before: #000;
+  --fade-after: #000;
+  mask-image: linear-gradient(to right, var(--fade-before), #000 48px, #000 calc(100% - 48px), var(--fade-after));
+}
+.timeline-fade[data-more-before] {
+  --fade-before: transparent;
+}
+.timeline-fade[data-more-after] {
+  --fade-after: transparent;
 }
 
 /* === Entrance choreography ===

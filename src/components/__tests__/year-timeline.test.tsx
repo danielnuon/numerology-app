@@ -218,9 +218,55 @@ describe("YearTimeline", () => {
     expect(onSelectYear).toHaveBeenCalledWith(endYear);
   });
 
-  it("fades the scrolling years out at both edges", () => {
+  it("fades the scrolling years out at the track's edges", () => {
     render(<YearTimeline {...defaultProps} />);
     expect(screen.getByRole("listbox")).toHaveClass("timeline-fade");
+  });
+
+  /** Gives the track a scroll geometry, which jsdom doesn't lay out. */
+  function scrollTrackTo(track: HTMLElement, scrollLeft: number) {
+    Object.defineProperty(track, "clientWidth", { configurable: true, value: 300 });
+    Object.defineProperty(track, "scrollWidth", { configurable: true, value: 1000 });
+    track.scrollLeft = scrollLeft;
+    fireEvent.scroll(track);
+  }
+
+  it("fades only the end edge when scrolled to the birth year", () => {
+    render(<YearTimeline {...defaultProps} />);
+    const track = screen.getByRole("listbox");
+    scrollTrackTo(track, 0);
+    expect(track).not.toHaveAttribute("data-more-before");
+    expect(track).toHaveAttribute("data-more-after");
+  });
+
+  it("fades both edges when years are hidden on both sides", () => {
+    render(<YearTimeline {...defaultProps} />);
+    const track = screen.getByRole("listbox");
+    scrollTrackTo(track, 350);
+    expect(track).toHaveAttribute("data-more-before");
+    expect(track).toHaveAttribute("data-more-after");
+  });
+
+  it("fades only the start edge when scrolled to the last year", () => {
+    render(<YearTimeline {...defaultProps} />);
+    const track = screen.getByRole("listbox");
+    scrollTrackTo(track, 700);
+    expect(track).toHaveAttribute("data-more-before");
+    expect(track).not.toHaveAttribute("data-more-after");
+  });
+
+  it("marks the start of each new 12-year cycle with a tick", () => {
+    const { container } = render(<YearTimeline {...defaultProps} />);
+    // Cycles restart in 2009, 2021, 2033 and 2045 for a 1997 birth (through 2056).
+    const ticks = container.querySelectorAll("[role=listbox] > div > div.w-px");
+    expect(ticks).toHaveLength(4);
+  });
+
+  it("keeps every year's tap target at least 44px wide", () => {
+    render(<YearTimeline {...defaultProps} />);
+    for (const option of screen.getAllByRole("option")) {
+      expect(option).toHaveClass("min-w-11");
+    }
   });
 
   it("renders year labels below dots", () => {

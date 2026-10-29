@@ -8,50 +8,9 @@ The full story-by-story history up to October 2026 is in `docs/dev/product-roadm
 
 ## Now
 
-Viewport fixes and the design language pass are in progress in their own branches. Add stories here as they firm up.
+Stories from **Next** are being built in order, one PR at a time.
 
 ## Next
-
-### Verify Year Timeline Explorer
-
-The timeline shipped in `dcb6aac` and `7ce1379` (`src/components/year-timeline.tsx`), but none of its ACs were checked off. Also add aria-labels to the year dots (left over from the Accessibility story). Go through each AC below, check off what the code already does, and file what's missing as fixes.
-
-**Story:** As a visitor who has received their cycle reading, I want to scrub through a timeline of years and see my cycle number for each year, so that I can explore specific past or future years without counting manually.
-
-**Priority:** Medium
-**Effort:** M
-
-**Acceptance Criteria:**
-- [ ] A horizontal "thread of fate" timeline displays years from birth year through `currentYear + 30`
-- [ ] The timeline is horizontally scrollable with a viewport showing at least 15 years at 1280px width
-- [ ] Each year is represented by a dot on a connecting line, using the same 5-tier symbols as the cycle chart: ● (very strong, 10–11), ◕ (strong, 7–9), ◑ (moderate, 4–6), ◔ (weak, 1–3), ⊙ (zero, 0)
-- [ ] The current year's dot has a gold border or ring — verify during verification that the gold indicator (#B8860B on the timeline background) meets WCAG SC 1.4.11 Non-text Contrast (3:1 minimum) using computed contrast ratio tools; if it fails, use `ring-ink-light` (#7A6F5F) instead, consistent with the Cycle 7 focus-ring fix. The gold indicator must not be the sole differentiator — the current year's label is also bold
-- [ ] Selecting a year dot updates the cycle chart's selected pillar and the detail panel (shared state via parent component)
-- [ ] Selecting a pillar in the cycle chart updates the timeline's selected year to the most recent calendar year for that pillar position (bidirectional sync)
-- [ ] When the timeline drives the selection, the detail panel shows the specific selected calendar year's data (year, cycle number, tier, domain, guidance) — not the pillar's grouped "nearest years" list. When the cycle chart drives the selection, the detail panel shows the pillar's standard grouped-year display. The detail panel adapts its content based on which component initiated the selection.
-- [ ] The current year is pre-selected and centered on load
-- [ ] The 12-year repeat pattern is visually indicated with subtle vertical tick marks at cycle boundaries
-- [ ] Zero years are visually distinct on the timeline (⊙ open marker, same as cycle chart)
-- [ ] Timeline is keyboard navigable (arrow keys move selection left/right through years)
-- [ ] Gradient fade indicators appear on left/right edges when more content is scrollable
-- [ ] Before cycle data is available, the timeline is not rendered (no empty skeleton)
-
-**Tasks:**
-- [ ] Build horizontal timeline component with year labels and connecting line
-- [ ] Implement 5-tier dot symbols matching the cycle chart (●, ◕, ◑, ◔, ⊙) — do NOT use a different symbol set
-- [ ] Implement gold-highlighted dot for current year with bold label; include a fallback color (`ring-ink-light`) if gold fails WCAG SC 1.4.11 contrast check during verification
-- [ ] Refactor CycleChart to accept an optional `selectedYear` prop from the parent component and reflect it as the active pillar; verify existing keyboard-nav tests and aria-label tests still pass after refactor — this is a modification of an existing component, not just new code
-- [ ] Lift selected-year state to `page.tsx` (or shared context) with a `selectionSource` field (`'chart' | 'timeline'`) so the detail panel knows which display mode to use
-- [ ] Implement detail panel dual mode: specific-year display (when timeline drives selection) vs. grouped-year display (when chart drives selection)
-- [ ] Add current-year auto-centering with scroll-snap behavior
-- [ ] Add 12-year cycle boundary tick marks
-- [ ] Add gradient fade overflow indicators on left/right edges
-- [ ] Implement keyboard navigation (arrow keys move selection through years)
-- [ ] Assess timeline DOM size for users born before 1950 (100+ year spans, 100+ dots); if performance profiling shows jank, implement windowed rendering — otherwise document the decision that the DOM count is acceptable
-- [ ] Test at 320px: verify no horizontal overflow of the outer page (timeline scrolls internally), dots remain tappable (44px touch targets), gradient fades visible. Test at 768px: verify at least 10 years visible. Test at 1280px: verify at least 15 years visible per AC.
-- [ ] Test bidirectional sync: selecting year 2024 in timeline highlights the correct pillar in the chart; selecting a pillar in the chart moves the timeline selection to the most recent calendar year for that position
-
-**Notes:** Depends on Numerology Calculation Core, Interpretation Engine, and Design Token Setup. The 5-tier symbol set (●, ◕, ◑, ◔, ⊙) must match the cycle chart — using different symbols for the same tiers would confuse users switching between the two views. The CycleChart refactor (lifting selection state) is the riskiest task — it touches an existing component with passing tests and must not break existing behavior.
 
 ### Update Notification Banner
 
@@ -240,3 +199,4 @@ These need real devices or a public URL and can't be automated here.
 - Roadmap Hygiene: Check Off Completed Stories
 - Lucky Number Year Timing Correction
 - Read each year by life area and number together
+- Year Timeline Explorer
