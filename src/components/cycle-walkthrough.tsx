@@ -4,17 +4,19 @@
  * CycleWalkthrough
  *
  * Works a 12-year cycle out step by step for one birth date: the three
- * starting numbers, the three rows, each column's sum and remainder, and the
- * total. The date comes from the page's query string; without one it is the
+ * starting numbers, the three rows, each column's sum and remainder, the
+ * cycle, and what its total score means (alone and beside a partner's, which
+ * the comparison links to). The date comes from the page's query string; without one it is the
  * visitor's saved birth date, read after hydration, and failing that the
  * worked example from the system spec.
  */
 
 import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { NumberRow, PillLink, Section } from "@/components/ui/page-parts";
+import { MORE_LINK, NumberRow, PillLink, Section, TOTAL_SCORE_SECTION_ID } from "@/components/ui/page-parts";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { computeCycleFromBirthDate, validateBirthDate } from "@/lib/numerology/derive";
+import { STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { interpretTotal } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "@/lib/numerology/zodiac";
@@ -37,7 +39,11 @@ export interface WalkthroughDate {
   rule: NewYearRule;
 }
 
-const MORE_LINK = "text-gold-deep underline underline-offset-4 decoration-gold-deep/40 hover:decoration-gold-deep";
+/**
+ * Every total a cycle can have. The rows always sum to 184 and 9, 10 or 11
+ * columns drop by 12; a derive test checks every date from 1900 to 2030.
+ */
+const POSSIBLE_TOTALS = [52, 64, 76] as const;
 
 const subscribeToNothing = () => () => {};
 
@@ -177,6 +183,46 @@ export function CycleWalkthrough({ date }: Props) {
             What each number means
           </Link>
           .
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="5. The total score" id={TOTAL_SCORE_SECTION_ID}>
+        <p>
+          Add the twelve numbers of the cycle and you have the total score. It can only be 52, 64 or
+          76. Across the twelve columns the three rows always add up to 184, and in every cycle 9, 10 or
+          11 columns reach 12 or more and drop by 12, which leaves 76, 64 or 52.
+        </p>
+        <ul className="glass space-y-2 rounded-2xl p-3 text-sm min-[360px]:p-4 sm:p-6">
+          {POSSIBLE_TOTALS.map((possible) => (
+            <li key={possible} className="flex gap-3">
+              <span className="w-8 shrink-0 font-sans tabular-nums text-ink">{possible}</span>
+              <span className={possible === totalScore ? "text-gold-deep" : "text-ink"}>
+                {interpretTotal(possible).label}
+                {possible === totalScore && " (yours)"}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p>When you compare with a partner, the two totals together give the overall reading:</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Both 76: <span className="text-ink">{STABILITY_TEXT.strong.label}</span>
+          </li>
+          <li>
+            Both 64, or 64 and 76: <span className="text-ink">{STABILITY_TEXT.moderate.label}</span>
+          </li>
+          <li>
+            76 and 52: <span className="text-ink">{STABILITY_TEXT.mixed.label}</span>
+          </li>
+          <li>
+            Both 52: <span className="text-ink">{STABILITY_TEXT.challenging.label}</span>
+          </li>
+        </ul>
+        <p>
+          The family&apos;s rules don&apos;t cover 64 and 52. Solini reads that as mixed too, because one
+          of you is on steady ground and the other isn&apos;t. That part is our choice, not a family rule.
         </p>
       </Section>
 

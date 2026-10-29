@@ -80,7 +80,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - **Zodiac animals** are the custom `ZodiacIcon` set in [`src/components/ui/zodiac-icon.tsx`](../../src/components/ui/zodiac-icon.tsx): engraved line marks on a 32-unit grid, 1.5 stroke, round caps and joins, colored by `currentColor`. They appear around the wheel, in the wheel's center, in the reading, on the form and on share images (through `ZODIAC_ICON_PATHS`). Keep them wherever an animal is named. A new animal mark must follow the same grid and stroke.
 - Icons are decorative by default (`aria-hidden`), because the animal's name is always written beside them. Pass `title` only when an icon stands alone.
 - Selected or "now" animals are `text-gold-deep`; others are `text-ink-light` or `text-gold`.
-- **Tier symbols** (● ◕ ◑ ◔ ⊙) are Unicode, always `aria-hidden="true"`, with the meaning carried by the parent's `aria-label` or visible text.
+- **Tier symbols** (● ◕ ◑ ◔ ⊙) are drawn with `TierIcon` (`components/ui/tier-icon.tsx`), an SVG that is always `aria-hidden="true"`, with the meaning carried by the parent's `aria-label` or visible text. Don't render the Unicode glyphs on the page: each comes from whichever font has it, so they show at different sizes side by side (on iOS, ● is about half the size of ◑). The Satori preview images are the exception, since they can't use the component.
 - Interface glyphs (close, share, arrows) are simple inline SVG strokes that match the zodiac line weight. Do not add an icon library.
 
 ## Interaction
@@ -175,7 +175,7 @@ Every change of state uses one of these. Old content leaves quickly (`--duration
 | Transition | Where | Behavior |
 |------------|-------|----------|
 | Page change | Every route change (`src/app/template.tsx`) | The page being left fades out in 150ms; the new page rises 8px and fades in over 400ms. Named elements inside a page keep their own transitions. |
-| Reveal | Disclosures: "What will I see?", the New Year toggle's "Change" (`<Reveal>` in `components/ui/reveal.tsx`) | The slot's height eases open over 400ms (grid rows 0fr → 1fr), so the page below glides instead of jumping, and the content fades and settles in just after. Closing folds it in 250ms. Closed content stays mounted but inert. The date form's derived zodiac line uses the same slot. |
+| Reveal | Disclosures: "What will I see?", the New Year toggle's "Change", the total score's scale (`<Reveal>` in `components/ui/reveal.tsx`) | The slot's height eases open over 400ms (grid rows 0fr → 1fr), so the page below glides instead of jumping, and the content fades and settles in just after. Closing folds it in 250ms. Closed content stays mounted but inert. The date form's derived zodiac line uses the same slot. |
 | Settle in | Content that appears in place: errors, notices, share messages, a partner's form (`.animate-settle-in`) | Fades in and rises 4px over 250ms. A status message is keyed so each new one settles in. |
 | Selection glide | The wheel, the timeline, the New Year toggle, the reading's "Year / Cycle" switch and the partner comparison's Cycle switch | The ink outline glides to the new choice; the content beneath crossfades (out in 150ms, in over 250ms, class `panel-swap`). |
 | Wheel bloom | The cycle wheel | Tapping the wheel's center, or the selected orb again, grows the full reading out of the center with a shared-element view transition and folds it back the same way. |

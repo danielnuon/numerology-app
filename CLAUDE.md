@@ -77,7 +77,7 @@ The repo copies of `system-overview.md` and `design-spec.md` are the source of t
 
 The full rules are in the standards above. The ones most often missed:
 
-- Transparency is core to the product. When a result rests on Solini's own choice rather than a family rule, say so beside it in plain words so the visitor can judge it (see the principles in `docs/standards/README.md`).
+- Transparency is core to the product. When a result rests on Solini's own choice rather than a family rule, say so in plain words, beside it or in the explanation it links to, so the visitor can judge it (see the principles in `docs/standards/README.md`).
 - Colors come from tokens (`text-ink`, `bg-manuscript`, `text-gold-deep`, `tier-*`). Never hardcode hex; ESLint rejects it.
 - `ink-faint` and `gold` are for decoration and placeholders only. Meaningful text uses `ink`, `ink-light` or `gold-deep`. The focus ring is the global 2px `gold-deep` outline.
 - Pressed controls use `pressable active:scale-[0.97]` or `PRESS` from `@/lib/motion`. Selection is an ink outline that glides with `<ViewTransition>`; gold means "now".
@@ -93,4 +93,5 @@ The full rules are in the standards above. The ones most often missed:
 - Don't run `npm install` just to verify or QA something. It rewrites `package-lock.json` against your local npm version. If the lock file does change, commit it.
 - To see the error boundary's fallback without editing code, set `hasError: true` on the `ErrorBoundary` instance through React fiber traversal in the browser console (snippet in `docs/dev/contributing.md`).
 - Scroll weight moves `.glass` cards and `.sky-glow` with paused Web Animations on `translate` (`LanternSky`). Don't give those elements a CSS `translate` of their own; the held animation overrides it. Writing inline styles there instead costs a full style recalc per frame, which showed up in phone profiling.
+- Unicode tier glyphs (● ◕ ◑ ◔ ⊙) render at different sizes depending on the fallback font, most visibly on iOS. Use `TierIcon` on the page.
 - OG images use Satori. Every `div` with more than one child needs `display: flex`, or the route returns a 500.

@@ -13,7 +13,7 @@ import type { Weekday } from "@/lib/numerology/calculate";
 import { describeYearPlanet, interpretAreaYear } from "@/lib/numerology/interpretation";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
-import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers";
+import { TierIcon } from "@/components/ui/tier-icon";
 
 export interface DetailPanelProps {
   /** Id for the heading, so the surrounding dialog can be labelled by it. */
@@ -62,9 +62,7 @@ export function DetailPanel({
             id={headingId}
             className="flex items-center gap-2 font-display text-lg leading-tight tracking-[0.03em]"
           >
-            <span aria-hidden="true" className={getTierTextClass(interp.tier)}>
-              {getTierSymbol(interp.tier)}
-            </span>
+            <TierIcon tier={interp.tier} className="size-4" />
             {interp.label}
           </h3>
           <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-ink-light">

@@ -199,6 +199,20 @@ A thin gold arc traces the ring from the birth year to this year.
 
 **Guidance text** in italic body text with a faint gold rule at its left edge — like an annotation in the margin of a manuscript.
 
+### Total Score Card
+
+Below the wheel, the total score sits in a quiet card: the number in `gold-deep` display type, its band ("Balanced / moderate cycle") and one line of description. The whole card is a button (`aria-expanded`): a chevron and "See the scale" show it opens, the border turns `gold` on hover, and the card presses to 0.97.
+
+Every cycle totals exactly 52, 64 or 76, so the scale is three stops, not a range. Opened, the card settles in a row of three lantern stops on a hairline rail:
+
+| Stop | Band | How common |
+|------|------|------------|
+| 52 | Weak | About 1 in 7 |
+| 64 | Balanced | About 1 in 2 |
+| 76 | Strong | About 1 in 3 |
+
+The visitor's stop is labeled "Yours", ringed in ink and lit with its tier's light (`tier-weak`, `tier-moderate`, `tier-strong`). The others stay unlit. A short note explains why there are only three: before the mod-12 step the twelve columns always add up to 184, and a whole cycle sheds 9, 10 or 11 full twelves. The shares come from every birth date from 1900 to 2099 (`TOTAL_SCALE` in `interpretation-data.ts`). "Hide scale" folds it back.
+
 ### Year Timeline
 **Type:** Horizontal scrollable listbox (`src/components/year-timeline.tsx`)
 **Purpose:** Pick any year from the birth year to 30 years past this year, and see the 12-year pattern repeat
@@ -232,10 +246,10 @@ A thin gold arc traces the ring from the birth year to this year.
   - **Cycle switch:** a small "Cycle" label over a tabs row: Current, Previous and Before that, each with its years beneath ("2021–2032"). Cycles follow the visitor's birth year, newest first. It offers only cycles that start on or after the visitor's birth and that the partner was alive for at least partly, so a young visitor may see two tabs or none. The ink outline glides to the chosen tab, and the summary and table below crossfade (`panel-swap`). The accessible names read "Previous cycle, 2009 to 2020".
   - **The summary** (`CompatibilitySummary`), a bordered panel that needs nothing around it:
     - You and Partner side by side, each with the birth date, animal and total score in `gold-deep` display type.
-    - The overall assessment (Strong, Moderate or Mixed stability, or Challenging) and one calm sentence. When one total is 60–67 and the other under 60, a case the family's rules leave out, a "Why mixed?" note follows, set off by a left `border` rule: it says the rules don't cover the case and that calling it mixed is Solini's reading.
+    - The overall assessment (Strong, Moderate or Mixed stability, or Challenging) and one calm sentence, then a "How the totals are read" link to the total score section of How your cycle is made (`/how-it-works#total-score`). That section gives the three totals a cycle can have (52, 64 or 76) and why, which pairs of totals make each assessment, and that reading 64 with 52 as mixed is Solini's choice, not a family rule.
     - "Now, 2026:" in bold `gold-deep`, then that year's interaction. Only shown for the current cycle.
     - "Cycle 2021–2032": a count beside each of the five interactions, zeros included, wrapping onto more lines on narrow screens. When the partner was born partway through, the label adds "· 9 years together" and the counts cover only those years.
-  - A table of the chosen cycle's 12 years: Year, You, Partner, Together. The current year's row label is bold `gold-deep` with "Now" under it. Each number has its tier symbol beside it. A year before someone's birth shows "—" for their number and "Not born yet" under Together.
+  - A table of the chosen cycle's 12 years: Year, You, Partner, Together. The current year's row label is bold `gold-deep` with "Now" under it. Each number has its tier symbol (`TierIcon`) beside it. A year before someone's birth shows "—" for their number and "Not born yet" under Together.
   - A legend that says what each interaction means.
   - "Share this comparison" (gold outline, like Share), "Download image" (quiet outline, like the reading's) and a "Remove comparison" text link.
 
@@ -273,7 +287,7 @@ A table, not two charts side by side: the comparison is about the same calendar 
 3. The form card blooms into the reading in the same place. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card to the reading's size over 520ms while the form fades out in 320ms and the reading scales up from 0.96. A soft gold glow (`.reading-bloom-glow`) swells and fades inside the card over 900ms. The page does not scroll to the result; it only scrolls if the card's top would sit above the viewport.
 4. Cycle orbs swell in one by one, clockwise from the birth year, with 40ms stagger (400ms, `--ease-enter`)
 5. The gold arc traces the ring from the birth year to this year, and the center shows this year's preview
-6. The total score fades in below the chart: "Your life pattern: Balanced (64)"
+6. The total score card fades in below the chart: "Total score 64 · Balanced / moderate cycle". Tapping it opens the scale of totals (see Total Score Card).
 
 **Reading summary:** The top of the reading card names whose reading it is: the birth date ("July 24, 1997") and "Year of the Ox · Born on a Thursday". A share link adds "A reading shared with you" above them.
 

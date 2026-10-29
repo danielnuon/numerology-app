@@ -12,7 +12,7 @@
 
 import type { Weekday } from "@/lib/numerology/calculate";
 import { describeYearPlanet, interpretAreaYear } from "@/lib/numerology/interpretation";
-import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers";
+import { TierIcon } from "@/components/ui/tier-icon";
 import {
   getActiveYear,
   getCycleIndex,
@@ -39,7 +39,6 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday }
   const cycleIndex = getCycleIndex(birthYear, activeYear);
   const interpretation = interpretAreaYear(cycleIndex + 1, cycleNumber); // columns are 1-indexed
   const lifeArea = interpretation.area;
-  const tierSymbol = getTierSymbol(interpretation.tier);
 
   return (
     // A lit panel inside the reading card, not a card of its own
@@ -55,7 +54,7 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday }
         <span className="title-glow font-display text-7xl leading-none text-ink tabular-nums">
           {cycleNumber}
         </span>
-        <span className={`text-2xl ${getTierTextClass(interpretation.tier)}`}>{tierSymbol}</span>
+        <TierIcon tier={interpretation.tier} className="size-6" />
       </div>
 
       <h2 id="this-year-heading" className="mt-3 font-display text-2xl text-ink tracking-[0.03em]">

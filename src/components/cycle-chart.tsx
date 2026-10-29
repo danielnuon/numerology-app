@@ -25,12 +25,13 @@ import {
 } from "react";
 import { motion } from "motion/react";
 import type { Weekday } from "@/lib/numerology/calculate";
-import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
+import { interpretYear } from "@/lib/numerology/interpretation";
 import { getActiveYear, getCycleIndex, getLifeArea } from "@/lib/numerology/year-lookup";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
 import { getTierTextClass, getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { DetailPanel } from "./detail-panel";
+import { TotalScoreCard } from "./total-score-card";
 import { EASE, MOTION, PRESS } from "@/lib/motion";
 
 export interface CycleChartProps {
@@ -131,7 +132,6 @@ export function CycleChart({
 
   const selected = interpretYear(cycle[selectedIndex]);
   const selectedAnimal = getZodiacAnimalForYear(selectedYear);
-  const totalInterp = interpretTotal(totalScore);
 
   // Move focus into the reading when it opens and back to the center when it
   // closes, so keyboard and screen reader users stay where they were.
@@ -467,27 +467,7 @@ export function CycleChart({
           : "Tap a number to choose a year, then the center to read it in full."}
       </p>
 
-      {/* Total score summary */}
-      <div
-        className={[
-          "mt-6 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4",
-          "rounded-xl border border-border bg-parchment/40 px-5 py-4",
-        ].join(" ")}
-      >
-        <div className="flex shrink-0 items-baseline gap-2">
-          <span className="text-ink-light text-sm uppercase tracking-widest whitespace-nowrap">
-            Total score
-          </span>
-          <span className="font-display text-3xl text-gold-deep title-glow tabular-nums">{totalScore}</span>
-        </div>
-        <div className="hidden sm:block w-px h-8 bg-border" aria-hidden="true" />
-        <div>
-          <p className="text-sm font-semibold text-ink leading-tight">
-            {totalInterp.label}
-          </p>
-          <p className="text-sm text-ink-light">{totalInterp.description}</p>
-        </div>
-      </div>
+      <TotalScoreCard totalScore={totalScore} />
     </section>
   );
 }

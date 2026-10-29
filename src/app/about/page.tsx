@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SectionDivider } from "@/components/ui/section-divider";
-import { InfoPage, MorePages, PillLink, Section } from "@/components/ui/page-parts";
+import { InfoPage, MORE_LINK, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { YEAR_TIERS } from "@/lib/numerology/interpretation-data";
 import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME } from "@/lib/site-copy";
 
@@ -12,8 +12,6 @@ export const metadata: Metadata = {
   openGraph: { title: ABOUT_TITLE, description: ABOUT_DESCRIPTION, url: "/about", siteName: SITE_NAME },
   twitter: { title: ABOUT_TITLE, description: ABOUT_DESCRIPTION },
 };
-
-const MORE_LINK = "text-gold-deep underline underline-offset-4 decoration-gold-deep/40 hover:decoration-gold-deep";
 
 export default function AboutPage() {
   return (
