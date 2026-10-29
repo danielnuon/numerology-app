@@ -142,6 +142,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
   it("lets a returning visitor forget their saved date with \"Not you?\"", () => {
     localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day: 24, month: 7, year: 1997 }));
     render(<HomeClient searchParams={{}} />);
+    expect(screen.getByRole("button", { name: "Read for someone else" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Not you?" }));
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();

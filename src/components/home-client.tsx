@@ -380,7 +380,7 @@ export function HomeClient({ searchParams }: Props) {
               {bloomed && <div aria-hidden="true" className="reading-bloom-glow" />}
 
               {/* Whose reading this is, and the way back to the form */}
-              <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
+              <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none items-start justify-between gap-x-3 px-1">
                 <div id="reading-summary" className="min-w-0">
                   {hasShareParams && !bloomed && (
                     <p className="text-sm uppercase tracking-[0.12em] text-gold-deep">
@@ -395,19 +395,21 @@ export function HomeClient({ searchParams }: Props) {
                     {WEEKDAY_NAMES[result.birthData.weekday - 1]}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3">
+                {/* Quiet text links on the date's line, styled like "Back to the reading" */}
+                <div className="-mt-2 flex shrink-0 flex-col items-end sm:flex-row sm:items-center sm:gap-x-3">
                   <button
                     type="button"
                     onClick={handleReadAgain}
-                    className="pressable inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-4 text-sm text-ink-light hover:border-gold hover:text-ink active:scale-[0.97]"
+                    aria-label={hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                    className="pressable flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
                   >
-                    {hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                    {hasShareParams && !bloomed ? "Read your own" : "Someone else?"}
                   </button>
                   {isRestoredDate && (
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="pressable inline-flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
+                      className="pressable flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
                     >
                       Not you?
                     </button>

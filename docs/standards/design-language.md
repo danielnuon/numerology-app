@@ -160,7 +160,7 @@ Looping keyframes use the symmetric `--ease-sine` curve and live only under `@me
 | Transition | Behavior |
 |------------|----------|
 | Wheel bloom | Tapping the wheel's center, or the selected orb again, grows the full reading out of the center with a shared-element view transition and folds it back the same way. |
-| Form morph ("Bloom") | Submitting the birth date form morphs the form card into the reading in place instead of scrolling down the page, with a "read for someone else" action to return. Approved and in progress; its PR records the final values here. |
+| Form morph ("Bloom") | Submitting the birth date form morphs the form card into the reading in place instead of scrolling down the page. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card over 520ms (`--ease-standard`); the form fades out in 320ms and the reading scales up from 0.96 over 520ms (`--ease-enter`). A gold glow swells and fades inside the card over 900ms. A quiet "Someone else?" text link beside the date folds it back the same way with a quick fade-out (`--duration-quick`), and "Back to the reading" returns. The page scrolls only if the card's top would sit above the viewport. With Reduce Motion the swap is an instant cut. |
 | Selection glide | The ink outline glides between options on the wheel, the timeline and the New Year toggle; the content beneath crossfades (out in 150ms, in over 250ms). |
 
 ## Accessibility
