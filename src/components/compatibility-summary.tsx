@@ -4,7 +4,8 @@
  * A comparison at a glance: both people's dates and total scores, the
  * overall stability assessment, the current year's interaction (when the
  * shown cycle holds it) and how many of the cycle's years have each
- * interaction. It sits at the top of PartnerComparison, above the
+ * interaction. When the totals fall in the case the family's rules leave
+ * out, a "Why mixed?" note says so. It sits at the top of PartnerComparison, above the
  * year-by-year table, and depends on nothing around it: it brings its own
  * border and padding and fills the width it's given. The comparison link's preview image (/r/A+B/opengraph-image) draws
  * the same summary as a 1200×630 card for sharing and download.
@@ -13,6 +14,8 @@
 import {
   INTERACTION_ORDER,
   INTERACTION_TEXT,
+  isStabilityRuleGap,
+  STABILITY_GAP_NOTE,
   STABILITY_TEXT,
   type ComparisonSummary,
   type StabilityAssessment,
@@ -93,6 +96,12 @@ export function CompatibilitySummary({ people, assessment, summary, cycle }: Pro
       <div className="mt-4 border-t border-border-light pt-4">
         <p className="font-display text-lg text-ink">{stability.label}</p>
         <p className="mt-1 text-sm leading-relaxed text-ink-light">{stability.description}</p>
+        {isStabilityRuleGap(people[0].total, people[1].total) && (
+          <p className="mt-2 border-l-2 border-border pl-3 text-sm leading-relaxed text-ink-light">
+            <span className="font-medium text-ink">Why mixed? </span>
+            {STABILITY_GAP_NOTE}
+          </p>
+        )}
       </div>
 
       {current && (

@@ -6,6 +6,7 @@ import {
   cycleStartYear,
   INTERACTION_ORDER,
   INTERACTION_TEXT,
+  isStabilityRuleGap,
   summarizeComparison,
   yearInteraction,
   type ComparedYear,
@@ -200,5 +201,20 @@ describe("comparisonCycleStarts", () => {
   it("leaves out a cycle that ends before the second person was born", () => {
     expect(comparisonCycleStarts(1990, 2005, 2026)).toEqual([2026, 2014, 2002]);
     expect(comparisonCycleStarts(1990, 2015, 2026)).toEqual([2026, 2014]);
+  });
+});
+
+describe("isStabilityRuleGap", () => {
+  it("is true only for one total from 60 to 67 with the other under 60", () => {
+    expect(isStabilityRuleGap(64, 55)).toBe(true);
+    expect(isStabilityRuleGap(55, 60)).toBe(true);
+    expect(isStabilityRuleGap(67, 59)).toBe(true);
+    expect(isStabilityRuleGap(68, 55)).toBe(false);
+    expect(isStabilityRuleGap(64, 60)).toBe(false);
+    expect(isStabilityRuleGap(55, 50)).toBe(false);
+  });
+
+  it("is always read as mixed", () => {
+    expect(assessStability(64, 55)).toBe("mixed");
   });
 });

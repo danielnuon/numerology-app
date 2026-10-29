@@ -73,6 +73,18 @@ describe("CompatibilitySummary", () => {
     expect(screen.queryByText(/^Now,/)).not.toBeInTheDocument();
   });
 
+  it("explains a mixed reading the family's rules don't cover", () => {
+    const gap: [SummaryPerson, SummaryPerson] = [people[0], { ...people[1], total: 55 }];
+    render(<CompatibilitySummary people={gap} assessment="mixed" summary={summary} cycle={CYCLE} />);
+    expect(screen.getByText("Why mixed?")).toBeInTheDocument();
+    expect(screen.getByText(/not a family rule/)).toBeInTheDocument();
+  });
+
+  it("adds no note when the family's rules cover the pair", () => {
+    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} cycle={CYCLE} />);
+    expect(screen.queryByText("Why mixed?")).not.toBeInTheDocument();
+  });
+
   it("hides the symbols from screen readers", () => {
     const { container } = render(
       <CompatibilitySummary people={people} assessment="moderate" summary={summary} cycle={CYCLE} />
