@@ -58,7 +58,7 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
   return (
     <div className="mt-5 flex flex-col items-center">
       {/* When the choice matters the open toggle says it all, so the summary line steps aside */}
-      {!choiceMatters && (
+      <Reveal open={!choiceMatters}>
         <p className="flex flex-wrap items-center justify-center gap-x-2 text-center text-sm text-ink-light">
           <span>Counted from {ruleName} New Year</span>
           <button
@@ -71,7 +71,7 @@ export function NewYearToggle({ rule, onChange, animals }: Props) {
             {expanded ? "Done" : "Change"}
           </button>
         </p>
-      )}
+      </Reveal>
       <Reveal open={expanded} id={panelId} className="mt-1 flex w-full flex-col items-center">
         <p id="new-year-toggle-label" className="text-center text-sm text-ink-light">
           New Year that starts your animal year

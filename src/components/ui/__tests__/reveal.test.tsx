@@ -3,7 +3,7 @@
  */
 import { act, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { Reveal } from "../reveal";
+import { Reveal, useLastPresent } from "../reveal";
 
 describe("Reveal", () => {
   it("keeps closed content mounted but inert and hidden from assistive technology", () => {
@@ -96,5 +96,21 @@ describe("Reveal motion", () => {
     expect(document.getElementById("more")).not.toHaveAttribute("data-shown");
     expect(calls).toHaveLength(0);
     delete (window as { matchMedia?: unknown }).matchMedia;
+  });
+});
+
+describe("useLastPresent", () => {
+  function Held({ value }: { value: string | null }) {
+    return <p>{useLastPresent(value) ?? "nothing yet"}</p>;
+  }
+
+  it("keeps showing the last value while it folds away", () => {
+    const { rerender } = render(<Held value={null} />);
+    expect(screen.getByText("nothing yet")).toBeInTheDocument();
+    rerender(<Held value="Enter a day from 1 to 31." />);
+    rerender(<Held value={null} />);
+    expect(screen.getByText("Enter a day from 1 to 31.")).toBeInTheDocument();
+    rerender(<Held value="Enter a month from 1 to 12." />);
+    expect(screen.getByText("Enter a month from 1 to 12.")).toBeInTheDocument();
   });
 });

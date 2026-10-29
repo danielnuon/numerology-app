@@ -66,6 +66,9 @@ export const RETURN_TO_CURRENT_MS = 9000;
 /** Page activity that restarts the idle countdown. */
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "scroll"] as const;
 
+/** A hint under the wheel fading in or out as the reading opens and closes. */
+const HINT_FADE = "transition-opacity duration-[var(--duration-standard)] ease-standard";
+
 /** Orbs sit on this ring, as a percentage of the wheel's width. */
 const ORB_RADIUS = 36;
 /** Zodiac animals sit just outside the orbs. */
@@ -494,15 +497,18 @@ export function CycleChart({
         </div>
       </div>
 
-      <p className="mt-3 text-center text-sm text-ink-light">
-        {readingOpen
-          ? "Tap outside the reading to close it and choose another year."
-          : "Tap a number to choose a year, then the center to read it in full."}
-        {!readingOpen && showsActiveYear && (
-          <span className="block">
+      {/* The hints share one place and crossfade, keeping the space of the
+          longest, so the total score below never jumps */}
+      <p className="mt-3 grid text-center text-sm text-ink-light">
+        <span aria-hidden={readingOpen} className={`col-start-1 row-start-1 ${HINT_FADE} ${readingOpen ? "opacity-0" : ""}`}>
+          Tap a number to choose a year, then the center to read it in full.
+          <span aria-hidden={!showsActiveYear} className={`block ${HINT_FADE} ${showsActiveYear ? "" : "opacity-0"}`}>
             The ring around {activeYear} shows month {monthOfYear} of 12, counted from the birthday.
           </span>
-        )}
+        </span>
+        <span aria-hidden={!readingOpen} className={`col-start-1 row-start-1 ${HINT_FADE} ${readingOpen ? "" : "opacity-0"}`}>
+          Tap outside the reading to close it and choose another year.
+        </span>
       </p>
 
       <TotalScoreCard totalScore={totalScore} />

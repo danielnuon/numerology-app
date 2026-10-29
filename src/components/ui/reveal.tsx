@@ -75,6 +75,17 @@ function surroundings(slot: HTMLElement) {
   return { following, surfaces };
 }
 
+/**
+ * The last value that was present, so content can fold away still showing
+ * what it showed instead of going blank mid-glide. Pass the live value
+ * (null or undefined while closed) and render the returned one.
+ */
+export function useLastPresent<T>(value: T | null | undefined): T | null | undefined {
+  const [shown, setShown] = useState(value);
+  if (value != null && value !== shown) setShown(value);
+  return value ?? shown;
+}
+
 function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }

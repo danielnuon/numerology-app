@@ -41,6 +41,7 @@ import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { MorePages } from "@/components/ui/page-parts";
+import { Reveal, useLastPresent } from "@/components/ui/reveal";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
@@ -93,6 +94,20 @@ const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "
 // The quiet underlined text link used for the card's way back and forth
 const QUIET_LINK =
   "pressable flex min-h-[44px] items-center px-1 text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70";
+
+/**
+ * A block below the reading card. When something above it changes size it
+ * glides to its new place instead of jumping, and as the reading blooms in
+ * or folds away it rises in or fades out with it (React assigns the
+ * transition name).
+ */
+function Follows({ children }: { children: React.ReactNode }) {
+  return (
+    <ViewTransition enter="rise-in" exit="fade-out">
+      {children}
+    </ViewTransition>
+  );
+}
 
 /** A birth date as day, month and year numbers. */
 type BirthDateParts = StoredBirthDate;
@@ -304,12 +319,16 @@ export function HomeClient({ searchParams }: Props) {
     });
   }, []);
 
-  // "Forget my date" forgets the saved date and returns to the first-visit form.
+  // "Forget my date" forgets the saved date and returns to the first-visit
+  // form, which crossfades in the same card.
   const handleReset = useCallback(() => {
     clearStoredBirthDate();
-    setSessionDate(null);
-    setPickedYear(null);
-    setFormOpen(false);
+    startTransition(() => {
+      addTransitionType("form-reset");
+      setSessionDate(null);
+      setPickedYear(null);
+      setFormOpen(false);
+    });
   }, []);
 
   // Focus moves to the reading so it isn't lost with the removed button.
@@ -351,6 +370,8 @@ export function HomeClient({ searchParams }: Props) {
   const showReading = !!result && !formOpen;
   const showForm = !showReading;
   const showNotice = showReading && isRestoredDate && !noticeSeenBefore && !noticeDismissed;
+  // Kept while the note folds away after "Got it"
+  const noticeDate = useLastPresent(showNotice ? storedDate : null);
   // A reading opened from someone else's share link, until the visitor reads their own
   const isShared = hasShareParams && !bloomed;
 
@@ -393,7 +414,12 @@ export function HomeClient({ searchParams }: Props) {
       <ErrorBoundary>
         {/* Form card: first visit, after "Forget my date", or "Read for someone else" */}
         {showForm && (
-          <ViewTransition name="reading-card" share="reading-bloom" default="none">
+          <ViewTransition
+            name="reading-card"
+            share="reading-bloom"
+            update={{ "form-reset": "reading-bloom", default: "none" }}
+            default="none"
+          >
             <div
               className={`${bloomed ? "" : "rise "}glass relative max-w-[480px] w-full rounded-2xl p-6 sm:p-12`}
               style={{ "--rise-delay": "760ms" } as React.CSSProperties}
@@ -446,16 +472,21 @@ export function HomeClient({ searchParams }: Props) {
         )}
 
         {/* Present from the server render, so the note is announced when it appears */}
-        <div aria-live="polite" className="flex w-full justify-center">
-          {showNotice && storedDate && (
-            <UpdateNotice
-              birthYear={storedDate.year}
-              birthMonth={storedDate.month}
-              birthDay={storedDate.day}
-              hasChosenRule={storedRule !== null}
-              onDismiss={handleDismissNotice}
-            />
-          )}
+        <div aria-live="polite" className="w-full">
+          {/* Rises in with the reading card on load, then folds away on "Got it" */}
+          <Reveal open={showNotice}>
+            {noticeDate && (
+              <div className="rise flex justify-center" style={{ "--rise-delay": "760ms" } as React.CSSProperties}>
+                <UpdateNotice
+                  birthYear={noticeDate.year}
+                  birthMonth={noticeDate.month}
+                  birthDay={noticeDate.day}
+                  hasChosenRule={storedRule !== null}
+                  onDismiss={handleDismissNotice}
+                />
+              </div>
+            )}
+          </Reveal>
         </div>
 
         {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
@@ -546,6 +577,7 @@ export function HomeClient({ searchParams }: Props) {
             </ViewTransition>
 
             {/* Year Timeline Explorer, part of the 12-year view below lg */}
+            <Follows>
             <div
               className={`${readingView === "cycle" ? "" : "max-lg:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
             >
@@ -560,10 +592,12 @@ export function HomeClient({ searchParams }: Props) {
                 onSelectYear={handleTimelineSelectYear}
               />
             </div>
+            </Follows>
 
 
             {/* On a shared reading, the next step is the visitor's own */}
             {isShared && (
+              <Follows>
               <div className="mt-8 flex w-full max-w-[480px] flex-col items-center text-center">
                 <button
                   type="button"
@@ -583,6 +617,7 @@ export function HomeClient({ searchParams }: Props) {
                   Free, no sign-up. It takes a few seconds.
                 </p>
               </div>
+              </Follows>
             )}
 
             <PartnerComparison
@@ -594,6 +629,7 @@ export function HomeClient({ searchParams }: Props) {
               onPartnerChange={setPartner}
             />
 
+            <Follows>
             <ShareReading
               isShared={isShared}
               headline={thisYearHeadline(result, activeYear)}
@@ -602,8 +638,10 @@ export function HomeClient({ searchParams }: Props) {
               day={result.birthDay}
               rule={newYearRule}
             />
+            </Follows>
 
             {/* Companion pages: this reading worked out, and what it means */}
+            <Follows>
             <nav
               aria-label="Understand this reading"
               className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-base"
@@ -621,15 +659,20 @@ export function HomeClient({ searchParams }: Props) {
                 What the numbers mean
               </Link>
             </nav>
+            </Follows>
           </>
         )}
       </ErrorBoundary>
 
-      <p className="mt-16 max-w-[480px] text-center text-sm leading-relaxed text-ink-light">
-        Solini follows a Khmer numerology tradition. A reading is a lantern
-        for reflection, not a prediction or advice.
-      </p>
-      <MorePages current="/" />
+      <Follows>
+        <p className="mt-16 max-w-[480px] text-center text-sm leading-relaxed text-ink-light">
+          Solini follows a Khmer numerology tradition. A reading is a lantern
+          for reflection, not a prediction or advice.
+        </p>
+      </Follows>
+      <Follows>
+        <MorePages current="/" />
+      </Follows>
     </main>
     </MotionConfig>
   );

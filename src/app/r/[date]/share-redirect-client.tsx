@@ -51,10 +51,13 @@ export function ShareRedirectClient(props: Props) {
     window.location.replace(url);
   }, [url]);
 
-  // Brief loading state while redirecting
+  // Brief loading state while redirecting. It rises in after a beat, so a
+  // quick redirect never flashes it.
   return (
     <main className="flex flex-1 flex-col items-center justify-center safe-gutter py-16">
-      <p className="text-ink-light text-sm italic">Opening this reading…</p>
+      <p className="rise text-ink-light text-sm italic" style={{ "--rise-delay": "300ms" } as React.CSSProperties}>
+        Opening this reading…
+      </p>
     </main>
   );
 }

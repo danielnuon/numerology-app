@@ -49,6 +49,7 @@ import { shareLink } from "@/lib/share";
 import { trackEvent } from "@/lib/track";
 import { SHARED_COMPARISON_TITLE } from "@/lib/site-copy";
 import { MORE_LINK, TOTAL_SCORE_SECTION_ID } from "@/components/ui/page-parts";
+import { Reveal } from "@/components/ui/reveal";
 
 /** A cycle number in the table; the wheel and the reading carry each year's tier. */
 function CycleNumber({ value }: { value: number | null }) {
@@ -123,6 +124,18 @@ function CycleStepper({
 }
 
 /**
+ * The one surface the comparison lives on, whichever state it is in, so a
+ * change of state morphs it in place (class `reading-bloom` in globals.css).
+ */
+function CompareCard({ children }: { children: React.ReactNode }) {
+  return (
+    <ViewTransition name="compare-card" update={{ "compare-morph": "reading-bloom", default: "none" }} default="none">
+      {children}
+    </ViewTransition>
+  );
+}
+
+/**
  * What each interaction word means and how the totals are read, closed until
  * asked for, at the end of the comparison where readers look for it.
  */
@@ -147,28 +160,26 @@ function HowToRead() {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`size-4 transition-transform duration-[var(--duration-gentle)] ${open ? "rotate-180" : ""}`}
+          className={`size-4 transition-transform duration-[var(--duration-standard)] ease-standard ${open ? "rotate-180" : ""}`}
         >
           <path d="M3 6l5 5 5-5" />
         </svg>
       </button>
-      {open && (
-        <div id={panelId} className="animate-settle-in pb-2">
-          <dl className="grid gap-1.5 text-sm">
-            {INTERACTION_ORDER.map((interaction) => (
-              <div key={interaction} className="flex gap-2">
-                <dt className="shrink-0">
-                  <InteractionLabel interaction={interaction} />
-                </dt>
-                <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
-              </div>
-            ))}
-          </dl>
-          <Link href={`/how-it-works#${TOTAL_SCORE_SECTION_ID}`} className={`${MORE_LINK} mt-3 inline-block text-sm`}>
-            How the totals are read
-          </Link>
-        </div>
-      )}
+      <Reveal open={open} id={panelId} className="pb-2">
+        <dl className="grid gap-1.5 text-sm">
+          {INTERACTION_ORDER.map((interaction) => (
+            <div key={interaction} className="flex gap-2">
+              <dt className="shrink-0">
+                <InteractionLabel interaction={interaction} />
+              </dt>
+              <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
+            </div>
+          ))}
+        </dl>
+        <Link href={`/how-it-works#${TOTAL_SCORE_SECTION_ID}`} className={`${MORE_LINK} mt-3 inline-block text-sm`}>
+          How the totals are read
+        </Link>
+      </Reveal>
     </div>
   );
 }
@@ -213,6 +224,16 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   // The cycle's first year; null follows the current cycle.
   const [pickedCycle, setPickedCycle] = useState<number | null>(null);
 
+  // The card changes between its three states (the button, the form, the
+  // comparison) as one surface that grows or shrinks in place, the same
+  // morph as the birth date form blooming into the reading.
+  function morph(update: () => void) {
+    startTransition(() => {
+      addTransitionType("compare-morph");
+      update();
+    });
+  }
+
   function handleCycleChange(start: number) {
     startTransition(() => {
       addTransitionType("compare-cycle");
@@ -222,68 +243,76 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
 
   function handlePartnerResult(result: CycleResultWithYear) {
     trackEvent("Comparison made", isShared);
-    onPartnerChange({
-      year: result.birthYear,
-      month: result.birthData.gregorianMonth,
-      day: result.birthDay,
-      rule: partnerRule,
+    morph(() => {
+      onPartnerChange({
+        year: result.birthYear,
+        month: result.birthData.gregorianMonth,
+        day: result.birthDay,
+        rule: partnerRule,
+      });
+      setEnteredHere(true);
+      setFormOpen(false);
+      setShareStatus("idle");
     });
-    setEnteredHere(true);
-    setFormOpen(false);
-    setShareStatus("idle");
   }
 
   function handleRemove() {
-    onPartnerChange(null);
-    setShareStatus("idle");
-    setPickedCycle(null);
+    morph(() => {
+      onPartnerChange(null);
+      setShareStatus("idle");
+      setPickedCycle(null);
+    });
   }
 
   // Resting state: one button under the reading.
   if (!partner && !formOpen) {
     return (
-      <section aria-label="Compare cycles" className="mt-10 w-full max-w-[480px] text-center">
-        <button
-          type="button"
-          onClick={() => setFormOpen(true)}
-          className="pressable min-h-[52px] w-full rounded-full border border-border px-6 text-base text-ink hover:border-gold-deep active:scale-[0.97]"
-        >
-          {isShared ? "Compare it with yours" : "Compare with someone close"}
-        </button>
-        <p className="mt-2 text-sm text-ink-light">
-          {isShared
-            ? "See how this cycle meets your own, year by year."
-            : "A partner, parent, child or friend: see how your cycles meet, year by year."}
-        </p>
-      </section>
+      <CompareCard>
+        <section aria-label="Compare cycles" className="mt-10 w-full max-w-[480px] text-center">
+          <button
+            type="button"
+            onClick={() => morph(() => setFormOpen(true))}
+            className="pressable min-h-[52px] w-full rounded-full border border-border px-6 text-base text-ink hover:border-gold-deep active:scale-[0.97]"
+          >
+            {isShared ? "Compare it with yours" : "Compare with someone close"}
+          </button>
+          <p className="mt-2 text-sm text-ink-light">
+            {isShared
+              ? "See how this cycle meets your own, year by year."
+              : "A partner, parent, child or friend: see how your cycles meet, year by year."}
+          </p>
+        </section>
+      </CompareCard>
     );
   }
 
   // Entering the partner's date.
   if (!partner) {
     return (
-      <section
-        aria-labelledby="compare-heading"
-        className="animate-settle-in glass mt-10 w-full max-w-[480px] rounded-2xl p-6 sm:p-10"
-      >
-        <h2 id="compare-heading" className="text-center font-display text-2xl leading-tight tracking-[0.03em] text-ink">
-          {isShared ? "Compare it with yours" : "Compare with someone close"}
-        </h2>
-        <p className="mt-2 text-center text-base text-ink-light">
-          {isShared
-            ? "Enter your birth date to see how the two cycles meet."
-            : "Enter their birth date to see how your cycles meet."}
-        </p>
-        <BirthDataForm
-          mode="partner"
-          onResult={handlePartnerResult}
-          newYearRule={partnerRule}
-          onNewYearRuleChange={setPartnerRule}
-        />
-        <button type="button" onClick={() => setFormOpen(false)} className={`${TEXT_LINK_CLASS} mx-auto mt-3 flex`}>
-          Cancel
-        </button>
-      </section>
+      <CompareCard>
+        <section
+          aria-labelledby="compare-heading"
+          className="glass mt-10 w-full max-w-[480px] rounded-2xl p-6 sm:p-10"
+        >
+          <h2 id="compare-heading" className="text-center font-display text-2xl leading-tight tracking-[0.03em] text-ink">
+            {isShared ? "Compare it with yours" : "Compare with someone close"}
+          </h2>
+          <p className="mt-2 text-center text-base text-ink-light">
+            {isShared
+              ? "Enter your birth date to see how the two cycles meet."
+              : "Enter their birth date to see how your cycles meet."}
+          </p>
+          <BirthDataForm
+            mode="partner"
+            onResult={handlePartnerResult}
+            newYearRule={partnerRule}
+            onNewYearRuleChange={setPartnerRule}
+          />
+          <button type="button" onClick={() => morph(() => setFormOpen(false))} className={`${TEXT_LINK_CLASS} mx-auto mt-3 flex`}>
+            Cancel
+          </button>
+        </section>
+      </CompareCard>
     );
   }
 
@@ -319,109 +348,111 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   }
 
   return (
-    <section
-      aria-labelledby="compare-heading"
-      className="animate-settle-in glass mt-10 w-full max-w-[640px] rounded-2xl p-4 min-[360px]:p-5 sm:p-8"
-    >
-      <h2 id="compare-heading" className="font-display text-2xl leading-tight tracking-[0.03em] text-ink">
-        {isShared && !enteredHere ? "Two cycles together" : "Your cycles together"}
-      </h2>
+    <CompareCard>
+      <section
+        aria-labelledby="compare-heading"
+        className="glass mt-10 w-full max-w-[640px] rounded-2xl p-4 min-[360px]:p-5 sm:p-8"
+      >
+        <h2 id="compare-heading" className="font-display text-2xl leading-tight tracking-[0.03em] text-ink">
+          {isShared && !enteredHere ? "Two cycles together" : "Your cycles together"}
+        </h2>
 
-      <div className="mt-4">
-        <CompatibilitySummary
-          people={people}
-          assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
-          current={now?.interaction ? { year: now.year, interaction: now.interaction } : null}
-        />
-      </div>
+        <div className="mt-4">
+          <CompatibilitySummary
+            people={people}
+            assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
+            current={now?.interaction ? { year: now.year, interaction: now.interaction } : null}
+          />
+        </div>
 
-      {cycleStarts.length > 1 ? (
-        <CycleStepper
-          starts={cycleStarts}
-          selected={cycleStart}
-          sharedYears={summarizeComparison(years, activeYear).sharedYears}
-          onChange={handleCycleChange}
-        />
-      ) : (
-        <p className="mt-5 text-center text-xs uppercase tracking-[0.12em] text-ink-light tabular-nums">
-          Cycle {cycleStart}–{cycleStart + 11}
+        {cycleStarts.length > 1 ? (
+          <CycleStepper
+            starts={cycleStarts}
+            selected={cycleStart}
+            sharedYears={summarizeComparison(years, activeYear).sharedYears}
+            onChange={handleCycleChange}
+          />
+        ) : (
+          <p className="mt-5 text-center text-xs uppercase tracking-[0.12em] text-ink-light tabular-nums">
+            Cycle {cycleStart}–{cycleStart + 11}
+          </p>
+        )}
+
+        {/* The chosen cycle crossfades in place */}
+        <ViewTransition update={{ "compare-cycle": "panel-swap", default: "none" }} default="none">
+          <table className="mt-2 w-full border-collapse text-left">
+            <caption className="sr-only">
+              Year by year from {cycleStart} to {cycleStart + 11}: each person&apos;s number and how they meet
+            </caption>
+            <thead>
+              <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
+                <th scope="col" className="py-2 pr-2 font-normal">Year</th>
+                <th scope="col" className="px-1 py-2 text-center font-normal">{terms[0]}</th>
+                <th scope="col" className="px-1 py-2 text-center font-normal">{terms[1]}</th>
+                <th scope="col" className="py-2 pl-2 font-normal">Together</th>
+              </tr>
+            </thead>
+            <tbody>
+              {years.map((row) => {
+                const isNow = row.year === activeYear;
+                return (
+                  <tr key={row.year} className={`border-t border-border-light ${isNow ? "text-gold-deep" : "text-ink"}`}>
+                    <th scope="row" className={`py-2 pr-2 text-sm tabular-nums ${isNow ? "font-semibold" : "font-normal text-ink-light"}`}>
+                      {row.year}
+                      {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
+                    </th>
+                    <td className="px-1 py-2 text-center"><CycleNumber value={row.firstNumber} /></td>
+                    <td className="px-1 py-2 text-center"><CycleNumber value={row.secondNumber} /></td>
+                    <td className="py-2 pl-2 text-sm">
+                      {row.interaction ? (
+                        <InteractionLabel interaction={row.interaction} />
+                      ) : (
+                        <span className="text-ink-light">Not born yet</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </ViewTransition>
+
+        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <button
+            type="button"
+            onClick={handleShare}
+            className={[
+              "pressable mr-2 inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
+              "border border-gold-deep text-base text-gold-deep",
+              "hover:bg-gold-deep hover:text-parchment",
+              "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
+            ].join(" ")}
+          >
+            Share this comparison
+          </button>
+          {/* The link's preview card is the summary as a 1200×630 image */}
+          <a
+            href={`${sharePath}/opengraph-image`}
+            download={`solini-comparison-${encodeBirthDate(readingDate.year, readingDate.month, readingDate.day)}-${encodeBirthDate(partner.year, partner.month, partner.day)}.png`}
+            className={TEXT_LINK_CLASS}
+          >
+            Download image
+          </a>
+          <button type="button" onClick={handleRemove} aria-label="Remove comparison" className={TEXT_LINK_CLASS}>
+            Remove
+          </button>
+        </div>
+        <p role="status" className="mt-2 min-h-[1.25rem] text-sm text-ink-light">
+          {shareStatus === "copied" && (
+            <span className="animate-settle-in inline-block">Link copied. It shows both birth dates to anyone who opens it.</span>
+          )}
+          {shareStatus === "failed" && (
+            <span className="animate-settle-in inline-block">Couldn&apos;t copy automatically. Copy the link from the address bar instead.</span>
+          )}
         </p>
-      )}
 
-      {/* The chosen cycle crossfades in place */}
-      <ViewTransition update={{ "compare-cycle": "panel-swap", default: "none" }} default="none">
-        <table className="mt-2 w-full border-collapse text-left">
-          <caption className="sr-only">
-            Year by year from {cycleStart} to {cycleStart + 11}: each person&apos;s number and how they meet
-          </caption>
-          <thead>
-            <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
-              <th scope="col" className="py-2 pr-2 font-normal">Year</th>
-              <th scope="col" className="px-1 py-2 text-center font-normal">{terms[0]}</th>
-              <th scope="col" className="px-1 py-2 text-center font-normal">{terms[1]}</th>
-              <th scope="col" className="py-2 pl-2 font-normal">Together</th>
-            </tr>
-          </thead>
-          <tbody>
-            {years.map((row) => {
-              const isNow = row.year === activeYear;
-              return (
-                <tr key={row.year} className={`border-t border-border-light ${isNow ? "text-gold-deep" : "text-ink"}`}>
-                  <th scope="row" className={`py-2 pr-2 text-sm tabular-nums ${isNow ? "font-semibold" : "font-normal text-ink-light"}`}>
-                    {row.year}
-                    {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
-                  </th>
-                  <td className="px-1 py-2 text-center"><CycleNumber value={row.firstNumber} /></td>
-                  <td className="px-1 py-2 text-center"><CycleNumber value={row.secondNumber} /></td>
-                  <td className="py-2 pl-2 text-sm">
-                    {row.interaction ? (
-                      <InteractionLabel interaction={row.interaction} />
-                    ) : (
-                      <span className="text-ink-light">Not born yet</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </ViewTransition>
-
-      <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <button
-          type="button"
-          onClick={handleShare}
-          className={[
-            "pressable mr-2 inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
-            "border border-gold-deep text-base text-gold-deep",
-            "hover:bg-gold-deep hover:text-parchment",
-            "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
-          ].join(" ")}
-        >
-          Share this comparison
-        </button>
-        {/* The link's preview card is the summary as a 1200×630 image */}
-        <a
-          href={`${sharePath}/opengraph-image`}
-          download={`solini-comparison-${encodeBirthDate(readingDate.year, readingDate.month, readingDate.day)}-${encodeBirthDate(partner.year, partner.month, partner.day)}.png`}
-          className={TEXT_LINK_CLASS}
-        >
-          Download image
-        </a>
-        <button type="button" onClick={handleRemove} aria-label="Remove comparison" className={TEXT_LINK_CLASS}>
-          Remove
-        </button>
-      </div>
-      <p role="status" className="mt-2 min-h-[1.25rem] text-sm text-ink-light">
-        {shareStatus === "copied" && (
-          <span className="animate-settle-in inline-block">Link copied. It shows both birth dates to anyone who opens it.</span>
-        )}
-        {shareStatus === "failed" && (
-          <span className="animate-settle-in inline-block">Couldn&apos;t copy automatically. Copy the link from the address bar instead.</span>
-        )}
-      </p>
-
-      <HowToRead />
-    </section>
+        <HowToRead />
+      </section>
+    </CompareCard>
   );
 }

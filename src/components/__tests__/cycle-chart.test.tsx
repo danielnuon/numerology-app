@@ -79,7 +79,8 @@ describe("CycleChart (cycle wheel)", () => {
   it("leaves the month dial off when the wheel shows another cycle", () => {
     const { container } = render(<CycleChart {...defaultProps} selectedYear={2040} />);
     expect(container.querySelector(".wheel-month")).toBeNull();
-    expect(screen.queryByText(/shows month/)).not.toBeInTheDocument();
+    // The line keeps its place, faded out and hidden, so nothing below jumps
+    expect(screen.getByText(/shows month/)).toHaveAttribute("aria-hidden", "true");
   });
 
   it("names each orb's year and zodiac animal from the shared data layer", () => {

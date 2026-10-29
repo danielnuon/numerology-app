@@ -60,6 +60,9 @@
   --duration-quick: 150ms;
   --duration-standard: 250ms;
   --duration-gentle: 400ms;
+  /* A card changing into another in place (the form blooming into the
+   * reading, the comparison card), and everything that moves with it */
+  --duration-morph: 520ms;
   /* Living surfaces: every glow breathes between --breathe-low and full
    * light over --breathe-duration each way (see "Living surfaces" in the
    * design language). The glows are drawn about 22% brighter than their
@@ -772,15 +775,17 @@ button:not(:disabled),
   from { opacity: 0; transform: translateY(4px); }
 }
 
-/* Route changes (app/template.tsx): the old page leaves quickly, the new
- * one rises 8px and settles, the same shape as every in-page entrance. */
-::view-transition-old(.page-exit) {
+/* Enter and exit: what leaves fades quickly, what arrives rises 8px and
+ * settles, the same shape as every in-page entrance. Route changes use them
+ * for the whole page (app/template.tsx); on the home page the blocks below
+ * the reading use them as the reading blooms in or folds away. */
+::view-transition-old(.fade-out) {
   animation: var(--duration-quick) var(--ease-exit) both vt-fade-out;
 }
-::view-transition-new(.page-enter) {
-  animation: var(--duration-gentle) var(--ease-enter) both page-rise;
+::view-transition-new(.rise-in) {
+  animation: var(--duration-gentle) var(--ease-enter) both vt-rise;
 }
-@keyframes page-rise {
+@keyframes vt-rise {
   from { opacity: 0; transform: translateY(8px); }
 }
 
@@ -791,8 +796,17 @@ button:not(:disabled),
  * revealed from the top, never squashed. Going back, the reading clears
  * quickly so the two never ghost over each other. */
 ::view-transition-group(.reading-bloom) {
-  animation-duration: 520ms;
+  animation-duration: var(--duration-morph);
   animation-timing-function: var(--ease-standard);
+  /* The card's edge is the group's edge: what is not yet uncovered stays
+   * hidden instead of spilling over the content below */
+  overflow: clip;
+  border-radius: 1rem;
+}
+/* While a card morphs, the blocks below it glide on the same clock and
+ * curve, so they track its bottom edge instead of sliding over it. */
+html:active-view-transition-type(bloom-open, bloom-close, form-reset, compare-morph)::view-transition-group(*) {
+  animation-duration: var(--duration-morph);
 }
 ::view-transition-old(.reading-bloom),
 ::view-transition-new(.reading-bloom) {
@@ -805,10 +819,10 @@ button:not(:disabled),
   animation: 320ms var(--ease-standard) both vt-fade-out;
 }
 ::view-transition-new(.reading-bloom) {
-  animation: 520ms var(--ease-enter) both reading-bloom-in;
+  animation: var(--duration-morph) var(--ease-enter) both reading-bloom-in;
   transform-origin: 50% 30%;
 }
-html:active-view-transition-type(bloom-close)::view-transition-old(.reading-bloom) {
+html:active-view-transition-type(bloom-close, form-reset)::view-transition-old(.reading-bloom) {
   animation-duration: var(--duration-quick);
 }
 @keyframes reading-bloom-in {
