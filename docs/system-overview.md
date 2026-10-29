@@ -18,6 +18,8 @@ The system requires three pieces of birth data:
 
 This system uses a non-standard month cycle start. Unlike the standard Khmer New Year system, the month cycle begins at **Margasir** (approximately November–December), not the Gregorian January or the traditional Khmer New Year in April. This shifts all month indexing and is critical to producing correct results.
 
+Margasir is month 1 in the traditional lunar month count that Thai and Khmer seven-number charts use, as opposed to the civil year that starts at Khmer New Year. See [reading-model.md](reading-model.md) for sources.
+
 ## The Three Rows
 
 The calculation constructs three rows of numbers, each 12 columns wide.
@@ -142,9 +144,13 @@ Sum all 12 final values to produce the **total score** — a macro-level evaluat
 
 The total represents a baseline life trajectory. Individual year numbers show micro-level variation; the total shows the macro pattern.
 
-### 12 Life Areas (Optional Layer)
+### 12 Life Areas
 
-Each column position can also map to a life domain, allowing year-by-domain interpretation:
+Each column position maps to a life domain. A year is read as its domain and its number together: the number sets the tier, and the domain says what that strength applies to, so the same number reads differently in different domains (`interpretAreaYear()`, `AREA_READINGS`). See [reading-model.md](reading-model.md) for why, the sources, and the open question of whether these domains match the traditional twelve houses.
+
+### Day Planets
+
+Each weekday has a planet (Sunday the Sun, Monday the Moon, Tuesday Mars, Wednesday Mercury, Thursday Jupiter, Friday Venus, Saturday Saturn) with a strength from the Khmer count: Sunday 6, Tuesday 8, Saturday 10, Monday 15, Wednesday 17, Thursday 19, Friday 21. The day row's value in a column names the planet that stands over that year, so the birth day's planet stands over column 1 and columns 8–12 have none. The reading adds one sentence for that planet (`describeYearPlanet()`, `DAY_PLANETS`). It never changes the cycle number or tier.
 
 | Position | Domain | Position | Domain |
 |----------|--------|----------|--------|

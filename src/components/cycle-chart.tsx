@@ -24,6 +24,7 @@ import {
   ViewTransition,
 } from "react";
 import { motion } from "motion/react";
+import type { Weekday } from "@/lib/numerology/calculate";
 import { interpretYear, interpretTotal } from "@/lib/numerology/interpretation";
 import { getActiveYear, getCycleIndex, getLifeArea } from "@/lib/numerology/year-lookup";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
@@ -43,6 +44,8 @@ export interface CycleChartProps {
   birthMonth: number;
   /** Birth day (1–31) — used for timing-corrected "current year" highlight. */
   birthDay: number;
+  /** Birth weekday (1–7, Sunday=1) — passed to the reading for its day planet. */
+  weekday: Weekday;
   /** The selected calendar year; its orb is the selected tab. */
   selectedYear: number;
   /** Called with the 0-indexed position when an orb is chosen. */
@@ -101,6 +104,7 @@ export function CycleChart({
   birthYear,
   birthMonth,
   birthDay,
+  weekday,
   selectedYear,
   onSelectPillar,
   onReturnToCurrent,
@@ -414,6 +418,7 @@ export function CycleChart({
                   birthYear={birthYear}
                   year={selectedYear}
                   isCurrent={selectedYear === activeYear}
+                  weekday={weekday}
                 />
               </div>
             </ViewTransition>

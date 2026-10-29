@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { InfoPage, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { TOTAL_TIERS, YEAR_TIERS, type YearTier } from "@/lib/numerology/interpretation-data";
+import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
 import { LIFE_AREA_DESCRIPTIONS } from "@/lib/numerology/life-area-data";
 import { LIFE_AREA_MAP } from "@/lib/numerology/year-lookup";
 import { MEANING_DESCRIPTION, MEANING_TITLE, SITE_NAME } from "@/lib/site-copy";
@@ -90,8 +91,15 @@ export default function MeaningPage() {
       <Section title="The twelve life areas" id="life-areas">
         <p>
           Each year of the cycle speaks to one part of life. The year you were
-          born is Self, the next is Family, and so on around the cycle. So a
-          strong number in your Money year is read as a good year for money.
+          born is Self, the next is Family, and so on around the cycle.
+        </p>
+        <p>
+          A year is read as its number and its area together. The number says
+          how strong the year is, and the area says what that strength
+          applies to. So a 9 in your Money year is read as a good year for
+          earning, while the same 9 in your Health year is read as a year of
+          good energy. This follows the seven-number charts of Cambodia and
+          Thailand, where each number is read in light of the place it falls.
         </p>
         <ol className="space-y-3">
           {Object.entries(LIFE_AREA_MAP).map(([column, area]) => (
@@ -104,6 +112,36 @@ export default function MeaningPage() {
             </li>
           ))}
         </ol>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="Your birth day" id="birth-day">
+        <p>
+          Each weekday has its planet. In the Khmer telling, each day&apos;s
+          deity was made from a number of beings, from 6 for the Sun to 21 for
+          Venus, and that number is the planet&apos;s strength.
+        </p>
+        <p>
+          Your birth day&apos;s planet stands over the year you were born, the
+          next day&apos;s planet over the year after, and so on through your
+          first seven years of the cycle. A strong planet lends its year
+          support, and a weaker one asks for patience. The last five years have
+          no day planet. The planet adds to the reading but never changes the
+          number.
+        </p>
+        <dl className="space-y-2">
+          {[...Object.values(DAY_PLANETS)]
+            .sort((a, b) => b.strength - a.strength)
+            .map((p) => (
+              <div key={p.day} className="flex gap-3">
+                <dt className="w-8 shrink-0 text-right font-display text-gold-deep tabular-nums">{p.strength}</dt>
+                <dd>
+                  <span className="text-ink">{p.day}</span>, {p.planet}
+                </dd>
+              </div>
+            ))}
+        </dl>
       </Section>
 
       <SectionDivider />

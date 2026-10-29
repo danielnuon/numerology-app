@@ -54,6 +54,7 @@ When you learn something a future session would otherwise rediscover the hard wa
 | Design tokens | `src/app/globals.css` (`@theme inline` block) and `src/lib/motion.ts` |
 | Project standards | [docs/standards/](docs/standards/README.md) |
 | Domain rules, algorithm, worked examples | [docs/system-overview.md](docs/system-overview.md) |
+| How a year is read, its sources and open questions | [docs/reading-model.md](docs/reading-model.md) |
 | Visual design and component specs | [docs/design-spec.md](docs/design-spec.md) |
 | Modules, types, data flow, component tree | [docs/dev/architecture.md](docs/dev/architecture.md) |
 | Setup and detailed conventions | [docs/dev/contributing.md](docs/dev/contributing.md) |

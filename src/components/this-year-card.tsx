@@ -4,17 +4,18 @@
  * ThisYearCard
  *
  * The first thing the reading card shows: this year's cycle number, luck
- * tier, life area, and what the tier means, in plain sentences. The full
+ * tier, life area, what that number means for the life area, and the day
+ * planet that stands over the year, in plain sentences. The full
  * 12-year wheel sits beside or below it. Used for every reading: a fresh submission, a returning
  * visitor's saved date, and a shared link.
  */
 
-import { interpretYear } from "@/lib/numerology/interpretation";
+import type { Weekday } from "@/lib/numerology/calculate";
+import { describeYearPlanet, interpretAreaYear } from "@/lib/numerology/interpretation";
 import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers";
 import {
   getActiveYear,
   getCycleIndex,
-  getLifeArea,
   getYearNumber,
 } from "@/lib/numerology/year-lookup";
 
@@ -27,15 +28,17 @@ interface Props {
   birthMonth: number;
   /** Birth day (1–31) — used for timing-corrected year. */
   birthDay: number;
+  /** Birth weekday (1–7, Sunday=1) — sets which day planet stands over the year. */
+  weekday: Weekday;
 }
 
-export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay }: Props) {
+export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday }: Props) {
   const currentYear = new Date().getFullYear();
   const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
   const cycleNumber = getYearNumber(cycle, birthYear, activeYear);
   const cycleIndex = getCycleIndex(birthYear, activeYear);
-  const lifeArea = getLifeArea(cycleIndex + 1); // getLifeArea is 1-indexed
-  const interpretation = interpretYear(cycleNumber);
+  const interpretation = interpretAreaYear(cycleIndex + 1, cycleNumber); // columns are 1-indexed
+  const lifeArea = interpretation.area;
   const tierSymbol = getTierSymbol(interpretation.tier);
 
   return (
@@ -62,7 +65,8 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay }: Props) 
       <p className="mt-1 text-base text-gold-deep">Life area: {lifeArea}</p>
 
       <div className="mx-auto mt-5 max-w-[42ch] space-y-3 text-left text-base leading-relaxed text-ink-light">
-        <p>{interpretation.description}</p>
+        <p>{interpretation.reading}</p>
+        <p>{describeYearPlanet(weekday, cycleIndex + 1)}</p>
         <p className="italic border-l-2 pl-3 border-gold/40">{interpretation.guidance}</p>
       </div>
     </section>

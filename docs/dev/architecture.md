@@ -27,8 +27,8 @@ BirthDataForm (input)
               +- DetailPanel (reading that blooms from the wheel center)
                   |- getYearsForColumn() [chart-helpers.ts]
                   |- getTierSymbol() [chart-helpers.ts]
-                  |- interpretYear() [interpretation.ts]
-                  +- getLifeArea() [year-lookup.ts]
+                  |- interpretAreaYear() [interpretation.ts] -- life area x tier reading
+                  +- describeYearPlanet() [interpretation.ts] -- day planet over the year
 
 --- Returning visitor entry (localStorage) ---
 
@@ -43,8 +43,8 @@ HomeClient (useEffect on mount)
                  |- "Change date" → clearStoredBirthDate(), reset to first-visit
                  |- ThisYearCard (display)
                  |    |- getYearNumber() [year-lookup.ts]
-                 |    |- interpretYear() [interpretation.ts]
-                 |    +- getLifeArea() [year-lookup.ts]
+                 |    |- interpretAreaYear() [interpretation.ts]
+                 |    +- describeYearPlanet() [interpretation.ts]
                  +- "See all 12 years" (phones only) → opens #cycle-chart-section
                  +- CycleChart (display) — same as form-submission path
 
@@ -126,6 +126,17 @@ interface YearInterpretation {
   guidance: string;     // actionable guidance text
 }
 ```
+
+### `AreaYearInterpretation` (interpretation.ts)
+
+```ts
+interface AreaYearInterpretation extends YearInterpretation {
+  area: string;         // life area for the year's column, e.g. "Money"
+  reading: string;      // what this tier means for this life area
+}
+```
+
+Returned by `interpretAreaYear(column, cycleNumber)`, with `column` 1-indexed like `getLifeArea()`. The detail panel and this year's card show `reading`, so the same number reads differently in different life areas. `describeYearPlanet(weekday, column)` adds the day planet sentence: `getYearPlanet()` reads the day row's value for the column (null for columns 8–12) and looks it up in `DAY_PLANETS` (`day-planet-data.ts`). `CycleChart` and `ThisYearCard` take the birth `weekday` for this. Why the reading works this way, and its sources, are in [docs/reading-model.md](../reading-model.md).
 
 ### `TotalInterpretation` (interpretation.ts)
 
@@ -217,7 +228,7 @@ Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or
 
 ### Interpretation data is separated from logic
 
-`interpretation-data.ts` holds all tier definitions (labels, descriptions, guidance text, score ranges) as exported const arrays. `interpretation.ts` contains the lookup logic. This separation enables future i18n by swapping the data module without touching the lookup functions.
+`interpretation-data.ts` holds all tier definitions (labels, descriptions, guidance text, score ranges) as exported const arrays, and `life-area-data.ts` holds what each life area covers and its reading at each tier (`AREA_READINGS`, 12 areas x 5 tiers). `interpretation.ts` contains the lookup logic. This separation enables future i18n by swapping the data module without touching the lookup functions.
 
 ### Day row is 7 elements, not 12
 
@@ -305,7 +316,7 @@ Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live 
 | `zodiac.test.ts` | `zodiac.ts` -- Khmer and Chinese New Year lookups and zodiac resolution |
 | `calculate.test.ts` | `calculate.ts` -- `buildDayRow`, `computeCycle`, `computeTotalScore` |
 | `derive.test.ts` | `derive.ts` -- `deriveBirthData`, `validateBirthDate`, `computeCycleFromBirthDate` |
-| `interpretation.test.ts` | `interpretation.ts` -- `interpretYear`, `interpretTotal` |
+| `interpretation.test.ts` | `interpretation.ts` -- `interpretYear`, `interpretAreaYear`, `getYearPlanet`, `describeYearPlanet`, `interpretTotal` |
 | `year-lookup.test.ts` | `year-lookup.ts` -- `getCycleIndex`, `getYearNumber`, `getLifeArea` |
 | `chart-helpers.test.ts` | `chart-helpers.ts` -- `getTierSymbol`, `getTierColorClass`, `getYearsForColumn`, `getCurrentYearColumn` |
 | `url-encoding.test.ts` | `url-encoding.ts` -- `encodeBirthDate`, `decodeBirthDate`, `buildSharePath`, roundtrip validation |
