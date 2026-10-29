@@ -12,32 +12,6 @@ Stories from **Next** are being built in order, one PR at a time.
 
 ## Next
 
-### Update Notification Banner
-
-**Story:** As a returning visitor who has previously used the app, I want to see a one-time popup banner notifying me about the lucky number timing correction, so that I understand why my displayed number may have changed.
-
-**Priority:** Medium
-**Effort:** S
-
-**Acceptance Criteria:**
-- [ ] A banner or modal appears on the first visit after the update is deployed, visible only to users who have previously entered birth data (localStorage key `khmer-numerology:birth` exists)
-- [ ] The banner explains in plain language that the lucky number calculation has been corrected to account for birthday timing
-- [ ] The banner includes a dismiss action (close button or "Got it" button)
-- [ ] After dismissal, the banner never appears again for that user — tracked via a new localStorage key (e.g., `khmer-numerology:update-notice-dismissed`)
-- [ ] First-time visitors (no stored birth data) never see the banner
-- [ ] The banner is visually consistent with the existing design system (parchment background, ink text, Cormorant Garamond font)
-- [ ] The banner does not block interaction with the form or cycle chart — it overlays or sits above the content without preventing scroll or input
-- [ ] The banner is announced to screen readers via `aria-live="polite"` so assistive users are aware of it
-
-**Tasks:**
-- [ ] Design banner content with three concrete deliverables: (a) short headline, e.g., "Your Lucky Number Has Been Updated" (2–5 words); (b) body copy of 1–2 sentences explaining that the calculation now correctly waits until your birthday to show the new year's number; (c) dismiss button label (e.g., "Got it")
-- [ ] Implement banner component with conditional rendering based on localStorage keys (has birth data AND has not dismissed)
-- [ ] Implement dismiss handler that writes `khmer-numerology:update-2026-timing-fix-dismissed` to localStorage
-- [ ] Style banner to match design system tokens (parchment background, ink text, Cormorant Garamond, gold close button)
-- [ ] Write unit tests covering four named cases: (a) "banner shows when birth data exists and not dismissed"; (b) "banner hidden when no birth data"; (c) "banner hidden after dismissal"; (d) "banner hidden for first-time visitors" — each test asserting the correct component mount/unmount state
-
-**Notes:** The localStorage key for dismissal should be specific to this update (e.g., `khmer-numerology:update-2026-timing-fix-dismissed`) so future updates can trigger new banners. Depends on the Lucky Number Year Timing Correction being deployed first.
-
 ### Partner Comparison View
 
 **Story:** As a visitor in a relationship, I want to enter my partner's birth data and see how our cycles interact year by year, so that I can understand which years our luck strengthens or challenges each other.
@@ -200,3 +174,4 @@ These need real devices or a public URL and can't be automated here.
 - Lucky Number Year Timing Correction
 - Read each year by life area and number together
 - Year Timeline Explorer
+- Update notice for returning visitors

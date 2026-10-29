@@ -40,6 +40,8 @@ HomeClient (useEffect on mount)
           |- null → show BirthDataForm (first-visit state)
           +- valid → computeCycleFromBirthDate() [derive.ts]
               -> reading, with the form folded into a one-line summary
+                 |- UpdateNotice, once, unless readUpdateNoticeSeen() [storage.ts]
+                 |    +- "Got it" → markUpdateNoticeSeen(), focus the reading card
                  |- "Change date" → clearStoredBirthDate(), reset to first-visit
                  |- ThisYearCard (display)
                  |    |- getYearNumber() [year-lookup.ts]
@@ -49,8 +51,9 @@ HomeClient (useEffect on mount)
                  +- CycleChart (display) — same as form-submission path
 
 BirthDataForm (on successful submit)
-  +- saveBirthDate(day, month, year) [storage.ts]
-      -> localStorage.setItem("khmer-numerology:birth", JSON.stringify({day, month, year}))
+  |- saveBirthDate(day, month, year) [storage.ts]
+  |   -> localStorage.setItem("khmer-numerology:birth", JSON.stringify({day, month, year}))
+  +- markUpdateNoticeSeen() [storage.ts] -- a date saved now needs no note about the 2026 changes
 
 --- Share URL entry (/r/[date]) ---
 
