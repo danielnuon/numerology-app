@@ -17,7 +17,7 @@ export const SITE_NAME = "Solini";
  * previews and as the About page's title. "Khmer numerology" is the plain
  * description that goes with it.
  */
-export const SITE_TAGLINE = "A lantern for your twelve years";
+export const SITE_TAGLINE = "A lantern for every year in your cycle";
 
 /** Browser tab and search result title. */
 export const SITE_TITLE = `Solini — Khmer numerology, ${SITE_TAGLINE.toLowerCase()}`;

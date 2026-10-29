@@ -160,7 +160,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
     render(<HomeClient searchParams={{}} />);
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
     expect(screen.getByText(/a luck number for every year of your 12-year cycle/)).toBeInTheDocument();
-    expect(screen.getByText("A lantern for your twelve years")).toBeInTheDocument();
+    expect(screen.getByText("A lantern for every year in your cycle")).toBeInTheDocument();
   });
 
   it("opens the reading on this year", () => {
