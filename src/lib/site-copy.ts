@@ -31,7 +31,7 @@ export const SHARE_TITLE = `Solini — ${SITE_TAGLINE}`;
 
 /** Link-preview description, kept under ~120 characters for chat apps. */
 export const SHARE_DESCRIPTION =
-  "See your luck for every year of a 12-year cycle, from a Cambodian numerology tradition. Free, and it takes seconds.";
+  "See your luck for every year of a 12-year cycle, from Khmer numerology. Free, and it takes seconds.";
 
 /** Title for a shared reading's link preview. */
 export const SHARED_READING_TITLE = "A 12-year Khmer numerology reading — Solini";

@@ -1,7 +1,7 @@
 /**
  * Compatibility
  *
- * How two people's cycles interact, following the family's rules in
+ * How two people's cycles interact, following Khmer numerology's rules in
  * docs/system-overview.md ("Compatibility"). Each person's number for a
  * calendar year maps to a compatibility tier, the pair of tiers gives that
  * year's interaction, and the two total scores give an overall assessment.
@@ -25,10 +25,10 @@ export type StabilityAssessment = "strong" | "moderate" | "mixed" | "challenging
 
 /**
  * Each overall assessment's heading and one calm sentence, for the page and
- * link previews. The family calls the "challenging" assessment Challenging;
+ * link previews. Khmer numerology calls the "challenging" assessment Challenging;
  * Solini shows it as "Low stability", in line with the other three, so a
  * comparison of two people never reads as a warning. How your cycle is made
- * names the family's word.
+ * names the original word.
  */
 export const STABILITY_TEXT: Record<StabilityAssessment, { label: string; description: string }> = {
   strong: {
@@ -60,8 +60,8 @@ export const INTERACTION_ORDER: readonly YearInteraction[] = [
 
 /**
  * Each interaction's symbol, word and one-line meaning. The symbol is
- * decoration beside the word, so color is never the only cue. The family
- * calls the "risk" interaction Risk; Solini shows it as "Low together" for
+ * decoration beside the word, so color is never the only cue. Khmer
+ * numerology calls the "risk" interaction Risk; Solini shows it as "Low together" for
  * the same reason as "Low stability" above.
  */
 export const INTERACTION_TEXT: Record<YearInteraction, { symbol: string; label: string; meaning: string }> = {
@@ -118,7 +118,7 @@ export function yearInteraction(first: number, second: number): YearInteraction 
 /**
  * Overall assessment from two total scores.
  *
- * The family's table covers both at 68 or more (strong), both at 60 or more
+ * The compatibility table covers both at 68 or more (strong), both at 60 or more
  * (moderate), one at 68 or more with the other under 60 (mixed), and both
  * under 60 (challenging). It leaves out one score from 60 to 67 with the
  * other under 60; Solini reads that as mixed too, since one person is on
