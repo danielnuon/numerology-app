@@ -82,6 +82,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // Smooth scrolling is for in-page links only. This tells Next.js to
+      // switch it off while it moves to a new page, so the page change
+      // lands in place instead of gliding up or down after it.
+      data-scroll-behavior="smooth"
       className={`${cormorant.variable} ${marcellus.variable} ${hanken.variable} ${notoSerifKhmer.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

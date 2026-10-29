@@ -670,6 +670,62 @@ button:not(:disabled),
   animation: settle-in var(--duration-standard) var(--ease-enter) both;
 }
 
+/* === Site menu: the list unfolds from the Menu button ===
+ * The panel grows from the button's corner and fades in; its links then
+ * settle in one after another (--i is each link's place in the list). It
+ * folds away quickly and all at once, and is hidden only after it fades.
+ * Transform and opacity only, so it runs on the compositor. */
+.menu-panel {
+  transform-origin: top right;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
+  visibility: hidden;
+  transition:
+    opacity var(--duration-quick) var(--ease-exit),
+    transform var(--duration-quick) var(--ease-exit),
+    visibility 0s linear var(--duration-quick);
+}
+.menu-panel[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  transition:
+    opacity var(--duration-standard) var(--ease-enter),
+    transform var(--duration-gentle) var(--ease-enter),
+    visibility 0s;
+}
+.menu-item {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity var(--duration-quick) var(--ease-exit),
+    transform var(--duration-quick) var(--ease-exit);
+}
+.menu-panel[data-open="true"] .menu-item {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--duration-gentle) var(--ease-enter),
+    transform var(--duration-gentle) var(--ease-enter);
+  transition-delay: calc(60ms + var(--i, 0) * 35ms);
+}
+/* The Menu icon's outer lines turn into a close mark while the list is open. */
+.menu-icon line {
+  transform-box: view-box;
+  transform-origin: 8px 8px;
+  transition:
+    transform var(--duration-standard) var(--ease-standard),
+    opacity var(--duration-quick) var(--ease-standard);
+}
+[aria-expanded="true"] > .menu-icon .menu-icon-top { transform: translateY(3.5px) rotate(45deg); }
+[aria-expanded="true"] > .menu-icon .menu-icon-middle { opacity: 0; }
+[aria-expanded="true"] > .menu-icon .menu-icon-bottom { transform: translateY(-3.5px) rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel[data-open="true"] .menu-item {
+    transition-delay: 0s;
+  }
+}
+
 /* === Reveal: disclosures open and close in place ===
  * Closed content takes no space. <Reveal> (components/ui/reveal.tsx) lays
  * the page out once and glides what moved with transforms and clips, so no
