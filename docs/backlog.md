@@ -12,28 +12,6 @@ Stories from **Next** are being built in order, one PR at a time.
 
 ## Next
 
-### Compatibility Summary Card
-
-**Story:** As a visitor comparing with my partner, I want a summary card showing our overall compatibility, so that I get a quick read without studying the full chart.
-
-**Priority:** Low
-**Effort:** S
-
-**Acceptance Criteria:**
-- [ ] Card displays both people's total scores and the combined assessment
-- [ ] Card shows the count of stabilized, amplified, risk, unstable, and neutral years
-- [ ] Card highlights the current year's interaction
-- [ ] Card renders correctly when isolated from the page context (no external layout dependencies)
-- [ ] Card is exportable as a PNG image at 1200x628px (optimized for social sharing)
-
-**Tasks:**
-- [ ] Build summary card component as a self-contained React component with fixed dimensions
-- [ ] Implement year-type counting from compatibility results (all 5 types)
-- [ ] Add current-year highlight
-- [ ] Implement PNG export at 1200x628px via html-to-canvas or Satori
-
-**Notes:** Depends on Partner Comparison View.
-
 ### Shareable Results Card
 
 > Part of this may already exist: the `/r/[date]` share route and its OG image shipped with Page Metadata & SEO. Check before building.
@@ -138,3 +116,4 @@ These need real devices or a public URL and can't be automated here.
 - Year Timeline Explorer
 - Update notice for returning visitors
 - Partner Comparison View
+- Compatibility Summary Card

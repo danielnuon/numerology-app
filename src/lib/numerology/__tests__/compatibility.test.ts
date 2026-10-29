@@ -2,7 +2,11 @@ import {
   assessStability,
   compareCycles,
   compatibilityTier,
+  INTERACTION_ORDER,
+  INTERACTION_TEXT,
+  summarizeComparison,
   yearInteraction,
+  type ComparedYear,
 } from "../compatibility";
 import { computeCycleFromBirthDate } from "../derive";
 
@@ -100,5 +104,51 @@ describe("compareCycles", () => {
     for (const year of compareCycles(first.cycle, 1997, first.cycle, 1997, 2026)) {
       expect(year.firstNumber).toBe(year.secondNumber);
     }
+  });
+});
+
+describe("summarizeComparison", () => {
+  const year = (y: number, interaction: ComparedYear["interaction"]): ComparedYear => ({
+    year: y,
+    firstNumber: 0,
+    secondNumber: 0,
+    interaction,
+  });
+  const years = [year(2026, "amplified"), year(2027, "risk"), year(2028, "amplified"), year(2029, "unstable")];
+
+  it("counts every interaction, including the ones that never occur", () => {
+    expect(summarizeComparison(years, 2026).counts).toEqual({
+      amplified: 2,
+      stabilized: 0,
+      neutral: 0,
+      risk: 1,
+      unstable: 1,
+    });
+  });
+
+  it("picks out the current year", () => {
+    expect(summarizeComparison(years, 2027).current?.interaction).toBe("risk");
+  });
+
+  it("has no current year when it isn't among the compared years", () => {
+    expect(summarizeComparison(years, 2040).current).toBeNull();
+  });
+
+  it("counts add up to the years compared", () => {
+    const real = compareCycles(
+      computeCycleFromBirthDate(1997, 7, 24).cycle,
+      1997,
+      computeCycleFromBirthDate(2000, 3, 15).cycle,
+      2000,
+      2026
+    );
+    const { counts } = summarizeComparison(real, 2026);
+    expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(12);
+  });
+});
+
+describe("INTERACTION_TEXT", () => {
+  it("names every interaction in INTERACTION_ORDER exactly once", () => {
+    expect([...INTERACTION_ORDER].sort()).toEqual(Object.keys(INTERACTION_TEXT).sort());
   });
 });

@@ -8,11 +8,13 @@
  * rests as one "Compare with a partner" button under the reading. That opens
  * the birth date form in partner mode, and the comparison then shows:
  *
- * - both total scores and the overall stability assessment
+ * - CompatibilitySummary: both total scores, the overall stability
+ *   assessment, this year's interaction and a count of each interaction
  * - a table of the 12 years from the visitor's current cycle year, with each
  *   person's number and how the two meet that year, as a symbol and a word
  *   (never color alone)
- * - a link to share the comparison (/r/A+B) and a way to remove it
+ * - a link to share the comparison (/r/A+B), its preview card to download,
+ *   and a way to remove it
  *
  * HomeClient owns the partner's date, so a shared comparison link can open
  * straight onto it. The partner's date is never saved to the browser.
@@ -27,63 +29,19 @@ import { getTierSymbol, getTierTextClass } from "@/lib/numerology/chart-helpers"
 import {
   assessStability,
   compareCycles,
-  STABILITY_TEXT,
-  type YearInteraction,
+  INTERACTION_ORDER,
+  INTERACTION_TEXT,
+  summarizeComparison,
 } from "@/lib/numerology/compatibility";
-import { buildComparisonSharePath, type DecodedShare } from "@/lib/numerology/url-encoding";
+import {
+  CompatibilitySummary,
+  InteractionLabel,
+  type SummaryPerson,
+} from "@/components/compatibility-summary";
+import { buildComparisonSharePath, encodeBirthDate, type DecodedShare } from "@/lib/numerology/url-encoding";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { shareLink } from "@/lib/share";
 import { SHARED_COMPARISON_TITLE } from "@/lib/site-copy";
-
-/** How each interaction looks and reads: a symbol and a word, so color is never the only cue. */
-export const INTERACTION_DISPLAY: Record<
-  YearInteraction,
-  { symbol: string; label: string; colorClass: string; meaning: string }
-> = {
-  amplified: {
-    symbol: "★",
-    label: "Amplified",
-    colorClass: "text-gold-deep",
-    meaning: "Both years are strong, so the luck builds.",
-  },
-  stabilized: {
-    symbol: "▲",
-    label: "Stabilized",
-    colorClass: "text-tier-strong",
-    meaning: "The stronger year steadies the weaker one.",
-  },
-  neutral: {
-    symbol: "—",
-    label: "Neutral",
-    colorClass: "text-ink-light",
-    meaning: "No strong pull either way.",
-  },
-  risk: {
-    symbol: "▼",
-    label: "Risk",
-    colorClass: "text-tier-weak",
-    meaning: "Both years are low, so weakness compounds. Go gently.",
-  },
-  unstable: {
-    symbol: "⊙",
-    label: "Unstable",
-    colorClass: "text-ink-light",
-    meaning: "A reset year on either side unsettles the pair.",
-  },
-};
-
-/** The legend lists interactions from most to least supportive. */
-const LEGEND_ORDER: YearInteraction[] = ["amplified", "stabilized", "neutral", "risk", "unstable"];
-
-/** "July 24, 1997" for a birth date. */
-function formatDate({ year, month, day }: { year: number; month: number; day: number }): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(Date.UTC(year, month - 1, day)));
-}
 
 /** A cycle number with its tier symbol, which is decoration beside the number. */
 function NumberWithTier({ value }: { value: number }) {
@@ -181,7 +139,6 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
     );
   }
 
-  const comparedPartner = partner;
   const partnerReading = computeCycleFromBirthDate(partner.year, partner.month, partner.day, partner.rule);
   const years = compareCycles(
     reading.cycle,
@@ -190,16 +147,19 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
     partnerReading.birthYear,
     activeYear
   );
-  const assessment = STABILITY_TEXT[assessStability(reading.totalScore, partnerReading.totalScore)];
   const readingDate = {
     year: reading.birthYear,
     month: reading.birthData.gregorianMonth,
     day: reading.birthDay,
   };
+  const people: [SummaryPerson, SummaryPerson] = [
+    { term: "You", date: readingDate, animal: reading.birthData.zodiacAnimal, total: reading.totalScore },
+    { term: "Partner", date: partner, animal: partnerReading.birthData.zodiacAnimal, total: partnerReading.totalScore },
+  ];
+  const sharePath = buildComparisonSharePath({ ...readingDate, rule: readingRule }, partner);
 
   async function handleShare() {
-    const path = buildComparisonSharePath({ ...readingDate, rule: readingRule }, comparedPartner);
-    const url = new URL(path, window.location.origin).toString();
+    const url = new URL(sharePath, window.location.origin).toString();
     const outcome = await shareLink({
       url,
       title: SHARED_COMPARISON_TITLE,
@@ -217,26 +177,13 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
         Your cycles together
       </h2>
 
-      {/* Whose cycles these are, with each total score */}
-      <dl className="mt-4 grid grid-cols-2 gap-3">
-        {[
-          { term: "You", date: readingDate, animal: reading.birthData.zodiacAnimal, total: reading.totalScore },
-          { term: "Partner", date: partner, animal: partnerReading.birthData.zodiacAnimal, total: partnerReading.totalScore },
-        ].map((person) => (
-          <div key={person.term} className="min-w-0 rounded-xl border border-border p-3">
-            <dt className="text-xs uppercase tracking-[0.14em] text-ink-light">{person.term}</dt>
-            <dd className="mt-1 text-sm text-ink">{formatDate(person.date)}</dd>
-            <dd className="text-sm text-ink-light">Year of the {person.animal}</dd>
-            <dd className="mt-2 text-sm text-ink-light">
-              Total <span className="font-display text-2xl text-gold-deep">{person.total}</span>
-            </dd>
-          </div>
-        ))}
-      </dl>
-
       <div className="mt-4">
-        <p className="font-display text-lg text-ink">{assessment.label}</p>
-        <p className="mt-1 text-sm leading-relaxed text-ink-light">{assessment.description}</p>
+        <CompatibilitySummary
+          people={people}
+          assessment={assessStability(reading.totalScore, partnerReading.totalScore)}
+          summary={summarizeComparison(years, activeYear)}
+          yearCount={years.length}
+        />
       </div>
 
       {/* Year by year, starting with the visitor's current cycle year */}
@@ -252,7 +199,6 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
         </thead>
         <tbody>
           {years.map((row) => {
-            const display = INTERACTION_DISPLAY[row.interaction];
             const isNow = row.year === activeYear;
             return (
               <tr key={row.year} className="border-t border-border-light">
@@ -263,10 +209,7 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
                 <td className="px-1 py-2 text-center"><NumberWithTier value={row.firstNumber} /></td>
                 <td className="px-1 py-2 text-center"><NumberWithTier value={row.secondNumber} /></td>
                 <td className="py-2 pl-2 text-sm">
-                  <span className={`inline-flex items-center gap-1.5 ${display.colorClass}`}>
-                    <span aria-hidden="true">{display.symbol}</span>
-                    {display.label}
-                  </span>
+                  <InteractionLabel interaction={row.interaction} />
                 </td>
               </tr>
             );
@@ -276,33 +219,43 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
 
       {/* What each word means */}
       <dl className="mt-5 grid gap-1.5 text-sm">
-        {LEGEND_ORDER.map((interaction) => {
-          const display = INTERACTION_DISPLAY[interaction];
-          return (
-            <div key={interaction} className="flex gap-2">
-              <dt className={`inline-flex shrink-0 items-center gap-1.5 ${display.colorClass}`}>
-                <span aria-hidden="true">{display.symbol}</span>
-                {display.label}
-              </dt>
-              <dd className="text-ink-light">{display.meaning}</dd>
-            </div>
-          );
-        })}
+        {INTERACTION_ORDER.map((interaction) => (
+          <div key={interaction} className="flex gap-2">
+            <dt className="shrink-0">
+              <InteractionLabel interaction={interaction} />
+            </dt>
+            <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
+          </div>
+        ))}
       </dl>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <button
-          type="button"
-          onClick={handleShare}
-          className={[
-            "pressable inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
-            "border border-gold-deep text-base text-gold-deep",
-            "hover:bg-gold-deep hover:text-parchment",
-            "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
-          ].join(" ")}
-        >
-          Share this comparison
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleShare}
+            className={[
+              "pressable inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
+              "border border-gold-deep text-base text-gold-deep",
+              "hover:bg-gold-deep hover:text-parchment",
+              "active:scale-[0.97] active:bg-gold-deep active:text-parchment",
+            ].join(" ")}
+          >
+            Share this comparison
+          </button>
+          {/* The link's preview card is the summary as a 1200×630 image */}
+          <a
+            href={`${sharePath}/opengraph-image`}
+            download={`solini-comparison-${encodeBirthDate(readingDate.year, readingDate.month, readingDate.day)}-${encodeBirthDate(partner.year, partner.month, partner.day)}.png`}
+            className={[
+              "pressable inline-flex min-h-[44px] items-center justify-center rounded-full px-5",
+              "border border-border text-sm text-ink-light tracking-[0.04em]",
+              "hover:text-ink hover:border-gold active:scale-[0.97]",
+            ].join(" ")}
+          >
+            Download image
+          </a>
+        </div>
         <button type="button" onClick={handleRemove} className={TEXT_LINK_CLASS}>
           Remove comparison
         </button>

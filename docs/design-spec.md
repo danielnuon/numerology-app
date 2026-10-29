@@ -229,11 +229,16 @@ A thin gold arc traces the ring from the birth year to this year.
 - **Resting:** one full-width outlined "Compare with a partner" button, with a line under it saying what it does.
 - **Entering a date:** a glass card with the heading "Compare with a partner", the prompt "Enter your partner's birth date to see compatibility.", the birth date form in partner mode (its own New Year toggle, a "Compare" button, and "Their birth date isn't saved anywhere.") and a Cancel link.
 - **Comparing:** a glass card, up to 640px wide, headed "Your cycles together":
-  - Two small bordered panels, You and Partner, each with the birth date, animal and total score in `gold-deep` display type.
-  - The overall assessment (Strong, Moderate or Mixed stability, or Challenging) and one calm sentence.
+  - **The summary** (`CompatibilitySummary`), a bordered panel that needs nothing around it:
+    - You and Partner side by side, each with the birth date, animal and total score in `gold-deep` display type.
+    - The overall assessment (Strong, Moderate or Mixed stability, or Challenging) and one calm sentence.
+    - "This year, 2026:" in bold `gold-deep`, then that year's interaction.
+    - "Over 12 years": a count beside each of the five interactions, zeros included, wrapping onto more lines on narrow screens.
   - A table of the 12 years from the visitor's current cycle year: Year, You, Partner, Together. The current year's row label is bold `gold-deep` with "Now" under it. Each number has its tier symbol beside it.
   - A legend that says what each interaction means.
-  - "Share this comparison" (gold outline, like Share) and a "Remove comparison" text link.
+  - "Share this comparison" (gold outline, like Share), "Download image" (quiet outline, like the reading's) and a "Remove comparison" text link.
+
+**Summary card image:** the comparison link's preview image (`/r/A+B/opengraph-image`, 1200×630) draws the same summary: both animals, dates and totals, the assessment, this year's interaction and five count tiles. "Download image" saves it as `solini-comparison-A-B.png`. Satori may lack the Unicode symbols, so the image draws them as SVG shapes in the same colors.
 
 A table, not two charts side by side: the comparison is about the same calendar year for two people, and a row per year reads the same at 320px and 1920px with no stacking.
 

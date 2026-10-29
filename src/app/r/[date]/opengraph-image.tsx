@@ -11,9 +11,10 @@ import { getActiveYear, getLifeArea } from "@/lib/numerology/year-lookup";
 import { OG_COLORS, OG_SITE_LABEL, pillarColors } from "@/lib/og-theme";
 import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
 import GenericOgImage from "../../opengraph-image";
+import { comparisonImage } from "./comparison-image";
 
 export const alt =
-  "A 12-year Khmer numerology reading from Solini: one luck number for each year, the birth animal, this year lit and the cycle's total score.";
+  "A Khmer numerology card from Solini: a 12-year reading with one luck number for each year and the total score, or for a comparison, how two people's cycles meet.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,8 +24,11 @@ type Props = {
 
 export default async function OgImage({ params }: Props) {
   const { date } = await params;
-  // A comparison link previews the first person's reading.
-  const decoded = decodeShareSegment(date) ?? decodeComparisonSegment(date)?.first ?? null;
+  // A comparison link previews the compatibility summary.
+  const comparison = decodeComparisonSegment(date);
+  if (comparison) return comparisonImage(comparison, size);
+
+  const decoded = decodeShareSegment(date);
 
   // Invalid date: show the site's own card.
   if (!decoded) return GenericOgImage();

@@ -7,6 +7,7 @@
  */
 
 import type { YearTier } from "@/lib/numerology/interpretation-data";
+import type { YearInteraction } from "@/lib/numerology/compatibility";
 
 export const OG_COLORS = {
   page: "#17131C",
@@ -37,6 +38,15 @@ export function pillarColors(tier: YearTier): { background: string; border: stri
   // 8-digit hex: tier color at ~16% for the fill, ~50% for the edge.
   return { background: `${color}29`, border: `${color}80` };
 }
+
+/** Interaction colors, as the comparison view's text colors (compatibility-summary.tsx). */
+export const OG_INTERACTION_COLORS: Record<YearInteraction, string> = {
+  amplified: OG_COLORS.goldDeep,
+  stabilized: TIER_COLORS.strong,
+  neutral: OG_COLORS.inkLight,
+  risk: TIER_COLORS.weak,
+  unstable: OG_COLORS.inkLight,
+};
 
 /** Site address printed small on every card, so a saved image still leads back. */
 export const OG_SITE_LABEL = "solini.vercel.app";
