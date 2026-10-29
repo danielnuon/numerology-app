@@ -98,6 +98,29 @@ describe("HomeClient: the form blooms into the reading", () => {
     expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
   });
 
+  it("calls a shared reading theirs and leads to the visitor's own", () => {
+    render(<HomeClient searchParams={{ day: "24", month: "7", year: "1997" }} />);
+
+    expect(screen.getByText("Their 2026 reading")).toBeInTheDocument();
+    expect(screen.getByText("Their 2027 reading begins on July 24.")).toBeInTheDocument();
+    expect(screen.getByText("Share this reading")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compare it with yours" })).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "See your own cycle" }));
+    });
+    expect(screen.getByText("Enter your birth date to see your own 12-year cycle.")).toBeInTheDocument();
+  });
+
+  it("calls the visitor's own reading theirs, with no button to read their own", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+    expect(screen.getByText("Your 2026 reading")).toBeInTheDocument();
+    expect(screen.getByText("Your 2027 reading begins on July 24.")).toBeInTheDocument();
+    expect(screen.getByText("Share your reading")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "See your own cycle" })).not.toBeInTheDocument();
+  });
+
   it("opens a shared comparison on both cycles, without saving the partner", () => {
     render(
       <HomeClient
@@ -105,14 +128,14 @@ describe("HomeClient: the form blooms into the reading", () => {
       />
     );
 
-    expect(screen.getByRole("heading", { name: "Your cycles together" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Two cycles together" })).toBeInTheDocument();
     expect(screen.getByText("March 15, 2000")).toBeInTheDocument();
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
   });
 
   it("ignores partner params without a shared reading", () => {
     render(<HomeClient searchParams={{ pday: "15", pmonth: "3", pyear: "2000" }} />);
-    expect(screen.queryByRole("heading", { name: "Your cycles together" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /cycles together/ })).not.toBeInTheDocument();
   });
 });
 
@@ -133,17 +156,11 @@ describe("HomeClient: a calm first visit, this year first", () => {
     jest.useRealTimers();
   });
 
-  it("asks one question, with the intro folded behind \"What will I see?\"", () => {
+  it("asks one question, after one line saying what the reading gives", () => {
     render(<HomeClient searchParams={{}} />);
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
-    const toggle = screen.getByRole("button", { name: "What will I see?" });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    const panel = document.getElementById(toggle.getAttribute("aria-controls")!);
-    expect(panel).toHaveAttribute("aria-hidden", "true");
-    expect(panel).toHaveTextContent(/a luck number for every year of your 12-year cycle/);
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(panel).toHaveAttribute("aria-hidden", "false");
+    expect(screen.getByText(/a luck number for every year of your 12-year cycle/)).toBeInTheDocument();
+    expect(screen.getByText("A lantern for every year in your cycle")).toBeInTheDocument();
   });
 
   it("opens the reading on this year", () => {

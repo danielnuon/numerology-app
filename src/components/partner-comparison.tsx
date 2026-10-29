@@ -3,9 +3,10 @@
 /**
  * PartnerComparison
  *
- * Compares the reading on the page with a partner's, year by year, using the
- * family's compatibility rules (src/lib/numerology/compatibility.ts). It
- * rests as one "Compare with a partner" button under the reading. That opens
+ * Compares the reading on the page with someone else's (a partner, parent,
+ * child or friend), year by year, using the family's compatibility rules
+ * (src/lib/numerology/compatibility.ts). It rests as one "Compare with
+ * someone close" button under the reading. That opens
  * the birth date form in partner mode, and the comparison then shows:
  *
  * - CompatibilitySummary: both total scores, the overall stability
@@ -44,6 +45,7 @@ import {
 import { buildComparisonSharePath, encodeBirthDate, type DecodedShare } from "@/lib/numerology/url-encoding";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { shareLink } from "@/lib/share";
+import { trackEvent } from "@/lib/track";
 import { SHARED_COMPARISON_TITLE } from "@/lib/site-copy";
 
 /** A cycle number with its tier symbol, which is decoration beside the number. */
@@ -154,14 +156,29 @@ interface Props {
   partner: DecodedShare | null;
   /** Called with the partner's date on "Compare", and with null on "Remove comparison". */
   onPartnerChange: (partner: DecodedShare | null) => void;
+  /** True when the reading came from someone else's share link, so the visitor compares it with their own. */
+  isShared?: boolean;
+}
+
+/**
+ * What the comparison calls each person. On the visitor's own reading they
+ * are "You" and "Them". On a shared reading the visitor enters their own
+ * date, so the order flips; a shared comparison holds neither, so it
+ * numbers them.
+ */
+function personTerms(isShared: boolean, enteredHere: boolean): [string, string] {
+  if (!isShared) return ["You", "Them"];
+  return enteredHere ? ["Them", "You"] : ["First", "Second"];
 }
 
 /** Shared look for the quiet text links, matching "Back to the reading". */
 const TEXT_LINK_CLASS =
   "pressable inline-flex min-h-[44px] items-center px-2 text-base text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70";
 
-export function PartnerComparison({ reading, readingRule, activeYear, partner, onPartnerChange }: Props) {
+export function PartnerComparison({ reading, readingRule, activeYear, partner, onPartnerChange, isShared = false }: Props) {
   const [formOpen, setFormOpen] = useState(false);
+  // True once the second date comes from this form rather than a shared comparison link
+  const [enteredHere, setEnteredHere] = useState(false);
   // The partner form starts on the reading's rule, so both are counted alike unless changed.
   const [partnerRule, setPartnerRule] = useState<NewYearRule>(readingRule);
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle");
@@ -176,12 +193,14 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   }
 
   function handlePartnerResult(result: CycleResultWithYear) {
+    trackEvent("Comparison made", isShared);
     onPartnerChange({
       year: result.birthYear,
       month: result.birthData.gregorianMonth,
       day: result.birthDay,
       rule: partnerRule,
     });
+    setEnteredHere(true);
     setFormOpen(false);
     setShareStatus("idle");
   }
@@ -195,16 +214,18 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
   // Resting state: one button under the reading.
   if (!partner && !formOpen) {
     return (
-      <section aria-label="Compare with a partner" className="mt-10 w-full max-w-[480px] text-center">
+      <section aria-label="Compare cycles" className="mt-10 w-full max-w-[480px] text-center">
         <button
           type="button"
           onClick={() => setFormOpen(true)}
           className="pressable min-h-[52px] w-full rounded-full border border-border px-6 text-base text-ink hover:border-gold-deep active:scale-[0.97]"
         >
-          Compare with a partner
+          {isShared ? "Compare it with yours" : "Compare with someone close"}
         </button>
         <p className="mt-2 text-sm text-ink-light">
-          See how your cycle meets someone else&apos;s, year by year.
+          {isShared
+            ? "See how this cycle meets your own, year by year."
+            : "A partner, parent, child or friend: see how your cycles meet, year by year."}
         </p>
       </section>
     );
@@ -218,10 +239,12 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
         className="animate-settle-in glass mt-10 w-full max-w-[480px] rounded-2xl p-6 sm:p-10"
       >
         <h2 id="compare-heading" className="text-center font-display text-2xl leading-tight tracking-[0.03em] text-ink">
-          Compare with a partner
+          {isShared ? "Compare it with yours" : "Compare with someone close"}
         </h2>
         <p className="mt-2 text-center text-base text-ink-light">
-          Enter your partner&apos;s birth date to see compatibility.
+          {isShared
+            ? "Enter your birth date to see how the two cycles meet."
+            : "Enter their birth date to see how your cycles meet."}
         </p>
         <BirthDataForm
           mode="partner"
@@ -251,13 +274,15 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
     month: reading.birthData.gregorianMonth,
     day: reading.birthDay,
   };
+  const terms = personTerms(isShared, enteredHere);
   const people: [SummaryPerson, SummaryPerson] = [
-    { term: "You", date: readingDate, animal: reading.birthData.zodiacAnimal, total: reading.totalScore },
-    { term: "Partner", date: partner, animal: partnerReading.birthData.zodiacAnimal, total: partnerReading.totalScore },
+    { term: terms[0], date: readingDate, animal: reading.birthData.zodiacAnimal, total: reading.totalScore },
+    { term: terms[1], date: partner, animal: partnerReading.birthData.zodiacAnimal, total: partnerReading.totalScore },
   ];
   const sharePath = buildComparisonSharePath({ ...readingDate, rule: readingRule }, partner);
 
   async function handleShare() {
+    trackEvent("Comparison shared", isShared);
     const url = new URL(sharePath, window.location.origin).toString();
     const outcome = await shareLink({
       url,
@@ -273,7 +298,7 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
       className="animate-settle-in glass mt-10 w-full max-w-[640px] rounded-2xl p-4 min-[360px]:p-5 sm:p-8"
     >
       <h2 id="compare-heading" className="font-display text-2xl leading-tight tracking-[0.03em] text-ink">
-        Your cycles together
+        {isShared && !enteredHere ? "Two cycles together" : "Your cycles together"}
       </h2>
 
       {cycleStarts.length > 1 && (
@@ -303,8 +328,8 @@ export function PartnerComparison({ reading, readingRule, activeYear, partner, o
             <thead>
               <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
                 <th scope="col" className="py-2 pr-2 font-normal">Year</th>
-                <th scope="col" className="px-1 py-2 text-center font-normal">You</th>
-                <th scope="col" className="px-1 py-2 text-center font-normal">Partner</th>
+                <th scope="col" className="px-1 py-2 text-center font-normal">{terms[0]}</th>
+                <th scope="col" className="px-1 py-2 text-center font-normal">{terms[1]}</th>
                 <th scope="col" className="py-2 pl-2 font-normal">Together</th>
               </tr>
             </thead>

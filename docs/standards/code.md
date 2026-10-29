@@ -7,7 +7,7 @@ Solini's code should read like a well-edited book: someone new to the project ca
 | What | Where | Rules |
 |------|-------|-------|
 | Numerology logic | `src/lib/numerology/` | Pure functions and data. No React, Next.js or browser APIs, so it runs in plain Node. |
-| Other shared logic | `src/lib/` | Small modules with one job each: `storage.ts`, `analytics.ts`, `motion.ts`, `site-copy.ts`, `og-theme.ts`. |
+| Other shared logic | `src/lib/` | Small modules with one job each: `storage.ts`, `analytics.ts`, `track.ts`, `motion.ts`, `site-copy.ts`, `og-theme.ts`. |
 | Feature components | `src/components/` | One component per file, named after the file (`cycle-chart.tsx` exports `CycleChart`). |
 | Shared building blocks | `src/components/ui/` | Small presentational pieces with no app state: `ZodiacIcon`, `SectionDivider`, page parts. |
 | Routes | `src/app/` | Thin. A page reads its params and renders components; logic lives in `lib/` and components. |

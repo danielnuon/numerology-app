@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { InfoPage, MORE_LINK, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { YEAR_TIERS } from "@/lib/numerology/interpretation-data";
-import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME } from "@/lib/site-copy";
+import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME, SITE_TAGLINE } from "@/lib/site-copy";
 
 export const metadata: Metadata = {
   title: ABOUT_TITLE,
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <InfoPage title="A lantern for your twelve years">
+    <InfoPage title={SITE_TAGLINE}>
       <SectionDivider compact />
 
       <Section title="The tradition">
@@ -27,14 +27,65 @@ export default function AboutPage() {
           working is plain to see.
         </p>
         <p>
-          Much of this knowledge was lost in the Khmer Rouge years. What
-          survived was passed on by older generations, often by word of mouth
-          rather than in books.
+          Much of this knowledge was lost in the{" "}
+          <a href="#khmer-rouge" className={MORE_LINK}>Khmer Rouge years</a>.
+          What survived was passed on by older generations, often by word of
+          mouth rather than in books.
         </p>
         <p>
           Solini follows one such method. It isn&apos;t a prediction.
-          It&apos;s a lantern: a way to look at your twelve years with a
+          It&apos;s a lantern: a way to look at each year of your cycle with a
           little more light.
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="The Khmer Rouge years" id="khmer-rouge">
+        <p>
+          From April 1975 to January 1979, the Khmer Rouge, led by Pol Pot,
+          ruled Cambodia. They emptied the cities and forced people into
+          labor camps in the countryside. They abolished money, schools and
+          religion, and split families apart. Teachers, doctors, monks and
+          anyone seen as educated were singled out, as were ethnic minorities
+          such as the Cham and the Vietnamese.
+        </p>
+        <p>
+          An estimated 1.5 to 2 million people died, close to a quarter of
+          the country, from execution, starvation, overwork and disease. In
+          2018 a UN-backed court in Phnom Penh found two of the regime&apos;s
+          surviving leaders guilty of genocide.
+        </p>
+        <p>
+          Almost every Cambodian family lost someone. Many survivors fled as
+          refugees and rebuilt their lives far from home, often without
+          knowing what had become of the people they grew up with. Traditions
+          like this numerology lived on in the people who carried them.{" "}
+          <a href="https://dccam.org" className={MORE_LINK}>
+            The Documentation Center of Cambodia
+          </a>{" "}
+          keeps the record of these years.
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="Why it's called Solini">
+        <p>
+          Solini is named for my mother&apos;s childhood best friend, who
+          taught her this numerology. In Khmer belief, some people have a
+          special connection to the spirits, who guide them to read the
+          numbers truly. Solini was one of them.
+        </p>
+        <p>
+          During the genocide, my mother lost touch with her. Decades later,
+          they found each other again through social media. Solini is alive
+          and well.
+        </p>
+        <p>
+          This app is our way of lighting a lantern: to thank Solini for
+          passing on what she knew, and to honor everyone lost in the
+          genocide.
         </p>
       </Section>
 

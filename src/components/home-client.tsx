@@ -17,8 +17,10 @@
  * - A partner comparison under the reading. A shared comparison link
  *   (/r/A+B) arrives with the partner's date as ?pday=&pmonth=&pyear=&pny=.
  *
- * The first visit asks one question, with the intro and the New Year choice
- * folded away. The reading opens on this year's reading. Below lg a
+ * The first visit asks one question, with one line above it saying what
+ * the reading gives and the New Year choice folded away. The reading opens
+ * on this year's reading. A reading from someone else's share link reads
+ * "Their", and its main button is "See your own cycle". Below lg a
  * "Year / Cycle" switch swaps it for the 12-year wheel and
  * timeline in the same place; from lg the two sit side by side.
  */
@@ -37,7 +39,6 @@ import {
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { SectionDivider } from "@/components/ui/section-divider";
-import { Reveal } from "@/components/ui/reveal";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
@@ -52,6 +53,8 @@ import { ShareReading } from "@/components/share-reading";
 import { UpdateNotice } from "@/components/update-notice";
 import { PartnerComparison } from "@/components/partner-comparison";
 import type { DecodedShare } from "@/lib/numerology/url-encoding";
+import { SITE_TAGLINE } from "@/lib/site-copy";
+import { trackEvent } from "@/lib/track";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
 import {
   computeCycleFromBirthDate,
@@ -71,7 +74,8 @@ import {
   markUpdateNoticeSeen,
   type StoredBirthDate,
 } from "@/lib/storage";
-import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
+import { getActiveYear, getCycleIndex, getYearNumber } from "@/lib/numerology/year-lookup";
+import { interpretAreaYear } from "@/lib/numerology/interpretation";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 
 /** ID for the reading card, the place the form blooms into. */
@@ -145,6 +149,15 @@ interface Props {
   searchParams: HomeSearchParams;
 }
 
+/** The active year's reading in a line, which leads the share message. */
+function thisYearHeadline(result: CycleResultWithYear, activeYear: number) {
+  const interpretation = interpretAreaYear(
+    getCycleIndex(result.birthYear, activeYear) + 1,
+    getYearNumber(result.cycle, result.birthYear, activeYear)
+  );
+  return { year: activeYear, label: interpretation.label, area: interpretation.area };
+}
+
 export function HomeClient({ searchParams }: Props) {
   const isHydrated = useIsHydrated();
 
@@ -216,7 +229,6 @@ export function HomeClient({ searchParams }: Props) {
     [isHydrated]
   );
   const [noticeDismissed, setNoticeDismissed] = useState(false);
-  const [introOpen, setIntroOpen] = useState(false);
 
   // The partner being compared with, if any. Never saved to the browser.
   const [partner, setPartner] = useState<DecodedShare | null>(() =>
@@ -249,6 +261,7 @@ export function HomeClient({ searchParams }: Props) {
 
   // Form submission: localStorage save happens inside BirthDataForm.handleSubmit
   const handleResult = useCallback((r: CycleResultWithYear) => {
+    trackEvent("Reading revealed", hasShareParams);
     startTransition(() => {
       addTransitionType("bloom-open");
       setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
@@ -257,7 +270,7 @@ export function HomeClient({ searchParams }: Props) {
       setReadingView("year");
       setBloomed(true);
     });
-  }, []);
+  }, [hasShareParams]);
 
   // Switching views crossfades in place. If the visitor had scrolled down
   // the wheel, the new view starts from the card's top instead.
@@ -330,6 +343,8 @@ export function HomeClient({ searchParams }: Props) {
   const showReading = !!result && !formOpen;
   const showForm = !showReading;
   const showNotice = showReading && isRestoredDate && !noticeSeenBefore && !noticeDismissed;
+  // A reading opened from someone else's share link, until the visitor reads their own
+  const isShared = hasShareParams && !bloomed;
 
   // The reading opens where the form was, so the page doesn't jump. If the
   // visitor had scrolled past the top of the form, bring the card's top back
@@ -358,14 +373,12 @@ export function HomeClient({ searchParams }: Props) {
       >
         Khmer Numerology
       </p>
-      {result && (
-        <p
-          className="rise mt-1 text-sm uppercase text-ink-light text-center tracking-[0.16em]"
-          style={{ "--rise-delay": "620ms" } as React.CSSProperties}
-        >
-          Your cycle, lit year by year
-        </p>
-      )}
+      <p
+        className="rise mt-1 text-sm uppercase text-ink-light text-center text-balance tracking-[0.16em]"
+        style={{ "--rise-delay": "620ms" } as React.CSSProperties}
+      >
+        {SITE_TAGLINE}
+      </p>
 
       <SectionDivider compact />
 
@@ -379,14 +392,21 @@ export function HomeClient({ searchParams }: Props) {
             >
               {formOpen ? (
                 <p className="text-center text-ink-light text-base leading-relaxed">
-                  {hasShareParams && !bloomed
+                  {isShared
                     ? "Enter your birth date to see your own 12-year cycle."
                     : "Enter another birth date to read that person's 12-year cycle."}
                 </p>
               ) : (
-                <h2 className="text-center font-display text-[1.75rem] leading-tight text-ink tracking-[0.03em] text-balance">
-                  When were you born?
-                </h2>
+                <>
+                  <h2 className="text-center font-display text-[1.75rem] leading-tight text-ink tracking-[0.03em] text-balance">
+                    When were you born?
+                  </h2>
+                  {/* What the visitor gets, said before the form asks for anything */}
+                  <p className="mt-2 text-center text-base leading-relaxed text-ink-light text-balance">
+                    See a luck number for every year of your 12-year cycle,
+                    from a Cambodian family tradition.
+                  </p>
+                </>
               )}
 
               <BirthDataForm
@@ -408,28 +428,6 @@ export function HomeClient({ searchParams }: Props) {
               )}
             </div>
           </ViewTransition>
-        )}
-
-        {/* The intro, word for word, for visitors who want it before they start */}
-        {showForm && !formOpen && (
-          <div className="mt-5 flex max-w-[480px] w-full flex-col items-center text-center">
-            <button
-              type="button"
-              aria-expanded={introOpen}
-              aria-controls="intro-more"
-              onClick={() => setIntroOpen((open) => !open)}
-              className="pressable inline-flex min-h-[44px] items-center px-2 text-base text-gold-deep underline underline-offset-4 decoration-gold/50 hover:decoration-gold-deep"
-            >
-              What will I see?
-            </button>
-            <Reveal open={introOpen} id="intro-more">
-              <p className="mt-2 text-base leading-relaxed text-ink-light">
-                Enter your birth date to see a luck number for every year of
-                your 12-year cycle, read from your birth month, zodiac animal
-                and weekday.
-              </p>
-            </Reveal>
-          </div>
         )}
 
         {/* Present from the server render, so the note is announced when it appears */}
@@ -463,7 +461,7 @@ export function HomeClient({ searchParams }: Props) {
               {/* Whose reading this is, and the way back to the form */}
               <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none items-start justify-between gap-x-3 px-1">
                 <div id="reading-summary" className="min-w-0">
-                  {hasShareParams && !bloomed && (
+                  {isShared && (
                     <p className="text-sm uppercase tracking-[0.12em] text-gold-deep">
                       A reading shared with you
                     </p>
@@ -481,10 +479,10 @@ export function HomeClient({ searchParams }: Props) {
                   <button
                     type="button"
                     onClick={handleReadAgain}
-                    aria-label={hasShareParams && !bloomed ? "Read your own" : "Read for someone else"}
+                    aria-label={isShared ? "Read your own" : "Read for someone else"}
                     className="pressable flex min-h-[44px] items-center px-1 text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70"
                   >
-                    {hasShareParams && !bloomed ? "Read your own" : "Someone else?"}
+                    {isShared ? "Read your own" : "Someone else?"}
                   </button>
                   {isRestoredDate && (
                     <button
@@ -515,6 +513,7 @@ export function HomeClient({ searchParams }: Props) {
                     birthMonth={result.birthData.gregorianMonth}
                     birthDay={result.birthDay}
                     weekday={result.birthData.weekday}
+                    isShared={isShared}
                   />
                 </div>
 
@@ -558,7 +557,31 @@ export function HomeClient({ searchParams }: Props) {
             </div>
 
 
+            {/* On a shared reading, the next step is the visitor's own */}
+            {isShared && (
+              <div className="mt-8 flex w-full max-w-[480px] flex-col items-center text-center">
+                <button
+                  type="button"
+                  onClick={handleReadAgain}
+                  className={[
+                    // The one filled shape on a shared reading, like the form's submit button
+                    "w-full max-w-[360px] rounded-full bg-gold-deep text-parchment",
+                    "py-3 px-6 min-h-[56px]",
+                    "text-lg font-semibold tracking-[0.02em]",
+                    "breathe-glow hover:bg-gold-light",
+                    "pressable active:scale-[0.97]",
+                  ].join(" ")}
+                >
+                  See your own cycle
+                </button>
+                <p className="mt-3 text-sm text-ink-light">
+                  Free, no sign-up. It takes a few seconds.
+                </p>
+              </div>
+            )}
+
             <PartnerComparison
+              isShared={isShared}
               reading={result}
               readingRule={newYearRule}
               activeYear={activeYear}
@@ -567,6 +590,8 @@ export function HomeClient({ searchParams }: Props) {
             />
 
             <ShareReading
+              isShared={isShared}
+              headline={thisYearHeadline(result, activeYear)}
               year={result.birthYear}
               month={result.birthData.gregorianMonth}
               day={result.birthDay}

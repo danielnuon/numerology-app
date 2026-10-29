@@ -183,7 +183,7 @@ The interaction between two people's tiers for a shared year follows this comple
 | Person A | Person B | Result | Rationale |
 |----------|----------|--------|-----------|
 | 0 | Any | Unstable | Zero override — always takes precedence |
-| Low | Low | Risk | Compounded weakness |
+| Low | Low | Risk (shown as "Low together") | Compounded weakness |
 | Low | Moderate | Neutral | Moderate tempers low; net wash |
 | Low | High | Stabilized | Strong compensates for weak |
 | Moderate | Moderate | Neutral | Balanced, no strong pull |
@@ -199,7 +199,9 @@ Each person's total score also influences the relationship:
 | Both ≥ 68 | | Strong stability |
 | Both ≥ 60 | | Moderate stability |
 | One ≥ 68, other < 60 | | Mixed stability |
-| Both < 60 | | Challenging |
+| Both < 60 | | Challenging (shown as "Low stability") |
+
+Solini shows the family's "Risk" and "Challenging" as "Low together" and "Low stability", so a comparison of two people never reads as a warning. The meaning is unchanged, and the total score section of How your cycle is made names the family's words.
 
 The table leaves out one total from 60 to 67 with the other under 60. Solini reads that as **Mixed stability** too, since one person is on steady ground and the other isn't (`assessStability()` in `src/lib/numerology/compatibility.ts`). The total score section of How your cycle is made says so, and the comparison links there from the assessment ("How the totals are read"), so visitors can judge that reading themselves.
 

@@ -35,7 +35,7 @@ const reading = computeCycleFromBirthDate(1997, 7, 24, "khmer");
 const PARTNER: DecodedShare = { year: 2000, month: 3, day: 15, rule: "khmer" };
 
 /** Holds the partner the way HomeClient does. */
-function Harness({ initialPartner = null }: { initialPartner?: DecodedShare | null }) {
+function Harness({ initialPartner = null, isShared = false }: { initialPartner?: DecodedShare | null; isShared?: boolean }) {
   const [partner, setPartner] = useState<DecodedShare | null>(initialPartner);
   return (
     <PartnerComparison
@@ -44,6 +44,7 @@ function Harness({ initialPartner = null }: { initialPartner?: DecodedShare | nu
       activeYear={2026}
       partner={partner}
       onPartnerChange={setPartner}
+      isShared={isShared}
     />
   );
 }
@@ -71,9 +72,9 @@ describe("PartnerComparison", () => {
     render(<Harness />);
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Compare with a partner" }));
-    expect(screen.getByRole("form", { name: "Partner's birth date form" })).toBeInTheDocument();
-    expect(screen.getByText("Their birth date isn't saved anywhere.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Compare with someone close" }));
+    expect(screen.getByRole("form", { name: "Comparison birth date form" })).toBeInTheDocument();
+    expect(screen.getByText("This birth date isn't saved anywhere.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
@@ -81,12 +82,12 @@ describe("PartnerComparison", () => {
 
   it("compares the current 12-year cycle once a date is entered, and saves nothing", () => {
     render(<Harness />);
-    fireEvent.click(screen.getByRole("button", { name: "Compare with a partner" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare with someone close" }));
     fireEvent.change(screen.getByLabelText("Day"), { target: { value: "15" } });
     fireEvent.change(screen.getByLabelText("Month"), { target: { value: "3" } });
     fireEvent.change(screen.getByLabelText("Year"), { target: { value: "2000" } });
     act(() => {
-      fireEvent.submit(screen.getByRole("form", { name: "Partner's birth date form" }));
+      fireEvent.submit(screen.getByRole("form", { name: "Comparison birth date form" }));
     });
 
     expect(screen.getByRole("heading", { name: "Your cycles together" })).toBeInTheDocument();
@@ -103,7 +104,7 @@ describe("PartnerComparison", () => {
   it("names each year's interaction in words, not only by color", () => {
     render(<Harness initialPartner={PARTNER} />);
     const table = screen.getByRole("table");
-    const labels = ["Amplified", "Stabilized", "Neutral", "Risk", "Unstable"];
+    const labels = ["Amplified", "Stabilized", "Neutral", "Low together", "Unstable"];
     for (const row of within(table).getAllByRole("row").slice(1)) {
       const together = within(row).getAllByRole("cell")[2];
       expect(labels.some((label) => together.textContent?.endsWith(label))).toBe(true);
@@ -173,6 +174,33 @@ describe("PartnerComparison", () => {
     render(<Harness initialPartner={PARTNER} />);
     fireEvent.click(screen.getByRole("button", { name: "Remove comparison" }));
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Compare with a partner" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compare with someone close" })).toBeInTheDocument();
+  });
+
+  it("names the two people You and Them on the visitor's own reading", () => {
+    render(<Harness initialPartner={PARTNER} />);
+    const headers = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual(["Year", "You", "Them", "Together"]);
+  });
+
+  it("asks for the visitor's own date on a shared reading, and puts them second", () => {
+    render(<Harness isShared />);
+    fireEvent.click(screen.getByRole("button", { name: "Compare it with yours" }));
+    expect(screen.getByText("Enter your birth date to see how the two cycles meet.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Day"), { target: { value: "15" } });
+    fireEvent.change(screen.getByLabelText("Month"), { target: { value: "3" } });
+    fireEvent.change(screen.getByLabelText("Year"), { target: { value: "2000" } });
+    act(() => {
+      fireEvent.submit(screen.getByRole("form", { name: "Comparison birth date form" }));
+    });
+    const headers = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual(["Year", "Them", "You", "Together"]);
+  });
+
+  it("numbers the two people on a shared comparison link, which holds neither visitor", () => {
+    render(<Harness initialPartner={PARTNER} isShared />);
+    expect(screen.getByRole("heading", { name: "Two cycles together" })).toBeInTheDocument();
+    const headers = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual(["Year", "First", "Second", "Together"]);
   });
 });

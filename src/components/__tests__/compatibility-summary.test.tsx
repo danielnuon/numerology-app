@@ -49,7 +49,7 @@ describe("CompatibilitySummary", () => {
       "0★Amplified",
       "5▲Stabilized",
       "2—Neutral",
-      "1▼Risk",
+      "1▼Low together",
       "2⊙Unstable",
     ]);
   });

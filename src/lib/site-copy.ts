@@ -12,15 +12,22 @@
 
 export const SITE_NAME = "Solini";
 
+/**
+ * Solini's one brand line, under the name on the home page, in link
+ * previews and as the About page's title. "Khmer numerology" is the plain
+ * description that goes with it.
+ */
+export const SITE_TAGLINE = "A lantern for every year in your cycle";
+
 /** Browser tab and search result title. */
-export const SITE_TITLE = "Solini — Your 12-Year Khmer Numerology Cycle";
+export const SITE_TITLE = `Solini — Khmer numerology, ${SITE_TAGLINE.toLowerCase()}`;
 
 /** Search result snippet and default link-preview description. */
 export const SITE_DESCRIPTION =
   "Enter your birth date to see your 12-year life cycle in Khmer numerology: a luck number for every year, worked from your birth month, zodiac animal and weekday. Free, no sign-up.";
 
 /** Link-preview title, kept short so it is not cut off in chat apps. */
-export const SHARE_TITLE = "Solini — Khmer numerology, year by year";
+export const SHARE_TITLE = `Solini — ${SITE_TAGLINE}`;
 
 /** Link-preview description, kept under ~120 characters for chat apps. */
 export const SHARE_DESCRIPTION =
@@ -29,15 +36,37 @@ export const SHARE_DESCRIPTION =
 /** Title for a shared reading's link preview. */
 export const SHARED_READING_TITLE = "A 12-year Khmer numerology reading — Solini";
 
+/** One year of a reading as the share text and previews name it. */
+export interface YearHeadline {
+  /** The calendar year, e.g. 2026. */
+  year: number;
+  /** The luck tier's label, e.g. "Very strong luck". */
+  label: string;
+  /** The year's life area, e.g. "Allies". */
+  area: string;
+}
+
+/** "2026: Very strong luck · Allies", the line the reading's preview image shows. */
+export function yearHeadline({ year, label, area }: YearHeadline): string {
+  return `${year}: ${label} · ${area}`;
+}
+
 /**
- * Link-preview description for a shared reading. Leaves out the birth date,
- * which the preview image already shows.
+ * Link-preview description for a shared reading. Leads with this year's
+ * reading rather than the total score, which only ever comes to 52, 64 or
+ * 76. Leaves out the birth date, which the preview image already shows.
  */
-export function sharedReadingDescription(
-  totalScore: number,
-  totalLabel: string
-): string {
-  return `Total score ${totalScore}: ${totalLabel}. See this 12-year cycle, then find your own in seconds.`;
+export function sharedReadingDescription(headline: YearHeadline): string {
+  return `${yearHeadline(headline)}. See this 12-year cycle, then find your own in seconds.`;
+}
+
+/**
+ * The message sent with a shared reading: this year's reading in a line,
+ * then the invitation. A reading opened from someone else's link isn't the
+ * visitor's, so it says "A", not "My".
+ */
+export function shareReadingText({ year, label, area }: YearHeadline, isShared: boolean): string {
+  return `${isShared ? "A" : "My"} ${year} Khmer numerology reading: ${label} · ${area}. See yours on Solini.`;
 }
 
 /** Title for a shared comparison's link preview. */

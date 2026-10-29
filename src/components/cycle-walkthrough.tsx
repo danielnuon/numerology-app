@@ -16,7 +16,7 @@ import Link from "next/link";
 import { MORE_LINK, NumberRow, PillLink, Section, TOTAL_SCORE_SECTION_ID } from "@/components/ui/page-parts";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { computeCycleFromBirthDate, validateBirthDate } from "@/lib/numerology/derive";
-import { STABILITY_TEXT } from "@/lib/numerology/compatibility";
+import { INTERACTION_TEXT, STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { interpretTotal } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "@/lib/numerology/zodiac";
@@ -205,7 +205,7 @@ export function CycleWalkthrough({ date }: Props) {
             </li>
           ))}
         </ul>
-        <p>When you compare with a partner, the two totals together give the overall reading:</p>
+        <p>When you compare two cycles, the two totals together give the overall reading:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
             Both 76: <span className="text-ink">{STABILITY_TEXT.strong.label}</span>
@@ -223,6 +223,12 @@ export function CycleWalkthrough({ date }: Props) {
         <p>
           The family&apos;s rules don&apos;t cover 64 and 52. Solini reads that as mixed too, because one
           of you is on steady ground and the other isn&apos;t. That part is our choice, not a family rule.
+        </p>
+        <p>
+          The family&apos;s word for two low totals is &ldquo;Challenging&rdquo;, and for a year when
+          both numbers are low, &ldquo;Risk&rdquo;. Solini says &ldquo;{STABILITY_TEXT.challenging.label}&rdquo;
+          and &ldquo;{INTERACTION_TEXT.risk.label}&rdquo; instead, so that comparing two people you care
+          about never reads as a warning. The reading behind them is the same. The wording is our choice.
         </p>
       </Section>
 

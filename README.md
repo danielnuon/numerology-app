@@ -1,6 +1,6 @@
 # Solini — Khmer Numerology
 
-Khmer numerology, year by year. Enter your birth date and Solini reads a luck number for every year of your 12-year cycle, from a Cambodian tradition rarely found online. Readings are for reflection, not prediction.
+A lantern for every year in your cycle. Enter your birth date and Solini reads a luck number for every year of your 12-year cycle, from a Cambodian tradition rarely found online. Readings are for reflection, not prediction.
 
 Live at [solini.vercel.app](https://solini.vercel.app).
 
