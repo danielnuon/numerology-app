@@ -79,7 +79,7 @@ describe("PartnerComparison", () => {
     expect(screen.queryByRole("form")).not.toBeInTheDocument();
   });
 
-  it("compares 12 years from the current cycle year once a date is entered, and saves nothing", () => {
+  it("compares the current 12-year cycle once a date is entered, and saves nothing", () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole("button", { name: "Compare with a partner" }));
     fireEvent.change(screen.getByLabelText("Day"), { target: { value: "15" } });
@@ -92,10 +92,11 @@ describe("PartnerComparison", () => {
     expect(screen.getByRole("heading", { name: "Your cycles together" })).toBeInTheDocument();
     expect(screen.getByText("March 15, 2000")).toBeInTheDocument();
     const rows = within(screen.getByRole("table")).getAllByRole("row");
-    // Header plus 12 years, starting with 2026 marked as now
+    // Header plus the 12 years of the 1997 birth's current cycle, with 2026 marked as now
     expect(rows).toHaveLength(13);
-    expect(within(rows[1]).getByRole("rowheader")).toHaveTextContent("2026Now");
-    expect(within(rows[12]).getByRole("rowheader")).toHaveTextContent("2037");
+    expect(within(rows[1]).getByRole("rowheader")).toHaveTextContent("2021");
+    expect(within(rows[6]).getByRole("rowheader")).toHaveTextContent("2026Now");
+    expect(within(rows[12]).getByRole("rowheader")).toHaveTextContent("2032");
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
   });
 
@@ -125,11 +126,47 @@ describe("PartnerComparison", () => {
 
   it("leads with the summary and offers its card as an image", () => {
     render(<Harness initialPartner={PARTNER} />);
-    expect(screen.getByText(/^This year, 2026:/)).toBeInTheDocument();
-    expect(screen.getByText("Over 12 years")).toBeInTheDocument();
+    expect(screen.getByText(/^Now, 2026:/)).toBeInTheDocument();
+    expect(screen.getByText("Cycle 2021–2032")).toBeInTheDocument();
     const download = screen.getByRole("link", { name: "Download image" });
     expect(download).toHaveAttribute("href", "/r/1997-07-24+2000-03-15/opengraph-image");
     expect(download).toHaveAttribute("download", "solini-comparison-1997-07-24-2000-03-15.png");
+  });
+
+  it("switches between the current cycle and the two before it", () => {
+    render(<Harness initialPartner={PARTNER} />);
+    const current = screen.getByRole("tab", { name: "Current cycle, 2021 to 2032" });
+    expect(current).toHaveAttribute("aria-selected", "true");
+
+    act(() => {
+      fireEvent.click(screen.getByRole("tab", { name: "Previous cycle, 2009 to 2020" }));
+    });
+    const rows = within(screen.getByRole("table")).getAllByRole("row");
+    expect(within(rows[1]).getByRole("rowheader")).toHaveTextContent("2009");
+    expect(screen.queryByText(/^Now,/)).not.toBeInTheDocument();
+    expect(screen.getByText("Cycle 2009–2020")).toBeInTheDocument();
+  });
+
+  it("marks years before the partner's birth as not born yet", () => {
+    render(<Harness initialPartner={PARTNER} />);
+    act(() => {
+      fireEvent.click(screen.getByRole("tab", { name: "Cycle before that, 1997 to 2008" }));
+    });
+    const rows = within(screen.getByRole("table")).getAllByRole("row");
+    // 1997 to 1999 come before a 2000 birth
+    for (const row of rows.slice(1, 4)) expect(row).toHaveTextContent("Not born yet");
+    expect(rows[4]).not.toHaveTextContent("Not born yet");
+    expect(screen.getByText("Cycle 1997–2008 · 9 years together")).toBeInTheDocument();
+  });
+
+  it("moves between cycles with the arrow keys", () => {
+    render(<Harness initialPartner={PARTNER} />);
+    act(() => {
+      fireEvent.keyDown(screen.getByRole("tab", { name: /^Current cycle/ }), { key: "ArrowRight" });
+    });
+    const previous = screen.getByRole("tab", { name: /^Previous cycle/ });
+    expect(previous).toHaveAttribute("aria-selected", "true");
+    expect(previous).toHaveFocus();
   });
 
   it("returns to the resting button when the comparison is removed", () => {

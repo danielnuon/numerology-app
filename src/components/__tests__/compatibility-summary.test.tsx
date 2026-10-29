@@ -11,23 +11,26 @@ const people: [SummaryPerson, SummaryPerson] = [
   { term: "Partner", date: { year: 2000, month: 3, day: 15 }, animal: "Rabbit", total: 70 },
 ];
 
+const CYCLE = { start: 2021, end: 2032 };
+
 const summary: ComparisonSummary = {
   counts: { amplified: 2, stabilized: 5, neutral: 2, risk: 1, unstable: 2 },
+  sharedYears: 12,
   current: { year: 2026, firstNumber: 11, secondNumber: 7, interaction: "amplified" },
 };
 
 describe("CompatibilitySummary", () => {
   it("shows both people with their totals and the assessment", () => {
-    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} yearCount={12} />);
+    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} cycle={CYCLE} />);
     expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
     expect(screen.getByText("Year of the Rabbit")).toBeInTheDocument();
     expect(screen.getByText("70")).toBeInTheDocument();
     expect(screen.getByText("Moderate stability")).toBeInTheDocument();
   });
 
-  it("highlights this year's interaction in words", () => {
-    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} yearCount={12} />);
-    const line = screen.getByText("This year, 2026:").parentElement as HTMLElement;
+  it("highlights the current year's interaction in words", () => {
+    render(<CompatibilitySummary people={people} assessment="moderate" summary={summary} cycle={CYCLE} />);
+    const line = screen.getByText("Now, 2026:").parentElement as HTMLElement;
     expect(line).toHaveTextContent(/Amplified$/);
   });
 
@@ -37,10 +40,10 @@ describe("CompatibilitySummary", () => {
         people={people}
         assessment="moderate"
         summary={{ ...summary, counts: { ...summary.counts, amplified: 0 } }}
-        yearCount={12}
+        cycle={CYCLE}
       />
     );
-    expect(screen.getByText("Over 12 years")).toBeInTheDocument();
+    expect(screen.getByText("Cycle 2021–2032")).toBeInTheDocument();
     const items = within(screen.getByRole("list")).getAllByRole("listitem");
     expect(items.map((item) => item.textContent)).toEqual([
       "0★Amplified",
@@ -51,16 +54,28 @@ describe("CompatibilitySummary", () => {
     ]);
   });
 
-  it("leaves out the this-year line when the current year isn't compared", () => {
+  it("says how many years the two share when one was born partway through the cycle", () => {
     render(
-      <CompatibilitySummary people={people} assessment="mixed" summary={{ ...summary, current: null }} yearCount={12} />
+      <CompatibilitySummary
+        people={people}
+        assessment="moderate"
+        summary={{ ...summary, sharedYears: 9 }}
+        cycle={{ start: 1997, end: 2008 }}
+      />
     );
-    expect(screen.queryByText(/This year/)).not.toBeInTheDocument();
+    expect(screen.getByText("Cycle 1997–2008 · 9 years together")).toBeInTheDocument();
+  });
+
+  it("leaves out the current-year line when the current year isn't compared", () => {
+    render(
+      <CompatibilitySummary people={people} assessment="mixed" summary={{ ...summary, current: null }} cycle={CYCLE} />
+    );
+    expect(screen.queryByText(/^Now,/)).not.toBeInTheDocument();
   });
 
   it("hides the symbols from screen readers", () => {
     const { container } = render(
-      <CompatibilitySummary people={people} assessment="moderate" summary={summary} yearCount={12} />
+      <CompatibilitySummary people={people} assessment="moderate" summary={summary} cycle={CYCLE} />
     );
     for (const symbol of container.querySelectorAll("li [aria-hidden='true']")) {
       expect(symbol.textContent).toMatch(/^[★▲—▼⊙]$/);

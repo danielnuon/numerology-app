@@ -229,16 +229,17 @@ A thin gold arc traces the ring from the birth year to this year.
 - **Resting:** one full-width outlined "Compare with a partner" button, with a line under it saying what it does.
 - **Entering a date:** a glass card with the heading "Compare with a partner", the prompt "Enter your partner's birth date to see compatibility.", the birth date form in partner mode (its own New Year toggle, a "Compare" button, and "Their birth date isn't saved anywhere.") and a Cancel link.
 - **Comparing:** a glass card, up to 640px wide, headed "Your cycles together":
+  - **Cycle switch:** a small "Cycle" label over a tabs row: Current, Previous and Before that, each with its years beneath ("2021–2032"). Cycles follow the visitor's birth year, newest first. It offers only cycles that start on or after the visitor's birth and that the partner was alive for at least partly, so a young visitor may see two tabs or none. The ink outline glides to the chosen tab, and the summary and table below crossfade (`panel-swap`). The accessible names read "Previous cycle, 2009 to 2020".
   - **The summary** (`CompatibilitySummary`), a bordered panel that needs nothing around it:
     - You and Partner side by side, each with the birth date, animal and total score in `gold-deep` display type.
     - The overall assessment (Strong, Moderate or Mixed stability, or Challenging) and one calm sentence.
-    - "This year, 2026:" in bold `gold-deep`, then that year's interaction.
-    - "Over 12 years": a count beside each of the five interactions, zeros included, wrapping onto more lines on narrow screens.
-  - A table of the 12 years from the visitor's current cycle year: Year, You, Partner, Together. The current year's row label is bold `gold-deep` with "Now" under it. Each number has its tier symbol beside it.
+    - "Now, 2026:" in bold `gold-deep`, then that year's interaction. Only shown for the current cycle.
+    - "Cycle 2021–2032": a count beside each of the five interactions, zeros included, wrapping onto more lines on narrow screens. When the partner was born partway through, the label adds "· 9 years together" and the counts cover only those years.
+  - A table of the chosen cycle's 12 years: Year, You, Partner, Together. The current year's row label is bold `gold-deep` with "Now" under it. Each number has its tier symbol beside it. A year before someone's birth shows "—" for their number and "Not born yet" under Together.
   - A legend that says what each interaction means.
   - "Share this comparison" (gold outline, like Share), "Download image" (quiet outline, like the reading's) and a "Remove comparison" text link.
 
-**Summary card image:** the comparison link's preview image (`/r/A+B/opengraph-image`, 1200×630) draws the same summary: both animals, dates and totals, the assessment, this year's interaction and five count tiles. "Download image" saves it as `solini-comparison-A-B.png`. Satori may lack the Unicode symbols, so the image draws them as SVG shapes in the same colors.
+**Summary card image:** the comparison link's preview image (`/r/A+B/opengraph-image`, 1200×630) draws the same summary for the visitor's current cycle: both animals, dates and totals, the assessment, the current year's interaction and five count tiles, with the cycle's years in the footer. "Download image" saves it as `solini-comparison-A-B.png`. Satori may lack the Unicode symbols, so the image draws them as SVG shapes in the same colors.
 
 A table, not two charts side by side: the comparison is about the same calendar year for two people, and a row per year reads the same at 320px and 1920px with no stacking.
 
