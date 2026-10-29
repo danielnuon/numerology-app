@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { OG_COLORS, OG_SITE_LABEL, pillarColors } from "@/lib/og-theme";
+import { OG_COLORS, OG_SITE_LABEL, lanternOrb } from "@/lib/og-theme";
 import { SITE_TAGLINE } from "@/lib/site-copy";
 
 export const alt = "Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.";
@@ -56,21 +56,22 @@ export default function OgImage() {
           <div style={{ width: 90, height: 1, background: OG_COLORS.border }} />
         </div>
 
-        {/* Sample pillars */}
-        <div style={{ display: "flex", gap: 10 }}>
+        {/* Sample cycle as lantern orbs */}
+        <div style={{ display: "flex", gap: 14 }}>
           {SAMPLE_CYCLE.map((n, i) => {
-            const { background, border } = pillarColors(interpretYear(n).tier);
+            const { background, border, boxShadow } = lanternOrb(interpretYear(n).tier);
             return (
               <div
                 key={i}
                 style={{
-                  width: 64,
-                  height: 80,
+                  width: 66,
+                  height: 66,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: 12,
+                  borderRadius: 33,
                   border: `1px solid ${border}`,
+                  boxShadow,
                   background,
                   color: OG_COLORS.ink,
                   fontSize: 30,
