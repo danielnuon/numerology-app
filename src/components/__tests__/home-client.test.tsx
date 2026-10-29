@@ -207,11 +207,14 @@ describe("HomeClient: a calm first visit, this year first", () => {
     expect(screen.getByRole("tab", { name: "Year" })).toHaveAttribute("aria-selected", "true");
   });
 
-  it("lets a returning visitor forget their saved date with \"Not you?\"", () => {
+  it("offers one link on the reading, and lets a returning visitor forget their saved date from the form", () => {
     localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day: 24, month: 7, year: 1997 }));
     render(<HomeClient searchParams={{}} />);
-    expect(screen.getByRole("button", { name: "Read for someone else" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Not you?" }));
+    expect(screen.queryByRole("button", { name: "Forget my date" })).not.toBeInTheDocument();
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Read for someone else" }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Forget my date" }));
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
   });
