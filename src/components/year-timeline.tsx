@@ -9,7 +9,7 @@
  * on a side where more years are scrolled out of view.
  */
 
-import { useRef, useEffect, useCallback, ViewTransition } from "react";
+import { useRef, useLayoutEffect, useCallback, ViewTransition } from "react";
 import { useReducedMotion } from "motion/react";
 import { interpretYear } from "@/lib/numerology/interpretation";
 import { getCycleIndex } from "@/lib/numerology/year-lookup";
@@ -67,9 +67,11 @@ export function YearTimeline({
     (_, i) => birthYear + i
   );
 
-  // Keep the selected year centered. The first centring is instant so the
+  // Keep the selected year centered. The first centering is instant so the
   // page doesn't scroll on load; later ones glide unless motion is reduced.
-  useEffect(() => {
+  // It runs before paint, so a timeline that appears inside a view
+  // transition is captured already centered instead of jumping after it.
+  useLayoutEffect(() => {
     const container = containerRef.current;
     const option = optionRefs.current.get(selectedYear);
     if (!container || !option) return;

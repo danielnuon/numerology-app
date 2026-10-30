@@ -31,11 +31,13 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useSyncExternalStore,
   startTransition,
   addTransitionType,
   ViewTransition,
+  type ViewTransitionClass,
 } from "react";
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
@@ -102,9 +104,9 @@ const QUIET_LINK =
  * or folds away it rises in or fades out with it (React assigns the
  * transition name).
  */
-function Follows({ children }: { children: React.ReactNode }) {
+function Follows({ children, update = "auto" }: { children: React.ReactNode; update?: ViewTransitionClass }) {
   return (
-    <ViewTransition enter="rise-in" exit="fade-out">
+    <ViewTransition enter="rise-in" exit="fade-out" update={update}>
       {children}
     </ViewTransition>
   );
@@ -305,16 +307,28 @@ export function HomeClient({ searchParams }: Props) {
     });
   }, [hasShareParams]);
 
-  // Switching views crossfades in place. If the visitor had scrolled down
-  // the wheel, the new view starts from the card's top instead.
+  // Switching views crossfades in place while the card morphs to the new
+  // view's height and the blocks below glide with its edge.
   const handleReadingViewChange = useCallback((view: ReadingView) => {
     startTransition(() => {
       addTransitionType("reading-view");
       setReadingView(view);
     });
-    const card = readingCardRef.current;
-    if (card && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start" });
   }, []);
+
+  // If the visitor had scrolled down the old view, the new one starts from
+  // the card's top. This runs inside the view transition's update, so the
+  // card glides up from where it was instead of the page scrolling under
+  // the transition's snapshots.
+  const shownReadingView = useRef(readingView);
+  useLayoutEffect(() => {
+    if (shownReadingView.current === readingView) return;
+    shownReadingView.current = readingView;
+    const card = readingCardRef.current;
+    if (card && card.getBoundingClientRect().top < 0) {
+      card.scrollIntoView({ block: "start", behavior: "instant" });
+    }
+  }, [readingView]);
 
   const handleReadAgain = useCallback(() => {
     startTransition(() => {
@@ -529,7 +543,7 @@ export function HomeClient({ searchParams }: Props) {
         {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
         {showReading && result && (
           <>
-            <ViewTransition name="reading-card" share="reading-bloom" default="none">
+            <ViewTransition name="reading-card" share="reading-bloom" update={{ "reading-view": "reading-swap", default: "none" }} default="none">
             <div
               id={CHART_SECTION_ID}
               ref={readingCardRef}
@@ -571,7 +585,7 @@ export function HomeClient({ searchParams }: Props) {
               <ReadingViewTabs view={readingView} onChange={handleReadingViewChange} />
 
               {/* One view at a time below lg, crossfading in place; side by side from lg */}
-              <ViewTransition name="reading-view" update={{ "reading-view": "panel-swap", default: "none" }} default="none">
+              <ViewTransition name="reading-view" update={{ "reading-view": "view-swap", default: "none" }} default="none">
               <div className="lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
                 <div
                   id={READING_VIEW_PANEL_IDS.year}
@@ -613,8 +627,9 @@ export function HomeClient({ searchParams }: Props) {
             </div>
             </ViewTransition>
 
-            {/* Year Timeline Explorer, part of the 12-year view below lg */}
-            <Follows>
+            {/* Year Timeline Explorer, part of the 12-year view below lg, so it
+                comes and goes with the wheel */}
+            <Follows update={{ "reading-view": "view-swap", default: "auto" }}>
             <div
               className={`${readingView === "cycle" ? "" : "max-lg:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
             >

@@ -200,6 +200,25 @@ describe("HomeClient: a calm first visit, this year first", () => {
     expect(yearView.className).not.toMatch(/max-lg:hidden/);
   });
 
+  it("brings the card's top back on a switch only if it was scrolled past, at once so the transition glides it", () => {
+    render(<HomeClient searchParams={{}} />);
+    submitBirthDate("24", "7", "1997");
+    const card = document.getElementById("reading-view-year")!.closest<HTMLElement>("[tabindex='-1']")!;
+    const scrollIntoView = jest.fn();
+    card.scrollIntoView = scrollIntoView;
+
+    act(() => {
+      fireEvent.click(screen.getByRole("tab", { name: "Cycle" }));
+    });
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    card.getBoundingClientRect = () => ({ top: -120 }) as DOMRect;
+    act(() => {
+      fireEvent.click(screen.getByRole("tab", { name: "Year" }));
+    });
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "start", behavior: "instant" });
+  });
+
   it("opens each new reading on this year", () => {
     render(<HomeClient searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
