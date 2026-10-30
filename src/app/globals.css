@@ -37,6 +37,8 @@
 
 /* === Typography === */
   --font-serif: var(--font-marcellus), var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+  /* The brand line under the home page's signature, in italic only */
+  --font-script: var(--font-cormorant-italic), Georgia, serif;
   --font-sans: var(--font-hanken), var(--font-noto-serif-khmer), "Helvetica Neue", Arial, sans-serif;
 
   /* === Spacing (temple proportions) === */
@@ -829,19 +831,27 @@ button:not(:disabled),
     transform var(--duration-gentle) var(--ease-enter);
   transition-delay: calc(60ms + var(--i, 0) * 35ms);
 }
-/* The Menu icon's outer lines turn into a close mark while the list is open. */
-.menu-icon line {
-  transform-box: view-box;
-  transform-origin: 8px 8px;
+/* The flame in the Menu button turns into a close mark: the lit thread and
+ * the one below swing to the center and cross while the others fade down the
+ * flame (menuThreadClose() sets where each goes and when). */
+.menu-thread {
+  transform-box: fill-box;
+  transform-origin: center;
   transition:
-    transform var(--duration-standard) var(--ease-standard),
-    opacity var(--duration-quick) var(--ease-standard);
+    transform var(--duration-standard) var(--ease-standard) var(--close-delay, 0ms),
+    opacity var(--duration-quick) var(--ease-standard) var(--close-delay, 0ms);
 }
-[aria-expanded="true"] > .menu-icon .menu-icon-top { transform: translateY(3.5px) rotate(45deg); }
-[aria-expanded="true"] > .menu-icon .menu-icon-middle { opacity: 0; }
-[aria-expanded="true"] > .menu-icon .menu-icon-bottom { transform: translateY(-3.5px) rotate(-45deg); }
+[aria-expanded="true"] > .menu-flame .menu-thread {
+  transform: var(--open);
+  opacity: var(--open-opacity);
+  transition:
+    transform var(--duration-gentle) var(--ease-standard) var(--open-delay, 0ms),
+    opacity var(--duration-standard) var(--ease-standard) var(--open-delay, 0ms);
+}
 @media (prefers-reduced-motion: reduce) {
-  .menu-panel[data-open="true"] .menu-item {
+  .menu-panel[data-open="true"] .menu-item,
+  .menu-thread,
+  [aria-expanded="true"] > .menu-flame .menu-thread {
     transition-delay: 0s;
   }
 }
