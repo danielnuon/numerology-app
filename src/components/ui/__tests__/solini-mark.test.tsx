@@ -5,7 +5,14 @@ import * as fs from "fs";
 import * as path from "path";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MARK_LIT_THREAD, MARK_THREADS, SoliniMark, threadSway } from "../solini-mark";
+import {
+  MARK_LIT_THREAD,
+  MARK_THREADS,
+  MENU_CLOSE_THREADS,
+  SoliniMark,
+  menuThreadClose,
+  threadSway,
+} from "../solini-mark";
 
 describe("SoliniMark", () => {
   it("weaves one thread for each year of the cycle and lights one", () => {
@@ -28,6 +35,20 @@ describe("SoliniMark", () => {
     const threads = container.querySelectorAll<SVGRectElement>(".mark-thread");
     expect(threads[threads.length - 1].style.getPropertyValue("--weave-delay")).toBe("0ms");
     expect(threads[0].style.getPropertyValue("--weave-delay")).toBe("770ms");
+  });
+
+  it("turns into a close mark in the Menu button from the lit thread and the one below", () => {
+    expect(MENU_CLOSE_THREADS).toEqual([MARK_LIT_THREAD, MARK_LIT_THREAD + 1]);
+    const [lit, below] = MENU_CLOSE_THREADS.map(menuThreadClose);
+    expect(lit["--open"]).toContain("rotate(45deg)");
+    expect(below["--open"]).toContain("rotate(-45deg)");
+    expect(lit["--open-opacity"]).toBe("1");
+    // Every other thread fades, nearest the lit thread first
+    const others = MARK_THREADS.map((_, i) => i).filter((i) => !MENU_CLOSE_THREADS.includes(i as never));
+    for (const i of others) expect(menuThreadClose(i)["--open-opacity"]).toBe("0");
+    expect(parseFloat(menuThreadClose(MARK_LIT_THREAD - 1)["--open-delay"])).toBeLessThan(
+      parseFloat(menuThreadClose(0)["--open-delay"])
+    );
   });
 
   it("sways most at the tip and least at the base, in a ripple that climbs", () => {
