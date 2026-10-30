@@ -981,6 +981,153 @@ button:not(:disabled),
   }
 }
 
+/* === The woven flame on the long copy pages (woven-flame-parts.tsx) ===
+ * All scroll-driven, so there is no scroll listener and only transform and
+ * opacity move. Without scroll-timeline support, or with Reduce Motion, the
+ * dividers are finished lines, the heading threads are drawn and the follow
+ * flame isn't shown. */
+
+/* Woven divider: each thread waits folded into a small flame (--flame, set
+ * per thread) and slides out to its place in the line as the divider rises
+ * toward the middle of the screen, base thread first (animation-range, set
+ * per thread). */
+.weave-thread {
+  transform-box: fill-box;
+  transform-origin: 0 0;
+}
+@keyframes unweave {
+  from { transform: var(--flame); }
+  to { transform: none; }
+}
+
+/* Heading thread: a short gold thread under each section heading, drawn from
+ * the left as the heading scrolls in, the way weft is drawn across a loom. */
+.heading-thread::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 1.5px;
+  margin-top: 0.5rem;
+  border-radius: 1px;
+  background: var(--color-gold);
+  transform-origin: left center;
+}
+@keyframes thread-draw {
+  from { transform: scaleX(0); }
+  to { transform: none; }
+}
+
+/* Pull quote: a short thread above the words. */
+.pull-quote::before {
+  content: "";
+  width: 28px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--color-gold);
+}
+
+/* Follow flame: lifts off the mark beside "Solini" (--from-x and --from-y,
+ * measured once) and settles in the bottom right corner over the first
+ * 160px of scroll, while a disc of glass gathers behind it. Each thread then
+ * lights in turn, base to tip, across the page's scroll. */
+.follow-flame {
+  display: none;
+}
+.follow-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-manuscript) 72%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-raised);
+}
+.follow-mark {
+  position: absolute;
+  inset: 8px;
+  overflow: visible;
+}
+@keyframes follow-lift {
+  from { transform: translate(var(--from-x), var(--from-y)); }
+  to { transform: none; }
+}
+@keyframes follow-disc {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes follow-light {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .weave {
+      view-timeline: --weave block;
+    }
+    .weave-thread {
+      animation: unweave linear both;
+      animation-timeline: --weave;
+    }
+    .weave[data-arrive] .weave-thread {
+      animation: unweave 1400ms var(--ease-standard) both;
+      animation-delay: calc(1200ms + var(--arrive-delay, 0ms));
+    }
+    .heading-thread {
+      view-timeline: --heading block;
+    }
+    .heading-thread::after {
+      animation: thread-draw linear both;
+      animation-timeline: --heading;
+      animation-range: entry 0% cover 14%;
+    }
+    .follow-flame[data-ready] {
+      display: block;
+      position: fixed;
+      right: max(1rem, env(safe-area-inset-right));
+      bottom: max(1rem, env(safe-area-inset-bottom));
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+    }
+    .follow-mark {
+      animation: follow-lift var(--ease-standard) both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 160px;
+    }
+    .follow-disc {
+      animation: follow-disc linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 60px 160px;
+    }
+    .follow-thread {
+      animation: follow-light linear both;
+      animation-timeline: scroll(root block);
+    }
+    /* The follow flame starts exactly over the mark beside "Solini", so that
+     * mark steps aside while it's there. */
+    html:has(.follow-flame[data-ready]) .info-mark {
+      opacity: 0;
+    }
+    /* On a page change the flame travels from whichever one is showing: the
+     * follow flame takes the shared name from the page's header mark. */
+    html:has(.follow-flame[data-ready]) .flame-anchor {
+      view-transition-name: none;
+    }
+    .follow-flame[data-ready] .follow-mark {
+      view-transition-name: solini-flame;
+    }
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .follow-disc {
+    background: var(--color-manuscript);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* === View transitions (React <ViewTransition>) ===
  * Only named elements animate; the rest of the page updates live. */
 :root {

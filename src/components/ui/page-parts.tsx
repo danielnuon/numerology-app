@@ -1,12 +1,15 @@
 /**
  * Building blocks shared by the reading's companion pages (About, Our
  * heritage, How your cycle is made, What the numbers mean): the page shell,
- * a titled section, a row of twelve number cells, and the links between the
- * pages.
+ * a titled section, a pull quote, a row of twelve number cells, and the links
+ * between the pages. The woven flame is the pages' ornament: it follows the
+ * reader (FollowFlame), draws each section's heading thread, and unweaves
+ * into the dividers (WovenDivider in SectionDivider).
  */
 
 import Link from "next/link";
 import { PageFlame } from "@/components/ui/flame-anchor";
+import { FollowFlame } from "@/components/ui/woven-flame-parts";
 import { SITE_PAGE_GROUPS, type SitePagePath } from "@/lib/site-pages";
 
 /** An underlined gold link inside running text. */
@@ -20,14 +23,17 @@ export const TOTAL_SCORE_SECTION_ID = "total-score";
  * Page shell: the Solini wordmark linking home, then a lit title. The page
  * arrives in order (`.page-arrive` in globals.css): the flame travels in from
  * the last page, the title gathers in, then each block rises after the one
- * above it.
+ * above it. The flame beside the wordmark then follows the reader down the
+ * page (FollowFlame).
  */
 export function InfoPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <main className="page-arrive safe-gutter flex flex-1 flex-col items-center pt-9 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       <p className="text-sm uppercase text-ink-light tracking-[0.18em]">
         <Link href="/" className="inline-flex items-center gap-2 hover:text-gold-deep">
-          <PageFlame className="h-6 w-6" />
+          <span className="info-mark inline-flex" data-follow-from="">
+            <PageFlame className="h-6 w-6" />
+          </span>
           Solini
         </Link>
       </p>
@@ -35,24 +41,50 @@ export function InfoPage({ title, children }: { title: string; children: React.R
         {title}
       </h1>
       {children}
+      <FollowFlame />
     </main>
   );
 }
 
+/**
+ * A titled section. A short thread draws itself under the heading as it
+ * scrolls in (`.heading-thread`). "era" is a small date line above the
+ * heading, for sections of history.
+ */
 export function Section({
   title,
   id,
+  era,
   children,
 }: {
   title: string;
   id?: string;
+  era?: string;
   children: React.ReactNode;
 }) {
   return (
     <section id={id} className="w-full max-w-[640px] scroll-mt-8">
-      <h2 className="font-display text-2xl text-gold-deep tracking-[0.04em] sm:text-3xl">{title}</h2>
+      {era && <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-ink-light tabular-nums">{era}</p>}
+      <h2 className="heading-thread font-display text-2xl text-gold-deep tracking-[0.04em] sm:text-3xl">{title}</h2>
       <div className="mt-4 space-y-4 text-ink-light leading-relaxed">{children}</div>
     </section>
+  );
+}
+
+/**
+ * One line from the text, lifted out in large italic under a short thread.
+ * It repeats words already on the page, so screen readers skip it. Use at
+ * most one per section, and none where the text is grave.
+ */
+export function PullQuote({ children, cite }: { children: React.ReactNode; cite?: string }) {
+  return (
+    <p
+      aria-hidden="true"
+      className="pull-quote scroll-settle !my-8 grid justify-items-center gap-3.5 text-center font-script text-[1.625rem] italic leading-snug text-ink text-balance sm:text-[1.8rem]"
+    >
+      {children}
+      {cite && <span className="font-sans text-xs not-italic uppercase tracking-[0.18em] text-ink-light">{cite}</span>}
+    </p>
   );
 }
 
