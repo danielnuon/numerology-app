@@ -15,8 +15,10 @@
  * - The New Year rule (Khmer or Chinese) that turns the animal year: from a
  *   share link (?ny=), else the visitor's remembered choice, else Khmer.
  *   Changing it recomputes the reading in place.
- * - A partner comparison under the reading. A shared comparison link
- *   (/r/A+B) arrives with the partner's date as ?pday=&pmonth=&pyear=&pny=.
+ * - A comparison under the reading, with up to five more people. A shared
+ *   comparison link (/r/A+B+C) arrives with everyone else's reading as one
+ *   ?p= each and any names as ?n=. Links made before households carried a
+ *   single partner as ?pday=&pmonth=&pyear=&pny=, which still opens.
  *
  * The first visit asks one question, with one line above it saying what
  * the reading gives and the New Year choice folded away. The reading opens
@@ -56,8 +58,13 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
 import { UpdateNotice } from "@/components/update-notice";
-import { PartnerComparison } from "@/components/partner-comparison";
-import type { DecodedShare } from "@/lib/numerology/url-encoding";
+import { CycleComparison, type ComparedPerson } from "@/components/cycle-comparison";
+import {
+  decodeComparisonNames,
+  decodeShareSegment,
+  type DecodedShare,
+} from "@/lib/numerology/url-encoding";
+import { MAX_COMPARED_PEOPLE } from "@/lib/numerology/compatibility";
 import { SITE_TAGLINE } from "@/lib/site-copy";
 import { trackEvent } from "@/lib/track";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
@@ -151,15 +158,19 @@ export interface HomeSearchParams {
   year?: string;
   /** New Year rule of a shared reading: "khmer" or "chinese". */
   ny?: string;
-  /** Partner's birth date and rule, from a shared comparison link. */
+  /** Everyone else in a shared comparison, as share segments ("2000-03-15-cny"). */
+  p?: string[];
+  /** Each person's name in a shared comparison, the reading's first; "" where none. */
+  n?: string[];
+  /** A single partner's birth date and rule, from a comparison link made before households. */
   pday?: string;
   pmonth?: string;
   pyear?: string;
   pny?: string;
 }
 
-/** The partner from a shared comparison link, or null if absent or invalid. */
-function partnerFromSearchParams(params: HomeSearchParams): DecodedShare | null {
+/** The single partner from a comparison link made before households, or null if absent or invalid. */
+function legacyPartnerFromSearchParams(params: HomeSearchParams): DecodedShare | null {
   if (!params.pday || !params.pmonth || !params.pyear) return null;
   const date = validDateParts(
     parseInt(params.pyear, 10),
@@ -168,6 +179,32 @@ function partnerFromSearchParams(params: HomeSearchParams): DecodedShare | null 
   );
   if (!date) return null;
   return { ...date, rule: isNewYearRule(params.pny) ? params.pny : DEFAULT_NEW_YEAR_RULE };
+}
+
+/** A shared comparison from the link: the reading's owner's name and everyone else. */
+interface SharedComparison {
+  readingName: string | null;
+  others: ComparedPerson[];
+}
+
+/**
+ * The comparison in a shared link. Readings that don't decode are left out
+ * with their names, and at most MAX_COMPARED_PEOPLE people are kept.
+ */
+function comparisonFromSearchParams(params: HomeSearchParams): SharedComparison {
+  const segments = params.p ?? [];
+  const names = decodeComparisonNames(params.n, segments.length + 1);
+  const others: ComparedPerson[] = segments.flatMap((segment, i) => {
+    const share = decodeShareSegment(segment);
+    // decodeShareSegment checks the calendar; validDateParts also rules out future dates
+    if (!share || !validDateParts(share.year, share.month, share.day)) return [];
+    return [{ share, name: names[i + 1], isVisitor: false }];
+  });
+  if (others.length === 0) {
+    const partner = legacyPartnerFromSearchParams(params);
+    if (partner) others.push({ share: partner, name: null, isVisitor: false });
+  }
+  return { readingName: names[0], others: others.slice(0, MAX_COMPARED_PEOPLE - 1) };
 }
 
 interface Props {
@@ -255,10 +292,11 @@ export function HomeClient({ searchParams }: Props) {
   );
   const [noticeDismissed, setNoticeDismissed] = useState(false);
 
-  // The partner being compared with, if any. Never saved to the browser.
-  const [partner, setPartner] = useState<DecodedShare | null>(() =>
-    hasShareParams ? partnerFromSearchParams(searchParams) : null
+  // Everyone compared with the reading, if anyone. Never saved to the browser.
+  const [sharedComparison] = useState<SharedComparison>(() =>
+    hasShareParams ? comparisonFromSearchParams(searchParams) : { readingName: null, others: [] }
   );
+  const [comparedPeople, setComparedPeople] = useState<ComparedPerson[]>(sharedComparison.others);
 
   // Below lg the card shows one view at a time: this year, or all 12 years.
   // The switch's choice moves first; the view follows once the old one has
@@ -680,13 +718,14 @@ export function HomeClient({ searchParams }: Props) {
               </Follows>
             )}
 
-            <PartnerComparison
+            <CycleComparison
               isShared={isShared}
               reading={result}
               readingRule={newYearRule}
+              readingName={sharedComparison.readingName}
               activeYear={activeYear}
-              partner={partner}
-              onPartnerChange={setPartner}
+              others={comparedPeople}
+              onOthersChange={setComparedPeople}
             />
 
             <Follows>

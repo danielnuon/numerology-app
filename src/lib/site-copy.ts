@@ -69,15 +69,22 @@ export function shareReadingText({ year, label, area }: YearHeadline, isShared: 
   return `${isShared ? "A" : "My"} ${year} Khmer numerology reading: ${label} · ${area}. See yours on Solini.`;
 }
 
-/** Title for a shared comparison's link preview. */
-export const SHARED_COMPARISON_TITLE = "Two Khmer numerology cycles, compared — Solini";
+/** How many people a comparison holds, as a word ("Two" to "Six"); larger counts stay digits. */
+export function peopleCountWord(count: number): string {
+  return ["Two", "Three", "Four", "Five", "Six"][count - 2] ?? String(count);
+}
+
+/** Title for a shared comparison's link preview: "Two Khmer numerology cycles, compared — Solini". */
+export function sharedComparisonTitle(count: number): string {
+  return `${peopleCountWord(count)} Khmer numerology cycles, compared — Solini`;
+}
 
 /**
- * Link-preview description for a shared comparison. Leaves out the birth
- * dates, like a shared reading's description.
+ * Link-preview description for a shared comparison of `count` people.
+ * Leaves out the birth dates and names, like a shared reading's description.
  */
-export function sharedComparisonDescription(assessmentLabel: string): string {
-  return `${assessmentLabel}: see how these two 12-year cycles meet, year by year, then compare your own.`;
+export function sharedComparisonDescription(assessmentLabel: string, count: number): string {
+  return `${assessmentLabel}: see how these ${peopleCountWord(count).toLowerCase()} 12-year cycles meet, year by year, then compare your own.`;
 }
 
 /** About page title. */

@@ -52,7 +52,7 @@ The design should feel like a digitized sacred text — not a theme park replica
 ├─────────────────────────────────────────────┤
 │                                             │
 │     ╔════════════╦════════════╗              │
-│     ║  Your      ║  Partner   ║              │ ← compatibility (Phase 2)
+│     ║  Your      ║  Others    ║              │ ← compatibility (Phase 2)
 │     ║  Cycle     ║  Cycle     ║              │
 │     ╚════════════╩════════════╝              │
 │                                             │
@@ -245,26 +245,31 @@ The visitor's stop is labeled "Yours", ringed in ink and lit with its tier's lig
 
 **Size budget:** a 1900 birth renders about 157 buttons. That is well within what the browser handles without windowing, so the track renders every year.
 
-### Partner Comparison
-**Type:** Section under the reading (`src/components/partner-comparison.tsx`)
-**Purpose:** See how the reading on the page meets someone else's (a partner, parent, child or friend), year by year, using Khmer numerology's compatibility rules (docs/system-overview.md, "Compatibility")
+### Cycle Comparison
+**Type:** Section under the reading (`src/components/cycle-comparison.tsx`)
+**Purpose:** See how the reading on the page meets the cycles of up to five more people (a partner, parent, child or friend, or a whole household), year by year, using Khmer numerology's compatibility rules and, for three or more, Solini's extension of them (docs/system-overview.md, "Compatibility" and "Households")
 
 **States:**
-- **Resting:** one full-width outlined "Compare with someone close" button, with "A partner, parent, child or friend: see how your cycles meet, year by year." under it. On a reading opened from a share link it reads "Compare it with yours" and "See how this cycle meets your own, year by year."
-- **Entering a date:** a glass card with the same heading as the button, the prompt "Enter their birth date to see how your cycles meet." (on a shared reading, "Enter your birth date to see how the two cycles meet."), the birth date form in partner mode (its own New Year toggle, a "Compare" button, and "This birth date isn't saved anywhere.") and a Cancel link.
-- **Comparing:** a glass card, up to 640px wide, headed "Your cycles together" ("Two cycles together" for a shared comparison link):
+- **Resting:** one full-width outlined "Compare with someone close" button, with "A partner, parent, child or friend, or your whole household: see how your cycles meet, year by year." under it. On a reading opened from a share link it reads "Compare it with yours" and "See how this cycle meets your own, year by year."
+- **Entering a date:** a glass card with the same heading as the button ("Add someone" once anyone is in), the prompt "Enter their birth date to see how your cycles meet." ("…to add them to the comparison." for one more; on a shared reading, "Enter your birth date to see how the two cycles meet."), the birth date form in partner mode (an optional "Name" field above the date, left out when the visitor adds themselves, its own New Year toggle, a "Compare" button, and "This birth date isn't saved anywhere.") and a Cancel link.
+- **Comparing:** a glass card, up to 640px wide, headed "Your cycles together" ("Two cycles together", "Four cycles together" and so on for a shared comparison link that holds neither visitor):
   - **The summary** (`CompatibilitySummary`), straight on the card with no panel of its own:
-    - The two people side by side, named You and Them (on a shared reading compared with the visitor's own date, Them and You; on a shared comparison link, First and Second), each with the birth date, then the animal and total score ("Ox · Total 64") with the total in `gold-deep` display type.
-    - The overall assessment (Strong, Moderate, Mixed or Low stability) in display type, run into one calm sentence.
+    - Everyone in tiles, two to a row (three from `sm` for a group), each named (see Names below), with the birth date, then the animal and total score ("Ox · Total 64") with the total in `gold-deep` display type. Every tile but the first has a remove cross in its corner, a 44px button ("Remove Sam").
+    - The overall assessment (Strong, Moderate, Mixed or Low stability) in display type, run into one calm sentence, worded for a pair or a group.
+    - For three or more: "Khmer numerology compares two people at a time. For three or more, Solini extends its pair rule." with a "See how" link to `/how-it-works#household`.
     - "Now, 2026" in bold `gold-deep` on a faint gold band, with that year's interaction at the other end. It always reads from the current cycle, whichever cycle the table shows.
-  - **Cycle stepper:** "Cycle 2021–2032" between a back and a forward chevron ("Earlier cycle", "Later cycle"). Cycles follow the visitor's birth year: the current one first, then up to two before it. It offers only cycles that start on or after the visitor's birth and that the partner was alive for at least partly; with one cycle the label shows alone. When the partner was born partway through, the label adds "· 9 years together". The table below crossfades (`panel-swap`).
-  - A table of the chosen cycle's 12 years: Year, the two people by the same names, Together. The current year's row is `gold-deep`, with "Now" under the year. Numbers are plain; the wheel and the reading carry each year's tier. A year before someone's birth shows "—" for their number and "Not born yet" under Together.
-  - "Share this comparison" (gold outline, like Share), then "Download image" and "Remove" as quiet text links on the same row.
-  - **How to read this**, closed by default at the end of the card: what each interaction word means, and a "How the totals are read" link to the total score section of How your cycle is made (`/how-it-works#total-score`). That section gives the three totals a cycle can have (52, 64 or 76) and why, which pairs of totals make each assessment, and that reading 64 with 52 as mixed is Solini's choice, not a rule of Khmer numerology. Explanations sit together here, where readers look for them, rather than in the middle of the result.
+  - **Add someone:** an outlined pill with a gold plus, which opens the form in the card. At six people it gives way to "Six people is the most one comparison holds." Six is the most columns the table fits at 320px.
+  - **Cycle stepper:** "Cycle 2021–2032" between a back and a forward chevron ("Earlier cycle", "Later cycle"). Cycles follow the visitor's birth year: the current one first, then up to two before it. It offers only cycles that start on or after the visitor's birth and that someone else was alive for at least partly; with one cycle the label shows alone. When fewer than twelve years have two people born, the label adds "· 9 years together". The table below crossfades (`panel-swap`).
+  - A fixed-layout table of the chosen cycle's 12 years: Year, one column per person by the same names (cut with an ellipsis when long, the full name in the cell's text), Together. The current year's row is `gold-deep`, with "Now" under the year. Numbers are plain; the wheel and the reading carry each year's tier. A year before someone's birth shows "—" for their number; with fewer than two people born it reads "Not born yet" under Together. In a group, an Unstable year names whose reset it is under the word ("Sam resets").
+  - **Pair by pair** (three or more only), closed by default: this year's interaction for every pair by Khmer numerology's pair rule alone, so the group's line can be checked.
+  - "Share this comparison" (gold outline, like Share), then "Download image" and "Remove" ("Remove all" for a group) as quiet text links on the same row.
+  - **How to read this**, closed by default at the end of the card: what each interaction word means, a "How the totals are read" link to the total score section of How your cycle is made (`/how-it-works#total-score`) and, for a group, "How three or more people are read" (`/how-it-works#household`). The total score section gives the three totals a cycle can have (52, 64 or 76) and why, which pairs of totals make each assessment, and that reading 64 with 52 as mixed is Solini's choice, not a rule of Khmer numerology. The household section gives the group rule and says it is Solini's extension. Explanations sit together here, where readers look for them, rather than in the middle of the result.
 
-**Summary card image:** the comparison link's preview image (`/r/A+B/opengraph-image`, 1200×630) draws a fuller summary for the visitor's current cycle: both animals, dates and totals, the assessment, the current year's interaction and five count tiles, with the cycle's years in the footer. "Download image" saves it as `solini-comparison-A-B.png`. Satori may lack the Unicode symbols, so the image draws them as SVG shapes in the same colors.
+**Names:** a person's name if they were given one; "You" for the visitor; "Them" for the other person in a pair with the visitor; otherwise their zodiac animal, numbered when two share one ("Ox", "Ox 2").
 
-A table, not two charts side by side: the comparison is about the same calendar year for two people, and a row per year reads the same at 320px and 1920px with no stacking.
+**Summary card image:** the comparison link's preview image (`/r/A+B/opengraph-image`, 1200×630) draws a fuller summary for the visitor's current cycle: everyone's animal, date and total (a group draws them smaller, without the animal's name), the assessment, the current year's interaction and five count tiles, with the cycle's years in the footer. The image route can't read the query string, so it never shows names. "Download image" saves it as `solini-comparison-A-B.png`, one date per person. Satori may lack the Unicode symbols, so the image draws them as SVG shapes in the same colors.
+
+A table, not charts side by side: the comparison is about the same calendar year for everyone, and a row per year reads the same at 320px and 1920px with no stacking.
 
 **Interactions:** each is a symbol and a word, so color is never the only signal (all at least 5.5:1 on cards):
 
@@ -276,7 +281,7 @@ A table, not two charts side by side: the comparison is about the same calendar 
 | Low together | ▼ | `tier-weak` |
 | Unstable | ⊙ | `ink-light` |
 
-**Privacy:** the partner's date is never saved to the browser. The comparison link `/r/A+B` shows both dates to anyone who opens it, and the copied message says so.
+**Privacy:** other people's dates and names are never saved to the browser. The comparison link `/r/A+B` shows everyone's dates, and any names, to anyone who opens it, and the copied message says so.
 
 ### Section Dividers
 **Type:** Decorative horizontal rule
