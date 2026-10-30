@@ -128,6 +128,8 @@ body {
   position: absolute;
   opacity: var(--breathe-rest);
   background: radial-gradient(closest-side, var(--glow), transparent);
+  --radiate-low: 0.97;
+  --radiate-high: 1.04;
 }
 .sky-glow-dusk {
   --drift: 520px;
@@ -168,13 +170,20 @@ body {
 @keyframes glow-rise {
   to { transform: translate3d(0, calc(var(--drift) * -1), 0); }
 }
+/* A light that radiates: it breathes, and swells a little as it brightens.
+ * `scale` (not `transform`) leaves the glow's other motion free. Each light
+ * sets how far it swells with --radiate-low and --radiate-high. */
+@keyframes radiate {
+  from { opacity: var(--breathe-low); scale: var(--radiate-low, 0.98); }
+  to { opacity: 1; scale: var(--radiate-high, 1.06); }
+}
 @keyframes breathe {
   from { opacity: var(--breathe-low); }
   to { opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .sky-glow {
-    animation: breathe var(--breathe-period) var(--ease-sine) var(--breathe-delay) infinite alternate;
+    animation: radiate var(--breathe-period) var(--ease-sine) var(--breathe-delay) infinite alternate;
   }
 }
 @supports (animation-timeline: scroll()) {
@@ -183,7 +192,7 @@ body {
       will-change: transform, opacity;
       animation:
         glow-rise linear both,
-        breathe var(--breathe-period) var(--ease-sine) var(--breathe-delay) infinite alternate;
+        radiate var(--breathe-period) var(--ease-sine) var(--breathe-delay) infinite alternate;
       animation-timeline: scroll(root block), auto;
       animation-range: 0px 1300px, normal;
     }
@@ -354,47 +363,68 @@ body {
 }
 
 /* === Living glows ===
- * Every gold glow is a light that breathes. The light is a layer of its own
- * behind the element, and only its opacity moves, so the compositor does the
- * work. Each kind starts at a different point in the breath so neighbors
- * never pulse together. With Reduce Motion the light rests at its usual
- * strength. */
+ * Every gold glow is a light that radiates: it breathes and swells a little.
+ * The light is a layer of its own behind the element, and only its opacity
+ * and scale move, so the compositor does the work and nothing repaints.
+ * Each kind starts at a different point in the breath so neighbors never
+ * pulse together. With Reduce Motion the light rests at its usual strength. */
 .title-glow,
 .breathe-glow {
   position: relative;
   isolation: isolate;
 }
-.title-glow {
-  text-shadow: 0 0 40px rgba(226, 182, 90, 0.2);
-  --breathe-delay: 0s;
-}
+.title-glow::before,
 .title-glow::after,
 .breathe-glow::after {
-  content: "";
   position: absolute;
   z-index: -1;
   pointer-events: none;
   opacity: var(--breathe-rest);
 }
+/* The halo on the lettering itself: a copy of the words (from data-glow) in
+ * clear ink whose gold text shadow is painted once and then only breathes.
+ * Animating the text shadow would repaint its blur on every frame. The copy
+ * is hidden from screen readers by its empty alternative text. */
+.title-glow::before {
+  content: attr(data-glow);
+  content: attr(data-glow) / "";
+  inset: 0;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(226, 182, 90, 0.24);
+  --radiate-low: 0.99;
+  --radiate-high: 1.03;
+}
 /* A soft pool of light behind lettering. It bleeds above and below the
  * words only: a full-width title would otherwise push past the screen. */
 .title-glow::after {
+  content: "";
   inset: -45% 0;
   background: radial-gradient(closest-side, rgba(226, 182, 90, 0.2), transparent);
+  --radiate-low: 0.96;
+  --radiate-high: 1.06;
 }
-/* The same glow as --shadow-glow, on the element's own shape */
+/* The same glow as --shadow-glow, on the element's own shape. A smaller
+ * light can set --glow-blur, --glow-spread and --glow-color. */
 .breathe-glow {
   --breathe-delay: -2.2s;
 }
 .breathe-glow::after {
+  content: "";
   inset: 0;
   border-radius: inherit;
-  box-shadow: 0 0 40px -6px var(--glow-color, rgba(226, 182, 90, 0.52));
+  box-shadow: 0 0 var(--glow-blur, 40px) var(--glow-spread, -6px) var(--glow-color, rgba(226, 182, 90, 0.52));
+  --radiate-low: 0.99;
+  --radiate-high: 1.03;
 }
+/* The halo leads the pool by a moment, so the light seems to spread
+ * outward from the words. */
 @media (prefers-reduced-motion: no-preference) {
+  .title-glow::before {
+    animation: radiate var(--breathe-duration) var(--ease-sine) calc(var(--breathe-delay, 0s) - 0.8s) infinite alternate;
+  }
   .title-glow::after,
   .breathe-glow::after {
-    animation: breathe var(--breathe-duration) var(--ease-sine) var(--breathe-delay) infinite alternate;
+    animation: radiate var(--breathe-duration) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
   }
 }
 
@@ -546,10 +576,6 @@ body {
   from { opacity: 0.5; }
   to { opacity: 1; }
 }
-@keyframes backlight {
-  from { opacity: var(--breathe-low); transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1.06); }
-}
 @keyframes number-float {
   from { transform: translateY(-1px); }
   to { transform: translateY(1px); }
@@ -577,14 +603,14 @@ body {
     animation: month-breathe 2.4s var(--ease-sine) infinite alternate;
   }
   .wheel-orb-current .wheel-thread::after {
-    animation: breathe 6.5s var(--ease-sine) -4.4s infinite alternate;
+    animation: radiate 6.5s var(--ease-sine) -4.4s infinite alternate;
   }
   .wheel-orb::before {
-    animation: backlight var(--breathe-duration) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
+    animation: radiate var(--breathe-duration) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
   }
   .wheel-hub::before,
   .wheel-reading::before {
-    animation: breathe var(--breathe-duration) var(--ease-sine) -1.1s infinite alternate;
+    animation: radiate var(--breathe-duration) var(--ease-sine) -1.1s infinite alternate;
   }
   .wheel-orb-number {
     animation: number-float var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
@@ -641,11 +667,16 @@ body {
   pointer-events: none;
   opacity: var(--breathe-rest);
 }
+/* The reading is a large card, so its light swells the least. */
 .wheel-hub::before {
   box-shadow: 0 0 16px -2px var(--lamp);
+  --radiate-low: 0.98;
+  --radiate-high: 1.04;
 }
 .wheel-reading::before {
   box-shadow: 0 0 30px -2px var(--lamp), 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  --radiate-low: 0.995;
+  --radiate-high: 1.015;
 }
 
 /* The gold arc traces the cycle from the birth year to this year */
@@ -656,9 +687,27 @@ body {
   animation: trace-arc 1.6s var(--ease-enter) 0.3s both;
 }
 
-/* A small orb of the same light for the timeline dots */
+/* A small orb of the same light for the timeline dots. Its light glows
+ * from a layer behind it and radiates at each dot's own pace, as the
+ * wheel's orbs do (YearTimeline sets the pace). */
 .lamp-orb {
-  box-shadow: 0 0 14px -2px var(--lamp), inset 0 -8px 10px -6px var(--lamp);
+  isolation: isolate;
+  box-shadow: inset 0 -8px 10px -6px var(--lamp);
+}
+.lamp-orb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 16px -2px var(--lamp);
+  opacity: var(--breathe-rest);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lamp-orb::before {
+    animation: radiate var(--breathe-duration) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
+  }
 }
 
 /* The timeline fades into the dark at both edges */

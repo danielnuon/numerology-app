@@ -406,7 +406,7 @@ export function HomeClient({ searchParams }: Props) {
           style={{ "--rise-delay": "400ms" } as React.CSSProperties}
         />
         <div className="flex flex-col items-start">
-          <h1 className="kindle title-glow font-display text-[2.5rem] leading-none sm:text-7xl tracking-[0.12em] text-ink">
+          <h1 data-glow="Solini" className="kindle title-glow font-display text-[2.5rem] leading-none sm:text-7xl tracking-[0.12em] text-ink">
             Solini
           </h1>
           <p

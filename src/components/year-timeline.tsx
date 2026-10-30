@@ -180,6 +180,11 @@ export function YearTimeline({
                 className="group relative flex min-w-11 flex-col items-center rounded-lg"
               >
                 <span
+                  // Each dot's light radiates at its own pace, as the wheel's orbs do
+                  style={{
+                    "--breathe-duration": `${(5 + ((year * 7) % 5) * 0.9).toFixed(1)}s`,
+                    "--breathe-delay": `${(-(year % 12) * 1.3).toFixed(1)}s`,
+                  } as React.CSSProperties}
                   className={[
                     "relative flex items-center justify-center",
                     "w-10 h-10 rounded-full pressable lamp-orb",

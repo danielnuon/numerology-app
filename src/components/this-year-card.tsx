@@ -66,7 +66,7 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, 
       </p>
 
       <div className="mt-3 flex items-center justify-center gap-3" aria-hidden="true">
-        <span className="title-glow font-sans text-7xl font-medium leading-none text-ink tabular-nums">
+        <span data-glow={cycleNumber} className="title-glow [--breathe-delay:-1.9s] font-sans text-7xl font-medium leading-none text-ink tabular-nums">
           {cycleNumber}
         </span>
         <TierIcon tier={interpretation.tier} className="size-6" />
