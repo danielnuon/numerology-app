@@ -428,12 +428,18 @@ body {
   }
 }
 
-/* Each tier lights its pillar from below; stronger years burn brighter. */
-[data-tier="very-strong"] { --lamp: rgba(170, 215, 140, 0.55); }
-[data-tier="strong"] { --lamp: rgba(150, 190, 130, 0.45); }
-[data-tier="moderate"] { --lamp: rgba(226, 182, 90, 0.42); }
-[data-tier="weak"] { --lamp: rgba(205, 110, 70, 0.45); }
-[data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); }
+/* Each tier lights its pillar from below. The ring's orbs share one even
+ * glow strength so the wheel stays balanced; only the center, which shows
+ * the chosen year, scales with luck. --hub-lamp is its light and
+ * --lamp-glow how far it reaches and swells: a very strong year radiates
+ * widely, a weak one glows softly, close in. The order follows the luck
+ * scale (higher is luckier, zero is a reset), which is Solini's reading of
+ * the method; What the numbers mean says so. */
+[data-tier="very-strong"] { --lamp: rgba(170, 215, 140, 0.55); --hub-lamp: rgba(170, 215, 140, 0.75); --lamp-glow: 1.5; }
+[data-tier="strong"] { --lamp: rgba(150, 190, 130, 0.45); --hub-lamp: rgba(150, 190, 130, 0.58); --lamp-glow: 1.2; }
+[data-tier="moderate"] { --lamp: rgba(226, 182, 90, 0.42); --hub-lamp: rgba(226, 182, 90, 0.42); --lamp-glow: 0.9; }
+[data-tier="weak"] { --lamp: rgba(205, 110, 70, 0.45); --hub-lamp: rgba(205, 110, 70, 0.3); --lamp-glow: 0.65; }
+[data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); --hub-lamp: rgba(140, 120, 110, 0.16); --lamp-glow: 0.45; }
 
 /* === Cycle wheel ===
  * Twelve threaded orbs on a ring. Each orb is an opaque, matte sphere, softly
@@ -667,14 +673,16 @@ body {
   pointer-events: none;
   opacity: var(--breathe-rest);
 }
-/* The reading is a large card, so its light swells the least. */
+/* Luckier years light them brighter and further out, and swell them more
+ * (--hub-lamp, --lamp-glow); the ring's orbs keep one even glow.
+ * The reading is a large card, so its light swells the least. */
 .wheel-hub::before {
-  box-shadow: 0 0 16px -2px var(--lamp);
+  box-shadow: 0 0 calc(16px * var(--lamp-glow, 1)) -2px var(--hub-lamp);
   --radiate-low: 0.98;
-  --radiate-high: 1.04;
+  --radiate-high: calc(1 + 0.035 * var(--lamp-glow, 1));
 }
 .wheel-reading::before {
-  box-shadow: 0 0 30px -2px var(--lamp), 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 calc(30px * var(--lamp-glow, 1)) -2px var(--hub-lamp), 0 30px 60px -20px rgba(0, 0, 0, 0.8);
   --radiate-low: 0.995;
   --radiate-high: 1.015;
 }
