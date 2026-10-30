@@ -94,3 +94,4 @@ These need real devices or a public URL and can't be automated here.
 - Shareable Results Card
 - Birth day and zodiac animal readings
 - Shared-link and brand copy pass (shared readings say "their", "See your own cycle", one brand line, personal share text, next reading's date, comparison for anyone close, gentler comparison labels, product events, the story behind the name on About)
+- Household comparison (up to six people, Solini's group rule explained on How your cycle is made, names in comparison links)

@@ -73,23 +73,26 @@ BirthDataForm (on successful submit)
       -> HomeClient reads searchParams, passes initialValues to BirthDataForm
       -> auto-computes cycle via useEffect
 
---- Partner comparison (under any reading) ---
+--- Cycle comparison (under any reading; two to six people) ---
 
-PartnerComparison (client), partner date held in HomeClient state, never saved
-  |- BirthDataForm mode="partner" -> onPartnerChange({ year, month, day, rule })
-  |- computeCycleFromBirthDate() for the partner [derive.ts]
+CycleComparison (client), the other people held in HomeClient state, never saved
+  |- BirthDataForm mode="partner" askName -> onOthersChange([...others, { share, name, isVisitor }])
+  |- computeCycleFromBirthDate() for each person [derive.ts]
+  |- personTerms() [cycle-comparison.tsx] -- name, "You", "Them" or the zodiac animal ("Ox 2")
   |- comparisonCycleStarts() [compatibility.ts] -- current cycle + up to 2 before, for the cycle stepper
   |- compareCycles() [compatibility.ts] -- the chosen cycle's 12 years; null before a birth year
-  |    +- getYearNumber() per person, yearInteraction() per year
-  |- assessStability() [compatibility.ts] -- from both total scores
-  |- summarizeComparison() [compatibility.ts] -> CompatibilitySummary (counts, this year)
+  |    +- getYearNumber() per person, householdInteraction() among those born (the pair rule for two)
+  |- assessStability() [compatibility.ts] -- from every total score; stabilityText() words it for 2 or more
+  |- summarizeComparison() [compatibility.ts] -> CompatibilitySummary (tiles with remove, this year)
+  |- pairInteractions() [compatibility.ts] -> "Pair by pair" (three or more only)
   +- "Share this comparison" -> buildComparisonSharePath() [url-encoding.ts] -> shareLink() [share.ts]
 
-/r/A+B (comparison link): decodeComparisonSegment() [url-encoding.ts]
-  |- generateMetadata(): both totals -> "<assessment>: see how these two cycles meet"
-  |- opengraph-image.tsx -> comparisonImage() [comparison-image.tsx]: the summary as a 1200x630 card
-  +- ShareRedirectClient: /?day=&month=&year=&ny=&pday=&pmonth=&pyear=&pny=
+/r/A+B+C?n=&n=Sam&n=Mai (comparison link): decodeComparisonSegment(), decodeComparisonNames() [url-encoding.ts]
+  |- generateMetadata(): every total -> "<assessment>: see how these three 12-year cycles meet"
+  |- opengraph-image.tsx -> comparisonImage() [comparison-image.tsx]: the summary as a 1200x630 card (no names)
+  +- ShareRedirectClient: /?day=&month=&year=&ny=&p=SEGMENT&p=SEGMENT&n=&n=Sam&n=Mai
       -> HomeClient opens the first reading with the comparison already showing
+         (an older /?pday=&pmonth=&pyear=&pny= single partner still opens)
 ```
 
 `deriveBirthData()` and `computeCycleFromBirthDate()` are separate entry points from the form. The form calls `deriveBirthData()` reactively via `useMemo` whenever field values change (for the zodiac/weekday preview), and calls `computeCycleFromBirthDate()` imperatively on submit. They are not a linear chain -- `computeCycleFromBirthDate` internally calls `deriveBirthData` then feeds the result into `computeCycle`.
@@ -244,7 +247,7 @@ Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the 
 
 ### URL encoding: plain ISO dates, no obfuscation
 
-Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. A comparison joins two of them with `+` (`/r/1997-07-24+2000-03-15`); each part keeps its own `-cny` suffix, and `%2B` decodes the same as `+`. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
+Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or hashed encodings. A comparison joins two to six of them with `+` (`/r/1997-07-24+2000-03-15`); each part keeps its own `-cny` suffix, and `%2B` decodes the same as `+`. Names, when anyone has one, follow as one `?n=` per person in the same order (empty for none), so a link without names is exactly what it was before households. This keeps URLs human-readable, short (under 200 characters total), and free of percent-encoded characters. The `url-encoding.ts` module provides `encodeBirthDate()`, `decodeBirthDate()`, and `buildSharePath()` as pure functions with full calendar validation.
 
 ### Analytics: Vercel, cookieless, with redacted URLs
 
@@ -300,7 +303,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
 - **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
 - **Home**: Server component wrapping `HomeClient` in `<Suspense>` (required for `useSearchParams()`).
-- **HomeClient**: Client component holding the birth date, New Year rule, selected year and the `formOpen` and `bloomed` flags and `readingView`. Share URL params take precedence over the date saved in localStorage. The first visit asks one question, "When were you born?", with one line under it saying what the reading gives. A share link sets `isShared` until the visitor reads their own date: `ThisYearCard`, `ShareReading` and `PartnerComparison` then say "their" or "this" instead of "your", and a primary "See your own cycle" button sits under the reading card. The form card and the reading card share one place on the page: on submit, `startTransition` swaps the form for the reading inside a `<ViewTransition name="reading-card">`, so the card blooms in place instead of scrolling down to a separate result. "Read for someone else" swaps back to an empty form (`formOpen` state), "Back to the reading" returns without re-entering the date, and "Forget my date", beside it, forgets a restored saved date. The reading card opens on `ThisYearCard`. Below `lg`, `ReadingViewTabs` switches the card between it and the wheel plus timeline in the same place (`swapInPlace` fades the old view, lays out the new one with `flushSync` and glides the card's edge and the blocks below on live elements; the switch's own choice, `chosenView`, moves first in a transition so its outline glides); from `lg` the wheel sits beside it.
+- **HomeClient**: Client component holding the birth date, New Year rule, selected year and the `formOpen` and `bloomed` flags and `readingView`. Share URL params take precedence over the date saved in localStorage. The first visit asks one question, "When were you born?", with one line under it saying what the reading gives. A share link sets `isShared` until the visitor reads their own date: `ThisYearCard`, `ShareReading` and `CycleComparison` then say "their" or "this" instead of "your", and a primary "See your own cycle" button sits under the reading card. The form card and the reading card share one place on the page: on submit, `startTransition` swaps the form for the reading inside a `<ViewTransition name="reading-card">`, so the card blooms in place instead of scrolling down to a separate result. "Read for someone else" swaps back to an empty form (`formOpen` state), "Back to the reading" returns without re-entering the date, and "Forget my date", beside it, forgets a restored saved date. The reading card opens on `ThisYearCard`. Below `lg`, `ReadingViewTabs` switches the card between it and the wheel plus timeline in the same place (`swapInPlace` fades the old view, lays out the new one with `flushSync` and glides the card's edge and the blocks below on live elements; the switch's own choice, `chosenView`, moves first in a transition so its outline glides); from `lg` the wheel sits beside it.
 - **BirthReading**: Two lit panels under `ThisYearCard` that read the person rather than a year: the birth weekday (Khmer day name, planet and strength, character, traditional color) from `BIRTH_DAYS` and `DAY_PLANETS`, and the zodiac animal (Khmer name, popular traits labeled as such) from `ZODIAC_READINGS`. Each links to its section of the meaning page. Neither changes a cycle number. Sources are in [docs/reading-model.md](../reading-model.md).
 - **ThisYearCard**: The active year's cycle number, luck tier, life area, tier description and guidance, as a lit panel inside the reading card. Used for every reading: a fresh submission, a saved date and a shared link. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
 - **ReadingViewTabs**: A two-way tabs switch ("Year" for this year's reading, "Cycle" for the 12-year wheel and timeline) at the top of the reading card below `lg`. Switching swaps the view in place instead of opening a section below it; the ink outline glides between the tabs, and arrow keys move the choice and focus together.
@@ -308,7 +311,7 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Ends with `TotalScoreCard`, which shows the total with `interpretTotal()` and opens in place onto the three possible totals from `TOTAL_SCALE`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
-- **PartnerComparison**: Rests as a "Compare with a partner" button under the reading. Opens `BirthDataForm` in partner mode, then shows `CompatibilitySummary` (both totals, the stability assessment and the current year's interaction), a cycle stepper (current cycle and up to two before it), the chosen cycle's 12-year table of each person's number and the interaction (`compatibility.ts`), share, download and remove actions, and a closed "How to read this" with the interaction meanings and a link to how the totals are read. HomeClient owns the partner's date, so a comparison link opens straight onto it.
+- **CycleComparison**: Rests as a "Compare with someone close" button under the reading. Opens `BirthDataForm` in partner mode (with an optional name field, except when the visitor adds themselves on a shared reading), then shows `CompatibilitySummary` (everyone's total, each removable but the first, the stability assessment and the current year's interaction), "Add someone" up to six people, for three or more a note that the group reading is Solini's extension, a cycle stepper (current cycle and up to two before it), the chosen cycle's 12-year table of each person's number and the interaction (`compatibility.ts`), for three or more "Pair by pair", share, download and remove actions, and a closed "How to read this" with the interaction meanings and links to how the totals and groups are read. HomeClient owns the other people, so a comparison link opens straight onto them.
 - **SectionDivider**: Between sections, a woven divider whose flame threads unweave into a line on scroll (`WovenDivider`); `compact` is the hairline with a centered diamond.
 - **FollowFlame** (`woven-flame-parts.tsx`): the long copy pages' flame that glides from beside "Solini" to the bottom right corner and lights a thread per stretch of the page read. Scroll-driven CSS; the component only measures where it starts.
 - **PullQuote** (`page-parts.tsx`): one line lifted out in large italic, hidden from screen readers.

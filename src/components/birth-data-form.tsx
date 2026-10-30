@@ -9,9 +9,9 @@
  * `onResult` callback. Also holds the Khmer/Chinese New Year toggle, since
  * it decides the animal the preview and the reading use.
  *
- * In "partner" mode the same form takes a second person's date for a
+ * In "partner" mode the same form takes another person's date for a
  * comparison: it saves nothing to this browser, its fields get their own
- * ids, and the button reads "Compare".
+ * ids, the button reads "Compare", and it can ask for an optional name.
  */
 
 import { useState, useMemo, useRef } from "react";
@@ -24,6 +24,7 @@ import {
 } from "@/lib/numerology/derive";
 import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { markUpdateNoticeSeen, saveBirthDate } from "@/lib/storage";
+import { cleanPersonName, MAX_PERSON_NAME_LENGTH } from "@/lib/numerology/url-encoding";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { NewYearToggle } from "@/components/new-year-toggle";
@@ -62,8 +63,10 @@ const MODE_TEXT: Record<BirthDataFormMode, { idPrefix: string; formLabel: string
 interface Props {
   /** "partner" takes a second person's date for a comparison and saves nothing. Defaults to "primary". */
   mode?: BirthDataFormMode;
-  /** Called with the computed cycle result after successful form submission. */
-  onResult: (result: CycleResultWithYear) => void;
+  /** Called with the computed cycle result after successful form submission, and the name if one was asked for and given. */
+  onResult: (result: CycleResultWithYear, name: string | null) => void;
+  /** Partner mode only: show an optional name field above the date. */
+  askName?: boolean;
   /** Optional initial values for pre-filling the form (e.g., from share URL). */
   initialValues?: { day: string; month: string; year: string };
   /** Which New Year turns the animal year, for the preview and the result. */
@@ -219,6 +222,7 @@ function DateField({
 export function BirthDataForm({
   mode = "primary",
   onResult,
+  askName = false,
   initialValues,
   newYearRule,
   onNewYearRuleChange,
@@ -226,6 +230,7 @@ export function BirthDataForm({
   const [day, setDay] = useState(initialValues?.day ?? "");
   const [month, setMonth] = useState(initialValues?.month ?? "");
   const [year, setYear] = useState(initialValues?.year ?? "");
+  const [name, setName] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const dayRef = useRef<HTMLInputElement>(null);
@@ -286,7 +291,7 @@ export function BirthDataForm({
       // the 2026 changes would only confuse this visitor later.
       markUpdateNoticeSeen();
     }
-    onResult(result);
+    onResult(result, askName ? cleanPersonName(name) : null);
   }
 
   // Re-validate on change if user has already attempted submission
@@ -313,6 +318,25 @@ export function BirthDataForm({
       noValidate
       aria-label={text.formLabel}
     >
+      {/* Who the date belongs to, so a comparison of several people can name them */}
+      {askName && (
+        <div className="mt-6 flex flex-col sm:mt-8">
+          <label htmlFor={`${text.idPrefix}-name`} className="mb-2 text-center text-base text-ink-light">
+            Name <span className="text-sm">(optional)</span>
+          </label>
+          <input
+            id={`${text.idPrefix}-name`}
+            type="text"
+            autoComplete="off"
+            placeholder="Mom, Sam…"
+            maxLength={MAX_PERSON_NAME_LENGTH}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="lantern-input pressable text-center"
+          />
+        </div>
+      )}
+
       {/* Date inputs */}
       <div className="mt-6 sm:mt-8 grid grid-cols-[1fr_1fr_1.5fr] gap-3 sm:gap-4">
         <DateField

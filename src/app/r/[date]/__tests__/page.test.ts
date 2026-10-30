@@ -1,5 +1,5 @@
 import { generateMetadata } from "../page";
-import { SHARED_COMPARISON_TITLE, SHARED_READING_TITLE, SITE_TITLE } from "@/lib/site-copy";
+import { sharedComparisonTitle, SHARED_READING_TITLE, SITE_TITLE } from "@/lib/site-copy";
 
 /** Metadata for a share link, built on the server with no client JavaScript. */
 function metadataFor(date: string) {
@@ -33,8 +33,18 @@ describe("share route metadata", () => {
 
   it("describes a comparison by its stability assessment", async () => {
     const metadata = await metadataFor("1997-07-24+2000-03-15");
-    expect(metadata.title).toBe(SHARED_COMPARISON_TITLE);
-    expect(metadata.description).toMatch(/^(Strong|Moderate|Mixed|Low) stability/);
+    expect(metadata.title).toBe("Two Khmer numerology cycles, compared — Solini");
+    expect(metadata.title).toBe(sharedComparisonTitle(2));
+    expect(metadata.description).toMatch(/^(Strong|Moderate|Mixed|Low) stability: see how these two 12-year cycles/);
+  });
+
+  it("counts the people in a household comparison", async () => {
+    const metadata = await metadataFor("1997-07-24+1996-02-10+2021-05-03+1968-11-12");
+    expect(metadata.title).toBe("Four Khmer numerology cycles, compared — Solini");
+    // Totals 64, 76, 64 and 64: all at 60 or more
+    expect(metadata.description).toBe(
+      "Moderate stability: see how these four 12-year cycles meet, year by year, then compare your own."
+    );
   });
 
   it("falls back to the site's own title for an invalid date", async () => {

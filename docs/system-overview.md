@@ -205,7 +205,23 @@ Solini shows Khmer numerology's "Risk" and "Challenging" as "Low together" and "
 
 The table leaves out one total from 60 to 67 with the other under 60. Solini reads that as **Mixed stability** too, since one person is on steady ground and the other isn't (`assessStability()` in `src/lib/numerology/compatibility.ts`). The total score section of How your cycle is made says so, and the comparison links there from the assessment ("How the totals are read"), so visitors can judge that reading themselves.
 
-Solini compares a pair one 12-year cycle at a time, counted from the visitor's birth year: their current cycle by default, or either of the two complete cycles before it. A year before either person's birth has no interaction and isn't counted. A person's number for a calendar year is the one their cycle gives that year, which starts on their birthday in it (see `getYearNumber()`).
+Solini compares two or more people one 12-year cycle at a time, counted from the visitor's birth year: their current cycle by default, or either of the two complete cycles before it. A year with fewer than two people born has no interaction and isn't counted. A person's number for a calendar year is the one their cycle gives that year, which starts on their birthday in it (see `getYearNumber()`).
+
+### Households (Solini's extension)
+
+Khmer numerology describes luck as shared within a household, but its compatibility rules above are written for two people. It has no rule for three or more. Solini compares up to six people at once by extending the pair rule, and says so in the comparison and in the "Comparing three or more people" section of How your cycle is made. For each year, among everyone born by then, checked in order:
+
+| Condition | Result |
+|-----------|--------|
+| Anyone's number is 0 | Unstable (the zero override, which beats every pairing, beats the group too) |
+| Everyone is High | Amplified |
+| At least one High, and at least as many High as Low | Stabilized |
+| Low outnumbers Moderate and High together | Risk (shown as "Low together") |
+| Otherwise | Neutral |
+
+With two people this gives exactly the year-level matrix above (`householdInteraction()` in `src/lib/numerology/compatibility.ts`, tested against `yearInteraction()` for every pair of numbers). Totals extend the same way: the table's "both" reads as "all" (`assessStability()` takes every total). The comparison's "Pair by pair" lists this year's interaction for every pair by the pair rule alone, so a visitor can check the group's line against it.
+
+In a mixed household most years read Stabilized or Unstable: one strong year steadies the rest, and anyone's reset unsettles the whole group. The comparison names whose reset it is, and each person's number stays on the row.
 
 Partner influence is strongest in shared living, finances, and emotional state.
 

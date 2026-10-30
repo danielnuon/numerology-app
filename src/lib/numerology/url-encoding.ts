@@ -5,13 +5,16 @@
  * Uses YYYY-MM-DD format in the URL path (e.g., /r/1997-07-24). A reading
  * counted from Chinese New Year adds a suffix (/r/1997-07-24-cny), so the
  * recipient sees the same cycle; no suffix means the default Khmer New Year.
- * A comparison joins two readings with "+" (/r/1997-07-24+2000-03-15-cny),
- * each with its own suffix. ISO dates never contain "+", so one "+" always
- * means two people.
+ * A comparison joins two to six readings with "+"
+ * (/r/1997-07-24+2000-03-15-cny), each with its own suffix. ISO dates never
+ * contain "+", so each "+" adds one person. Names, when given, travel in the
+ * query string as one ?n= per person, in the same order (see
+ * comparisonNamesQuery).
  * The computed cycle is never stored — it is always recomputed server-side.
  */
 
 import { isRealCalendarDate, isSupportedYear } from "./calendar";
+import { MAX_COMPARED_PEOPLE } from "./compatibility";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "./zodiac";
 
 /** Path suffix marking a reading counted from Chinese New Year. */
@@ -123,35 +126,76 @@ export function buildSharePath(
   return `/r/${encodeShareSegment(year, month, day, rule)}`;
 }
 
-/** Joins the two readings in a comparison share segment. */
+/** Joins the readings in a comparison share segment. */
 const COMPARISON_SEPARATOR = "+";
 
-/** A shared comparison: two readings, the visitor's first. */
+/** The longest name a comparison keeps for a person. */
+export const MAX_PERSON_NAME_LENGTH = 16;
+
+/** A shared comparison: two to six readings, the sharer's first. */
 export interface DecodedComparison {
-  first: DecodedShare;
-  second: DecodedShare;
+  people: DecodedShare[];
 }
 
 /**
  * Decodes a comparison share segment ("1997-07-24+2000-03-15").
- * Returns null unless there is exactly one "+" and both halves decode.
+ * Returns null unless it holds two to six readings and every one decodes.
  * Next.js may hand the route the "+" percent-encoded, so that is accepted too.
  */
 export function decodeComparisonSegment(segment: string): DecodedComparison | null {
   const parts = segment.replace(/%2B/gi, COMPARISON_SEPARATOR).split(COMPARISON_SEPARATOR);
-  if (parts.length !== 2) return null;
-  const first = decodeShareSegment(parts[0]);
-  const second = decodeShareSegment(parts[1]);
-  return first && second ? { first, second } : null;
+  if (parts.length < 2 || parts.length > MAX_COMPARED_PEOPLE) return null;
+  const people = parts.map(decodeShareSegment);
+  return people.every((person) => person !== null) ? { people: people as DecodedShare[] } : null;
+}
+
+/** The share segment for a comparison: every reading, joined with "+". */
+export function encodeComparisonSegment(people: readonly DecodedShare[]): string {
+  return people
+    .map((share) => encodeShareSegment(share.year, share.month, share.day, share.rule))
+    .join(COMPARISON_SEPARATOR);
 }
 
 /**
- * Builds the share URL path for a comparison of two readings.
- *
- * @returns URL path, e.g. "/r/1997-07-24+2000-03-15-cny"
+ * A person's name as a comparison keeps it: spaces collapsed, control
+ * characters dropped, at most MAX_PERSON_NAME_LENGTH characters. Returns
+ * null for a missing or empty name.
  */
-export function buildComparisonSharePath(first: DecodedShare, second: DecodedShare): string {
-  const encode = (share: DecodedShare) =>
-    encodeShareSegment(share.year, share.month, share.day, share.rule);
-  return `/r/${encode(first)}${COMPARISON_SEPARATOR}${encode(second)}`;
+export function cleanPersonName(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const cleaned = raw.replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim();
+  return cleaned ? Array.from(cleaned).slice(0, MAX_PERSON_NAME_LENGTH).join("") : null;
+}
+
+/**
+ * The names in a comparison link's ?n= values, one per person in order,
+ * cleaned; null where a person has none. Extra values are ignored.
+ */
+export function decodeComparisonNames(values: readonly string[] | undefined, count: number): (string | null)[] {
+  return Array.from({ length: count }, (_, i) => cleanPersonName(values?.[i]));
+}
+
+/**
+ * The query string that carries a comparison's names ("?n=&n=Sam"), or ""
+ * when nobody has one, so a link without names stays as short as before.
+ */
+export function comparisonNamesQuery(names: readonly (string | null)[]): string {
+  if (!names.some((name) => cleanPersonName(name) !== null)) return "";
+  const params = new URLSearchParams();
+  for (const name of names) params.append("n", cleanPersonName(name) ?? "");
+  return `?${params.toString()}`;
+}
+
+/**
+ * Builds the share URL for a comparison, with names if anyone has one.
+ *
+ * @param people - Every reading, the sharer's first
+ * @param names - Each person's name or null, in the same order
+ * @returns e.g. "/r/1997-07-24+2000-03-15-cny" or "/r/1997-07-24+2000-03-15?n=&n=Sam"
+ */
+export function buildComparisonSharePath(
+  people: readonly DecodedShare[],
+  names: readonly (string | null)[] = []
+): string {
+  return `/r/${encodeComparisonSegment(people)}${comparisonNamesQuery(names)}`;
 }
