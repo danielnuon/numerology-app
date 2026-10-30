@@ -81,6 +81,7 @@ import { getActiveYear, getCycleIndex, getYearNumber } from "@/lib/numerology/ye
 import { interpretAreaYear } from "@/lib/numerology/interpretation";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 import { SoliniMark } from "@/components/ui/solini-mark";
+import type { PagePoint } from "@/lib/motion";
 
 /** ID for the reading card, the place the form blooms into. */
 const CHART_SECTION_ID = "cycle-chart-section";
@@ -280,6 +281,15 @@ export function HomeClient({ searchParams }: Props) {
   // entrance doesn't play a second time.
   const [bloomed, setBloomed] = useState(false);
   const readingCardRef = useRef<HTMLDivElement>(null);
+  // Where the button that asked for a reading was, so the woven flame's
+  // spark rises from it (SoliniMark's manifestFrom)
+  const submitterRef = useRef<PagePoint | null>(null);
+  const [manifestFrom, setManifestFrom] = useState<PagePoint | null>(null);
+  const handleSubmitCapture = useCallback((event: React.FormEvent) => {
+    const button = (event.nativeEvent as SubmitEvent).submitter;
+    const box = button?.getBoundingClientRect();
+    submitterRef.current = box ? { x: box.left + box.width / 2, y: box.top + box.height / 2 } : null;
+  }, []);
 
   // Form submission: localStorage save happens inside BirthDataForm.handleSubmit
   const handleResult = useCallback((r: CycleResultWithYear) => {
@@ -287,6 +297,7 @@ export function HomeClient({ searchParams }: Props) {
     startTransition(() => {
       addTransitionType("bloom-open");
       setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
+      setManifestFrom(submitterRef.current);
       setPickedYear(null);
       setFormOpen(false);
       setReadingView("year");
@@ -326,6 +337,7 @@ export function HomeClient({ searchParams }: Props) {
     startTransition(() => {
       addTransitionType("form-reset");
       setSessionDate(null);
+      setManifestFrom(null);
       setPickedYear(null);
       setFormOpen(false);
     });
@@ -400,7 +412,12 @@ export function HomeClient({ searchParams }: Props) {
           (which phones have no room for). Entrance: the flame weaves itself
           in as the name kindles, then the rest rises in turn. */}
       <div className="mt-7 sm:mt-0 [@media(max-height:700px)]:mt-6 flex items-center gap-3 sm:gap-5">
-        <SoliniMark woven reactive year={result ? getCycleIndex(result.birthYear, activeYear) : 0} className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
+        <SoliniMark
+          woven
+          reactive
+          year={result ? getCycleIndex(result.birthYear, activeYear) : 0}
+          manifestFrom={manifestFrom}
+          className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
         <span
           aria-hidden="true"
           className="rise h-14 w-px bg-gradient-to-b from-transparent via-gold/60 to-transparent sm:h-20"
@@ -464,13 +481,15 @@ export function HomeClient({ searchParams }: Props) {
                 </>
               )}
 
-              <BirthDataForm
-                key={formOpen ? "another" : "first"}
-                onResult={handleResult}
-                initialValues={formOpen ? undefined : initialValues}
-                newYearRule={newYearRule}
-                onNewYearRuleChange={handleNewYearRuleChange}
-              />
+              <div className="contents" onSubmitCapture={handleSubmitCapture}>
+                <BirthDataForm
+                  key={formOpen ? "another" : "first"}
+                  onResult={handleResult}
+                  initialValues={formOpen ? undefined : initialValues}
+                  newYearRule={newYearRule}
+                  onNewYearRuleChange={handleNewYearRuleChange}
+                />
+              </div>
 
               {formOpen && result && (
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4">

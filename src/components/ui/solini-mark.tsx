@@ -13,6 +13,14 @@
  * mark lights the first year, the one made from the birth date itself.
  * "year" lights another, as the home page does with the visitor's year now.
  *
+ * When "year" changes on a woven mark after its entrance, the flame
+ * manifests the new year rather than switching to it (MANIFEST): a spark
+ * rises from "manifestFrom", the button the visitor pressed, into the
+ * flame's base; the threads light one after another up the flame, counting
+ * the years from the year of birth; and the year now kindles with a flare
+ * as the flame swells for a breath. With Reduce Motion the new year simply
+ * fades in.
+ *
  * The flame is a living surface and never quite still. The whole flame
  * drifts slowly from side to side, its threads sway in a ripple that climbs
  * from the base to the tip, and the lit thread's glow breathes.
@@ -32,11 +40,16 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { useReducedMotion } from "motion/react";
 import {
+  EASE,
   FLAME_MOTION,
+  MANIFEST,
+  type PagePoint,
+  cssEase,
   flameLean,
   flameStretch,
   flameTilt,
   stepFlameSpring,
+  sparkArc,
   stepScrollSpring,
 } from "@/lib/motion";
 
@@ -153,16 +166,107 @@ function tiltSupport(): TiltAccess {
 
 const noSubscription = () => () => {};
 
+/** A year being manifested: the year lit before, the year to light, and where the spark starts. */
+type Manifesting = { from: number; to: number; spark: PagePoint | null };
+
+/** The spark and the two smaller lights that trail it, as [size, delay, opacity]. */
+const SPARK_TRAIL = [
+  [8, 0, 1],
+  [6, 45, 0.6],
+  [4, 90, 0.35],
+] as const;
+
+/**
+ * Plays a manifestation on a drawn mark and calls `done` when the new year's
+ * thread should take the light. Returns a cleanup that stops what's pending.
+ */
+function playManifest(svg: SVGSVGElement, { to, spark }: Manifesting, done: () => void) {
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  const sparks: HTMLElement[] = [];
+  const box = svg.getBoundingClientRect();
+  const onScreen = box.bottom > 0 && box.top < window.innerHeight;
+  let start = 0;
+
+  if (spark && onScreen) {
+    // Into the base of the flame, where the first year's thread lies
+    const base = MARK_THREADS[MARK_THREADS.length - 1];
+    const scale = box.width / 64;
+    const target = {
+      x: box.left + (base.x + base.width / 2) * scale,
+      y: box.top + (base.y + MARK_THREAD_HEIGHT / 2) * scale,
+    };
+    const path = sparkArc(spark, target);
+    for (const [size, delay, opacity] of SPARK_TRAIL) {
+      const light = document.createElement("span");
+      light.className = "mark-spark";
+      light.style.setProperty("--spark-size", `${size}px`);
+      document.body.append(light);
+      sparks.push(light);
+      light
+        .animate(
+          path.map((point, k) => ({
+            transform: `translate(${point.x}px, ${point.y}px) scale(${k === path.length - 1 ? 0.4 : 1})`,
+            opacity: k === 0 ? 0 : k === path.length - 1 ? 0 : opacity,
+          })),
+          { duration: MANIFEST.sparkMs, delay, easing: cssEase(EASE.standard), fill: "both" }
+        )
+        .finished.then(() => light.remove(), () => light.remove());
+    }
+    // The count begins as the spark lands; its curve has slowed it by then
+    start = MANIFEST.sparkMs * 0.75;
+  }
+
+  // The light leaves the year it was on as the count begins
+  const dim = svg.querySelector(".mark-light")?.animate([{ opacity: 1 }, { opacity: 0.2 }], {
+    duration: MANIFEST.flashMs,
+    delay: start,
+    easing: cssEase(EASE.standard),
+    fill: "forwards",
+  });
+
+  // Count up the flame from the year of birth, one thread after another
+  const flashes = svg.querySelectorAll<SVGRectElement>(".mark-flash");
+  for (let year = 0; year <= to; year++) {
+    flashes[markThread(year)]?.animate([{ opacity: 0 }, { opacity: 0.85, offset: 0.3 }, { opacity: 0 }], {
+      duration: MANIFEST.flashMs,
+      delay: start + year * MANIFEST.stepMs,
+      easing: cssEase(EASE.standard),
+    });
+  }
+
+  // The year now takes the light at the height of its flash
+  const arrive = start + to * MANIFEST.stepMs + MANIFEST.flashMs * 0.3;
+  timers.push(
+    setTimeout(() => {
+      // When the year is the same thread, its light comes back
+      dim?.cancel();
+      done();
+      svg.animate([{ transform: "scale(1)" }, { transform: "scale(1.06)" }, { transform: "scale(1)" }], {
+        duration: MANIFEST.flareMs * 0.6,
+        easing: cssEase(EASE.standard),
+      });
+    }, arrive)
+  );
+
+  return () => {
+    timers.forEach(clearTimeout);
+    sparks.forEach((light) => light.remove());
+  };
+}
+
 export function SoliniMark({
   woven = false,
   reactive = false,
   year = 0,
+  manifestFrom = null,
   className = "",
 }: {
   woven?: boolean;
   reactive?: boolean;
   /** The year of the cycle to light, from 0 (the year of birth) to 11. */
   year?: number;
+  /** Where a new year's spark starts: the center of the button that asked for it. */
+  manifestFrom?: PagePoint | null;
   className?: string;
 }) {
   const glowId = useId();
@@ -180,6 +284,35 @@ export function SoliniMark({
     const timer = setTimeout(() => setKindled(true), KINDLED_MS);
     return () => clearTimeout(timer);
   }, [woven]);
+  // A new year is manifested once the entrance has played; until then, or
+  // with Reduce Motion, it is simply lit.
+  const [litYear, setLitYear] = useState(year);
+  const [manifesting, setManifesting] = useState<Manifesting | null>(null);
+  const [flare, setFlare] = useState(0);
+  if (year !== litYear) {
+    setLitYear(year);
+    setManifesting(
+      woven && kindled && !prefersReducedMotion
+        ? { from: manifesting?.from ?? litYear, to: year, spark: manifestFrom }
+        : null
+    );
+  }
+  const shownYear = manifesting ? manifesting.from : year;
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!manifesting || !svg) return;
+    const finish = () => {
+      setManifesting(null);
+      setFlare((count) => count + 1);
+    };
+    if (typeof svg.animate !== "function") {
+      const timer = setTimeout(finish, 0);
+      return () => clearTimeout(timer);
+    }
+    return playManifest(svg, manifesting, finish);
+  }, [manifesting]);
+
   const tilt: TiltAccess =
     !reactive || prefersReducedMotion || support === "none"
       ? "none"
@@ -288,7 +421,7 @@ export function SoliniMark({
     };
   }, [reactive, prefersReducedMotion, tilt]);
 
-  const litThread = markThread(year);
+  const litThread = markThread(shownYear);
   const lit = MARK_THREADS[litThread];
   const last = MARK_THREADS.length - 1;
   const rx = MARK_THREAD_HEIGHT / 2;
@@ -320,11 +453,34 @@ export function SoliniMark({
                   rx={rx}
                   style={{ "--weave-delay": `${(last - i) * WEAVE_STAGGER_MS}ms` } as React.CSSProperties}
                 />
+                {woven && (
+                  <rect
+                    className="mark-flash fill-gold-light"
+                    opacity={0}
+                    x={thread.x}
+                    y={thread.y}
+                    width={thread.width}
+                    height={MARK_THREAD_HEIGHT}
+                    rx={rx}
+                  />
+                )}
                 {i === litThread && (
                   <g
-                    className="mark-light"
+                    className={`mark-light ${flare ? "mark-manifested" : ""}`}
                     style={kindled ? ({ "--kindle-delay": "0ms" } as React.CSSProperties) : undefined}
                   >
+                    {flare > 0 && (
+                      <rect
+                        key={flare}
+                        className="mark-flare fill-gold-light"
+                        filter={`url(#${glowId})`}
+                        x={lit.x - 2}
+                        y={lit.y - 2}
+                        width={lit.width + 4}
+                        height={MARK_THREAD_HEIGHT + 4}
+                        rx={rx + 2}
+                      />
+                    )}
                     <rect
                       className="mark-glow fill-gold-deep"
                       filter={`url(#${glowId})`}

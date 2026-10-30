@@ -20,7 +20,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useReducedMotion } from "motion/react";
 import { SITE_PAGE_GROUPS, type SitePage } from "@/lib/site-pages";
-import { EASE, MOTION } from "@/lib/motion";
+import { EASE, cssEase } from "@/lib/motion";
 import {
   MARK_LIT_THREAD,
   MARK_THREAD_HEIGHT,
@@ -57,9 +57,58 @@ function offsetWithin(element: HTMLElement, ancestor: HTMLElement) {
   return { x, y };
 }
 
+/** How long a thread's flight takes, and how far apart the threads leave. */
+const THREAD_FLIGHT = { durationMs: 820, staggerMs: 55 } as const;
+
+/**
+ * One thread's flight to its link, as keyframes in the underline's own frame
+ * (origin at its top left). The thread lifts off the flame and gathers into a
+ * bright bead as it swings out along a bow, comes to rest at the start of the
+ * underline, then unfurls across it from the left, the way weft is drawn
+ * across a loom, and its glow settles.
+ */
+function threadFlight(
+  start: { x: number; y: number },
+  from: DOMRect,
+  width: number,
+  height: number,
+  k: number
+): Keyframe[] {
+  // Brightness only: a blur here would be stretched by the bead's scale
+  const glow = "brightness(1.7)";
+  const rest = "brightness(1)";
+  const bead = `scale(${6 / width}, ${3 / height})`;
+  // The bow swings out to the left of the straight line, lower threads wider
+  const bow = { x: start.x / 2 - 28 - k * 6, y: start.y / 2 - 6 };
+  return [
+    {
+      offset: 0,
+      opacity: 1,
+      filter: rest,
+      transform: `translate(${start.x}px, ${start.y}px) scale(${from.width / width}, ${from.height / height})`,
+      easing: cssEase(EASE.standard),
+    },
+    {
+      offset: 0.3,
+      opacity: 1,
+      filter: glow,
+      transform: `translate(${bow.x}px, ${bow.y}px) ${bead}`,
+      easing: cssEase(EASE.standard),
+    },
+    {
+      offset: 0.55,
+      opacity: 1,
+      filter: glow,
+      transform: `translate(0px, 0px) ${bead}`,
+      easing: cssEase(EASE.enter),
+    },
+    { offset: 1, opacity: 1, filter: rest, transform: "none" },
+  ];
+}
+
 /**
  * As the list opens, each of the flame's MENU_LINK_THREADS flies from the
- * button to its link and stretches into the underline. A stand-in thread
+ * button to its link and weaves itself into the underline (threadFlight). A stand-in thread
  * (`flights`) makes the trip over the panel, which is still fading in, and
  * the real underline appears where it lands. Measured once, at the start,
  * and moved with transforms only. With Reduce Motion the underlines are
@@ -87,21 +136,12 @@ function useThreadFlight(
       const height = underline.offsetHeight;
       Object.assign(flight.style, { left: `${to.x}px`, top: `${to.y}px`, width: `${width}px`, height: `${height}px` });
       underline.style.visibility = "hidden";
-      const animation = flight.animate(
-        [
-          {
-            opacity: 1,
-            transform: `translate(${from.left - origin.left - to.x}px, ${from.top - origin.top - to.y}px) scale(${from.width / width}, ${from.height / height})`,
-          },
-          { opacity: 1, transform: "none" },
-        ],
-        {
-          duration: MOTION.gentle * 1000 + 100,
-          delay: parseFloat(menuThreadClose(thread)["--open-delay"]),
-          easing: `cubic-bezier(${EASE.standard.join(", ")})`,
-          fill: "backwards",
-        }
-      );
+      const start = { x: from.left - origin.left - to.x, y: from.top - origin.top - to.y };
+      const animation = flight.animate(threadFlight(start, from, width, height, k), {
+        duration: THREAD_FLIGHT.durationMs,
+        delay: parseFloat(menuThreadClose(thread)["--open-delay"]) + k * THREAD_FLIGHT.staggerMs,
+        fill: "backwards",
+      });
       animation.onfinish = () => {
         underline.style.visibility = "";
         animation.cancel();
