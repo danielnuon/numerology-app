@@ -31,7 +31,7 @@ function numbersIn(min: number, max: number): number[] {
 }
 
 /**
- * Each number is a small threaded orb, as on the cycle wheel, its inner light
+ * Each number is a small threaded orb, as on the cycle wheel, its backlight
  * breathing at its own pace so a row never pulses in unison.
  */
 function orbBreath(n: number): React.CSSProperties {

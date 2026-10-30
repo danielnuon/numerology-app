@@ -129,8 +129,8 @@ describe("colors outside CSS", () => {
     expect(threadedOrb("zero", true).thread).toBe(OG_COLORS.goldLight);
   });
 
-  it("a preview orb holds its tier's light inside it and behind it", () => {
-    expect(threadedOrb("weak").background).toContain(token("tier-weak"));
+  it("a preview orb is opaque and backlit by its tier's light", () => {
+    expect(threadedOrb("weak").background).toBe(OG_COLORS.orb);
     expect(threadedOrb("weak").boxShadow).toContain(token("tier-weak"));
   });
 
