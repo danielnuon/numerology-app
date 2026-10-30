@@ -32,6 +32,14 @@ describe("SiteMenu", () => {
     expectOpen();
   });
 
+  it("wears the woven flame, decorative, with all twelve threads", () => {
+    const { container } = render(<SiteMenu />);
+    const icon = container.querySelector("svg.menu-flame");
+    expect(icon).toHaveAttribute("aria-hidden", "true");
+    expect(icon?.querySelectorAll(".menu-thread")).toHaveLength(12);
+    expect(icon?.querySelectorAll(".menu-thread.fill-gold-deep")).toHaveLength(1);
+  });
+
   it("staggers its lines in order, top to bottom", () => {
     const { container } = render(<SiteMenu />);
     const steps = [...container.querySelectorAll<HTMLElement>(".menu-item")].map((el) => el.style.getPropertyValue("--i"));

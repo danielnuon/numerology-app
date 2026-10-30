@@ -4,7 +4,8 @@
  * SiteMenu
  *
  * The Menu button in the top corner of every page, and the short list of
- * pages it opens (`SITE_PAGE_GROUPS`). It behaves like a disclosure menu on
+ * pages it opens (`SITE_PAGE_GROUPS`). The button wears the woven flame,
+ * which turns into a close mark while the list is open. It behaves like a disclosure menu on
  * any familiar site: the button toggles the list, Escape or a tap outside it
  * closes it, and following a link closes it on the new page. The current
  * page is marked with `aria-current` and the "now" gold.
@@ -17,6 +18,12 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE_PAGE_GROUPS } from "@/lib/site-pages";
+import {
+  MARK_LIT_THREAD,
+  MARK_THREAD_HEIGHT,
+  MARK_THREADS,
+  menuThreadClose,
+} from "@/components/ui/solini-mark";
 
 /**
  * A line's place in the menu, counting each group's heading (pageIndex -1)
@@ -74,10 +81,21 @@ export function SiteMenu() {
             "pressable active:scale-[0.97]",
           ].join(" ")}
         >
-          <svg viewBox="0 0 16 16" className="menu-icon h-4 w-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <line className="menu-icon-top" x1="2" y1="4.5" x2="14" y2="4.5" />
-            <line className="menu-icon-middle" x1="2" y1="8" x2="14" y2="8" />
-            <line className="menu-icon-bottom" x1="2" y1="11.5" x2="14" y2="11.5" />
+          {/* The woven flame; open, its lit thread and the one below cross
+              into a close mark while the others fade away. */}
+          <svg viewBox="0 0 64 64" className="menu-flame h-6 w-6 overflow-visible" aria-hidden="true">
+            {MARK_THREADS.map((thread, i) => (
+              <rect
+                key={i}
+                className={`menu-thread ${i === MARK_LIT_THREAD ? "fill-gold-deep" : "fill-gold"}`}
+                x={thread.x}
+                y={thread.y}
+                width={thread.width}
+                height={MARK_THREAD_HEIGHT}
+                rx={MARK_THREAD_HEIGHT / 2}
+                style={menuThreadClose(i) as React.CSSProperties}
+              />
+            ))}
           </svg>
           <span className="max-sm:sr-only">Menu</span>
         </button>

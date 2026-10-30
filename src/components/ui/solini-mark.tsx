@@ -76,6 +76,40 @@ export function threadSway(i: number) {
   };
 }
 
+/** The two threads that become the menu's close mark: the lit one and the one below it. */
+export const MENU_CLOSE_THREADS = [MARK_LIT_THREAD, MARK_LIT_THREAD + 1] as const;
+
+/** How long each stroke of the close mark is, across the 64-unit icon. */
+const CLOSE_STROKE = 44;
+
+/**
+ * Where thread `i` goes when the flame in the Menu button turns into a close
+ * mark (`.menu-thread` in globals.css). The lit thread and the one below it
+ * swing to the center and cross; the rest fade away down the flame, nearest
+ * the lit thread first, and come back in the reverse order on close.
+ */
+export function menuThreadClose(i: number) {
+  const { x, y, width } = MARK_THREADS[i];
+  const step = Math.abs(i - MARK_LIT_THREAD);
+  if (i === MENU_CLOSE_THREADS[0] || i === MENU_CLOSE_THREADS[1]) {
+    const dx = (32 - (x + width / 2)).toFixed(2);
+    const dy = (32 - (y + MARK_THREAD_HEIGHT / 2)).toFixed(2);
+    const angle = i === MARK_LIT_THREAD ? 45 : -45;
+    return {
+      "--open": `translate(${dx}px, ${dy}px) rotate(${angle}deg) scaleX(${(CLOSE_STROKE / width).toFixed(3)})`,
+      "--open-opacity": "1",
+      "--open-delay": "80ms",
+      "--close-delay": "0ms",
+    };
+  }
+  return {
+    "--open": `translateY(${((32 - y) * 0.35).toFixed(2)}px) scaleX(0.4)`,
+    "--open-opacity": "0",
+    "--open-delay": `${step * 18}ms`,
+    "--close-delay": `${step * 18 + 60}ms`,
+  };
+}
+
 /** Settled closer than this, the flame holds still and nothing is written. */
 const REST = 0.01;
 
