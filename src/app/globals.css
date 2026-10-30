@@ -748,7 +748,8 @@ body {
 }
 /* The woven flame (SoliniMark) weaves itself in while the title kindles:
  * each thread is drawn across from the left, bottom thread first as weft is
- * laid on a loom, then the year's thread lights. */
+ * laid on a loom, then the year's thread lights. When the lit year changes
+ * later, the new thread kindles at once. */
 @keyframes weave {
   from { opacity: 0; transform: scaleX(0); }
   to { opacity: 1; transform: none; }
@@ -764,7 +765,7 @@ body {
   animation-delay: var(--weave-delay, 0ms);
 }
 .mark-woven .mark-light {
-  animation: mark-kindle 700ms var(--ease-enter) 1250ms both;
+  animation: mark-kindle 700ms var(--ease-enter) var(--kindle-delay, 1250ms) both;
 }
 .mark-glow {
   opacity: var(--breathe-rest);
@@ -881,7 +882,7 @@ button:not(:disabled),
   transition-delay: calc(60ms + var(--i, 0) * 35ms);
 }
 /* The flame in the Menu button turns into a close mark: the lit thread and
- * the one below swing to the center and cross while the others fade down the
+ * the one above swing to the center and cross while the others fade up the
  * flame (menuThreadClose() sets where each goes and when). */
 .menu-thread {
   transform-box: fill-box;

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <!-- The woven flame: twelve weft threads, one per year of the cycle, with the current year lit -->
+  <!-- The woven flame: twelve weft threads, one per year of the cycle, with the first year, the year of birth, lit at the base -->
   <defs>
     <radialGradient id="halo" cx="32" cy="38" r="30" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#E2B65A" stop-opacity="0.28"/>
@@ -17,11 +17,11 @@
       <rect x="23.83" y="24.35" width="19.84" height="2.8" rx="1.4"/>
       <rect x="19.93" y="28.52" width="24.98" height="2.8" rx="1.4"/>
       <rect x="16.19" y="32.68" width="30.28" height="2.8" rx="1.4"/>
+      <rect x="12.62" y="36.85" width="35.69" height="2.8" rx="1.4"/>
       <rect x="10.99" y="41.02" width="37.67" height="2.8" rx="1.4"/>
       <rect x="11.62" y="45.18" width="35.51" height="2.8" rx="1.4"/>
       <rect x="13.65" y="49.35" width="30.93" height="2.8" rx="1.4"/>
-      <rect x="17.77" y="53.52" width="22.48" height="2.8" rx="1.4"/>
     </g>
-    <rect x="12.62" y="36.85" width="35.69" height="2.8" rx="1.4" fill="#F0CD8C"/>
+    <rect x="17.77" y="53.52" width="22.48" height="2.8" rx="1.4" fill="#F0CD8C"/>
   </g>
 </svg>

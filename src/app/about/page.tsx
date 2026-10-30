@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SectionDivider } from "@/components/ui/section-divider";
+import { SoliniMark } from "@/components/ui/solini-mark";
 import { InfoPage, MORE_LINK, MorePages, PillLink, Section } from "@/components/ui/page-parts";
 import { YEAR_TIERS } from "@/lib/numerology/interpretation-data";
 import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME, SITE_TAGLINE } from "@/lib/site-copy";
@@ -116,6 +117,32 @@ export default function AboutPage() {
             What each number and life area means
           </Link>
           .
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="The woven flame" id="the-logo">
+        <SoliniMark className="mx-auto h-20 w-20" />
+        <p>
+          Solini&apos;s mark is a flame woven from twelve threads, one for
+          each year of your cycle. It takes its method from <em>chong kiet</em>,
+          Khmer ikat, in which weavers dye the pattern into each thread before
+          the cloth is woven. The picture is built thread by thread, the way a
+          cycle is built year by year.
+        </p>
+        <p>
+          The years count up from the base, the way weft is laid on a loom.
+          The bright thread at the bottom is the first year: the year you were
+          born, the column where all three rows begin with your birth month,
+          your animal and your weekday. Its life area is Self. Once you&apos;ve
+          read your cycle, the flame on the home page lights your year now
+          instead.
+        </p>
+        <p>
+          The flame is Solini&apos;s own design, not a traditional Khmer
+          symbol. Its tie to Khmer weaving is in how it&apos;s made, thread by
+          thread, not in a pattern taken from any cloth.
         </p>
       </Section>
 

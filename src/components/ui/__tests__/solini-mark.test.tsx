@@ -10,6 +10,7 @@ import {
   MARK_THREADS,
   MENU_CLOSE_THREADS,
   SoliniMark,
+  markThread,
   menuThreadClose,
   threadSway,
 } from "../solini-mark";
@@ -20,6 +21,17 @@ describe("SoliniMark", () => {
     const { container } = render(<SoliniMark />);
     expect(container.querySelectorAll(".mark-thread")).toHaveLength(12);
     expect(container.querySelectorAll(".mark-light rect.fill-gold-light")).toHaveLength(1);
+  });
+
+  it("counts the years up from the base and lights the first year on its own", () => {
+    expect(MARK_LIT_THREAD).toBe(MARK_THREADS.length - 1);
+    expect(markThread(0)).toBe(11);
+    expect(markThread(11)).toBe(0);
+    expect(markThread(12)).toBe(11);
+    const litY = (container: HTMLElement) =>
+      Number(container.querySelector(".mark-light rect.fill-gold-light")?.getAttribute("y"));
+    expect(litY(render(<SoliniMark />).container)).toBe(MARK_THREADS[11].y);
+    expect(litY(render(<SoliniMark year={3} />).container)).toBe(MARK_THREADS[8].y);
   });
 
   it("is decorative, since the name Solini is always written beside it", () => {
@@ -37,16 +49,16 @@ describe("SoliniMark", () => {
     expect(threads[0].style.getPropertyValue("--weave-delay")).toBe("770ms");
   });
 
-  it("turns into a close mark in the Menu button from the lit thread and the one below", () => {
-    expect(MENU_CLOSE_THREADS).toEqual([MARK_LIT_THREAD, MARK_LIT_THREAD + 1]);
-    const [lit, below] = MENU_CLOSE_THREADS.map(menuThreadClose);
+  it("turns into a close mark in the Menu button from the lit thread and the one above", () => {
+    expect(MENU_CLOSE_THREADS).toEqual([MARK_LIT_THREAD - 1, MARK_LIT_THREAD]);
+    const [above, lit] = MENU_CLOSE_THREADS.map(menuThreadClose);
     expect(lit["--open"]).toContain("rotate(45deg)");
-    expect(below["--open"]).toContain("rotate(-45deg)");
+    expect(above["--open"]).toContain("rotate(-45deg)");
     expect(lit["--open-opacity"]).toBe("1");
     // Every other thread fades, nearest the lit thread first
     const others = MARK_THREADS.map((_, i) => i).filter((i) => !MENU_CLOSE_THREADS.includes(i as never));
     for (const i of others) expect(menuThreadClose(i)["--open-opacity"]).toBe("0");
-    expect(parseFloat(menuThreadClose(MARK_LIT_THREAD - 1)["--open-delay"])).toBeLessThan(
+    expect(parseFloat(menuThreadClose(MARK_LIT_THREAD - 2)["--open-delay"])).toBeLessThan(
       parseFloat(menuThreadClose(0)["--open-delay"])
     );
   });

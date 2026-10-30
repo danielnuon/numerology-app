@@ -18,4 +18,10 @@ describe("About page", () => {
     expect(screen.getByRole("link", { name: "Khmer Rouge years" })).toHaveAttribute("href", "/heritage#khmer-rouge");
     expect(screen.getByRole("link", { name: "Our family's story" })).toHaveAttribute("href", "/heritage#our-family");
   });
+
+  it("tells the logo's story and says the design is Solini's own", () => {
+    render(<AboutPage />);
+    expect(screen.getByRole("heading", { name: "The woven flame" })).toBeInTheDocument();
+    expect(screen.getByText(/Solini's own design, not a traditional Khmer/)).toBeInTheDocument();
+  });
 });

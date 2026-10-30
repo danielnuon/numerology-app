@@ -8,6 +8,11 @@
  * with one year's thread lit. The threads follow chong kiet, Khmer ikat, in
  * which the pattern is dyed into the weft before the cloth is woven.
  *
+ * The cycle counts up the flame, as the weave is laid: the bottom thread is
+ * the first year, the year of birth, and the tip the twelfth. On its own the
+ * mark lights the first year, the one made from the birth date itself.
+ * "year" lights another, as the home page does with the visitor's year now.
+ *
  * The flame is a living surface and never quite still. The whole flame
  * drifts slowly from side to side, its threads sway in a ripple that climbs
  * from the base to the tip, and the lit thread's glow breathes.
@@ -57,8 +62,16 @@ export const MARK_THREADS: readonly MarkThread[] = [
   { x: 17.77, y: 53.52, width: 22.48 },
 ];
 
-/** The lit thread, the eighth from the top, where the flame is widest. */
-export const MARK_LIT_THREAD = 7;
+/** The thread for a year of the cycle (0 is the first year), counted up from the base. */
+export function markThread(year: number) {
+  return MARK_THREADS.length - 1 - (((year % 12) + 12) % 12);
+}
+
+/** The thread the mark lights on its own: the bottom one, the first year. */
+export const MARK_LIT_THREAD = markThread(0);
+
+/** When the weave's light has kindled; a later change of year kindles at once. */
+const KINDLED_MS = 1950;
 
 /** How far apart the threads start weaving, bottom thread first. */
 const WEAVE_STAGGER_MS = 70;
@@ -76,16 +89,16 @@ export function threadSway(i: number) {
   };
 }
 
-/** The two threads that become the menu's close mark: the lit one and the one below it. */
-export const MENU_CLOSE_THREADS = [MARK_LIT_THREAD, MARK_LIT_THREAD + 1] as const;
+/** The two threads that become the menu's close mark: the lit one and the one above it. */
+export const MENU_CLOSE_THREADS = [MARK_LIT_THREAD - 1, MARK_LIT_THREAD] as const;
 
 /** How long each stroke of the close mark is, across the 64-unit icon. */
 const CLOSE_STROKE = 44;
 
 /**
  * Where thread `i` goes when the flame in the Menu button turns into a close
- * mark (`.menu-thread` in globals.css). The lit thread and the one below it
- * swing to the center and cross; the rest fade away down the flame, nearest
+ * mark (`.menu-thread` in globals.css). The lit thread and the one above it
+ * swing to the center and cross; the rest fade away up the flame, nearest
  * the lit thread first, and come back in the reverse order on close.
  */
 export function menuThreadClose(i: number) {
@@ -143,10 +156,13 @@ const noSubscription = () => () => {};
 export function SoliniMark({
   woven = false,
   reactive = false,
+  year = 0,
   className = "",
 }: {
   woven?: boolean;
   reactive?: boolean;
+  /** The year of the cycle to light, from 0 (the year of birth) to 11. */
+  year?: number;
   className?: string;
 }) {
   const glowId = useId();
@@ -157,6 +173,13 @@ export function SoliniMark({
   // Read on the client only ("none" on the server), so the two agree.
   const support = useSyncExternalStore(noSubscription, tiltSupport, () => "none" as const);
   const [answer, setAnswer] = useState<"unasked" | "granted" | "denied">("unasked");
+  // Once the entrance has played, a newly lit year kindles without waiting.
+  const [kindled, setKindled] = useState(!woven);
+  useEffect(() => {
+    if (!woven) return;
+    const timer = setTimeout(() => setKindled(true), KINDLED_MS);
+    return () => clearTimeout(timer);
+  }, [woven]);
   const tilt: TiltAccess =
     !reactive || prefersReducedMotion || support === "none"
       ? "none"
@@ -265,7 +288,8 @@ export function SoliniMark({
     };
   }, [reactive, prefersReducedMotion, tilt]);
 
-  const lit = MARK_THREADS[MARK_LIT_THREAD];
+  const litThread = markThread(year);
+  const lit = MARK_THREADS[litThread];
   const last = MARK_THREADS.length - 1;
   const rx = MARK_THREAD_HEIGHT / 2;
   const mark = (
@@ -296,8 +320,11 @@ export function SoliniMark({
                   rx={rx}
                   style={{ "--weave-delay": `${(last - i) * WEAVE_STAGGER_MS}ms` } as React.CSSProperties}
                 />
-                {i === MARK_LIT_THREAD && (
-                  <g className="mark-light">
+                {i === litThread && (
+                  <g
+                    className="mark-light"
+                    style={kindled ? ({ "--kindle-delay": "0ms" } as React.CSSProperties) : undefined}
+                  >
                     <rect
                       className="mark-glow fill-gold-deep"
                       filter={`url(#${glowId})`}
