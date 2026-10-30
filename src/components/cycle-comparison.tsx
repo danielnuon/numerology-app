@@ -317,6 +317,7 @@ export function CycleComparison({
   // The form starts on the reading's rule, so everyone is counted alike unless changed.
   const [partnerRule, setPartnerRule] = useState<NewYearRule>(readingRule);
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [shareUrl, setShareUrl] = useState("");
   // The cycle's first year; null follows the current cycle.
   const [pickedCycle, setPickedCycle] = useState<number | null>(null);
 
@@ -482,6 +483,7 @@ export function CycleComparison({
       title: sharedComparisonTitle(count),
       text: "Here's how our Khmer numerology cycles meet, year by year. See it on Solini.",
     });
+    setShareUrl(url);
     if (outcome === "copied" || outcome === "failed") setShareStatus(outcome);
   }
 
@@ -641,7 +643,13 @@ export function CycleComparison({
           >
             Download image
           </a>
-          <button type="button" onClick={handleRemoveAll} aria-label="Remove comparison" className={TEXT_LINK_CLASS}>
+          {/* The pair's label starts with its visible word, so voice control finds it either way */}
+          <button
+            type="button"
+            onClick={handleRemoveAll}
+            aria-label={isGroup ? undefined : "Remove comparison"}
+            className={TEXT_LINK_CLASS}
+          >
             {isGroup ? "Remove all" : "Remove"}
           </button>
         </div>
@@ -653,7 +661,11 @@ export function CycleComparison({
             </span>
           )}
           {shareStatus === "failed" && (
-            <span className="animate-settle-in inline-block">Couldn&apos;t copy automatically. Copy the link from the address bar instead.</span>
+            // The link itself, since the address bar doesn't hold a comparison made here
+            <span className="animate-settle-in inline-block">
+              Couldn&apos;t copy automatically. Copy this link instead:{" "}
+              <span className="select-all break-all text-ink">{shareUrl}</span>
+            </span>
           )}
         </p>
 

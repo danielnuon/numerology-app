@@ -125,6 +125,18 @@ describe("decodeBirthDate", () => {
   it("returns null for extra characters after date", () => {
     expect(decodeBirthDate("1997-07-24-extra")).toBeNull();
   });
+
+  it("returns null for a birth date in the future, as the form does", () => {
+    const today = new Date(Date.UTC(2026, 9, 30, 12));
+    expect(decodeBirthDate("2030-01-01", today)).toBeNull();
+    expect(decodeBirthDate("2026-11-01", today)).toBeNull();
+  });
+
+  it("accepts today, and tomorrow for a sharer whose day is ahead of the server's", () => {
+    const today = new Date(Date.UTC(2026, 9, 30, 12));
+    expect(decodeBirthDate("2026-10-30", today)).toEqual({ year: 2026, month: 10, day: 30 });
+    expect(decodeBirthDate("2026-10-31", today)).toEqual({ year: 2026, month: 10, day: 31 });
+  });
 });
 
 describe("buildSharePath", () => {
@@ -153,7 +165,8 @@ describe("roundtrip encode/decode", () => {
       [1997, 7, 24],
     ] as [number, number, number][]) {
       const encoded = encodeBirthDate(y, m, d);
-      const decoded = decodeBirthDate(encoded);
+      // A day the latest of them has already happened
+      const decoded = decodeBirthDate(encoded, new Date(Date.UTC(2101, 0, 1)));
       expect(decoded).toEqual({ year: y, month: m, day: d });
     }
   });

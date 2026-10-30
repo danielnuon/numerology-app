@@ -48,12 +48,15 @@ export function encodeBirthDate(
 
 /**
  * Decodes a birth date from a URL path segment.
- * Returns null if the date is invalid, malformed, or out of range.
+ * Returns null if the date is invalid, malformed, out of range, or in the
+ * future. "Future" allows a day's grace, since the server's date can run a
+ * day behind the sharer's (UTC against UTC+14).
  *
  * @param dateStr - Date string from URL path, e.g. "1997-07-24"
+ * @param today - The current date, for tests
  * @returns Decoded birth date or null if invalid
  */
-export function decodeBirthDate(dateStr: string): DecodedBirthDate | null {
+export function decodeBirthDate(dateStr: string, today: Date = new Date()): DecodedBirthDate | null {
   // Must match YYYY-MM-DD exactly
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     return null;
@@ -68,6 +71,10 @@ export function decodeBirthDate(dateStr: string): DecodedBirthDate | null {
     return null;
   }
   if (!isRealCalendarDate(year, month, day)) {
+    return null;
+  }
+  const latest = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1);
+  if (Date.UTC(year, month - 1, day) > latest) {
     return null;
   }
 

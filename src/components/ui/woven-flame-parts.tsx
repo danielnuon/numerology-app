@@ -88,10 +88,19 @@ export function WovenDivider() {
 
   // A divider already on screen when the page opens can't be scrolled
   // through, so the scroll would leave it half woven. It unweaves once, on a
-  // clock, instead (`.weave[data-arrive]`).
+  // clock, instead (`.weave[data-arrive]`). The first intersection report
+  // comes after the page has its scroll position, so a page restored by
+  // Back or Forward is judged where it lands, not where the last page was.
+  // Dividers above the screen stay on the scroll, already unwoven.
   useEffect(() => {
     const el = ref.current;
-    if (el && el.getBoundingClientRect().top < window.innerHeight) el.dataset.arrive = "true";
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      observer.disconnect();
+      if (entry.isIntersecting) el.dataset.arrive = "true";
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (

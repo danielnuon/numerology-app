@@ -154,6 +154,17 @@ describe("CycleComparison", () => {
     expect(await screen.findByText(/Link copied/)).toBeInTheDocument();
   });
 
+  it("shows the link to copy by hand when copying fails", async () => {
+    jest.useRealTimers();
+    const writeText = jest.fn().mockRejectedValue(new Error("denied"));
+    setNavigator({ share: undefined, clipboard: { writeText } });
+    render(<Harness initialOthers={[PARTNER]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Share this comparison" }));
+    expect(await screen.findByText(/Copy this link instead/)).toBeInTheDocument();
+    expect(screen.getByText("http://localhost/r/1997-07-24+2000-03-15")).toBeInTheDocument();
+  });
+
   it("leads with the summary and offers its card as an image", () => {
     render(<Harness initialOthers={[PARTNER]} />);
     expect(screen.getByText("Now, 2026")).toBeInTheDocument();
@@ -300,6 +311,12 @@ describe("CycleComparison", () => {
       render(<Harness initialOthers={HOUSEHOLD} />);
       fireEvent.click(screen.getByRole("button", { name: "Remove Mai" }));
       expect(headers()).toEqual(["Year", "You", "Sam", "Dad", "Together"]);
+    });
+
+    it("names Remove all by its visible words, so voice control can press it", () => {
+      render(<Harness initialOthers={HOUSEHOLD} />);
+      fireEvent.click(screen.getByRole("button", { name: "Remove all" }));
+      expect(screen.getByRole("button", { name: "Compare with someone close" })).toBeInTheDocument();
     });
 
     it("holds six people at most", () => {

@@ -67,7 +67,8 @@ describe("ShareReading", () => {
     render(<ShareReading {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "Share" }));
 
-    expect(await screen.findByText(/address bar/)).toBeInTheDocument();
+    expect(await screen.findByText(/Copy this link instead/)).toBeInTheDocument();
+    expect(screen.getByText(SHARE_URL)).toBeInTheDocument();
   });
 
   it("links the download to this reading's preview image", () => {
