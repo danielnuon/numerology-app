@@ -24,7 +24,7 @@
  * src/app/icon.svg draws the same threads; a test keeps the two in step.
  */
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { useReducedMotion } from "motion/react";
 import {
   FLAME_MOTION,
@@ -90,6 +90,15 @@ function orientationEvent(): OrientationPermission | undefined {
     : undefined;
 }
 
+/** What the browser offers; it never changes while the page is open. */
+function tiltSupport(): TiltAccess {
+  const event = orientationEvent();
+  if (!event) return "none";
+  return typeof event.requestPermission === "function" ? "ask" : "on";
+}
+
+const noSubscription = () => () => {};
+
 export function SoliniMark({
   woven = false,
   reactive = false,
@@ -104,21 +113,23 @@ export function SoliniMark({
   const leanRef = useRef<SVGGElement>(null);
   const stretchRef = useRef<SVGGElement>(null);
   const prefersReducedMotion = useReducedMotion();
-  const [tilt, setTilt] = useState<TiltAccess>("none");
-
-  // Found after the first render, so the server and the browser agree on it.
-  useEffect(() => {
-    if (!reactive || prefersReducedMotion) return;
-    const event = orientationEvent();
-    if (!event) return;
-    setTilt(typeof event.requestPermission === "function" ? "ask" : "on");
-  }, [reactive, prefersReducedMotion]);
+  // Read on the client only ("none" on the server), so the two agree.
+  const support = useSyncExternalStore(noSubscription, tiltSupport, () => "none" as const);
+  const [answer, setAnswer] = useState<"unasked" | "granted" | "denied">("unasked");
+  const tilt: TiltAccess =
+    !reactive || prefersReducedMotion || support === "none"
+      ? "none"
+      : support === "on" || answer === "granted"
+        ? "on"
+        : answer === "denied"
+          ? "none"
+          : "ask";
 
   function askForTilt() {
     orientationEvent()
       ?.requestPermission?.()
-      .then((answer) => setTilt(answer === "granted" ? "on" : "none"))
-      .catch(() => setTilt("none"));
+      .then((result) => setAnswer(result === "granted" ? "granted" : "denied"))
+      .catch(() => setAnswer("denied"));
   }
 
   useEffect(() => {
