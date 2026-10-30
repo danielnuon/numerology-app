@@ -393,13 +393,14 @@ export function HomeClient({ searchParams }: Props) {
     <MotionConfig reducedMotion="user">
     <main className="safe-gutter flex flex-1 flex-col items-center pt-9 [@media(max-height:700px)]:pt-5 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       {/* Entrance: the woven flame weaves itself in as the title surfaces out
-          of the dark, then each block follows. */}
+          of the dark, then each block follows. With a reading, the flame
+          lights the visitor's year now. */}
       {/* The signature: the woven flame and the name side by side, a gold
           hairline between them, and the brand line below between hairlines
           (which phones have no room for). Entrance: the flame weaves itself
           in as the name kindles, then the rest rises in turn. */}
       <div className="mt-7 sm:mt-0 [@media(max-height:700px)]:mt-6 flex items-center gap-3 sm:gap-5">
-        <SoliniMark woven reactive className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
+        <SoliniMark woven reactive year={result ? getCycleIndex(result.birthYear, activeYear) : 0} className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
         <span
           aria-hidden="true"
           className="rise h-14 w-px bg-gradient-to-b from-transparent via-gold/60 to-transparent sm:h-20"

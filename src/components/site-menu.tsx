@@ -170,7 +170,7 @@ export function SiteMenu() {
             "pressable active:scale-[0.97]",
           ].join(" ")}
         >
-          {/* The woven flame; open, its lit thread and the one below cross
+          {/* The woven flame; open, its lit thread and the one above cross
               into a close mark while the others fade away or fly into the
               list as its underlines. */}
           <svg viewBox="0 0 64 64" className="menu-flame h-6 w-6 overflow-visible" aria-hidden="true">
