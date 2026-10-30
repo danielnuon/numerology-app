@@ -395,7 +395,7 @@ export function HomeClient({ searchParams }: Props) {
     <main className="safe-gutter flex flex-1 flex-col items-center pt-9 [@media(max-height:700px)]:pt-5 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       {/* Entrance: the woven flame weaves itself in as the title surfaces out
           of the dark, then each block follows. */}
-      <SoliniMark woven className="mb-2 h-12 w-12 sm:mb-3 sm:h-16 sm:w-16 [@media(max-height:700px)]:mb-1 [@media(max-height:700px)]:h-8 [@media(max-height:700px)]:w-8" />
+      <SoliniMark woven reactive className="mb-2 h-12 w-12 sm:mb-3 sm:h-16 sm:w-16 [@media(max-height:700px)]:mb-1 [@media(max-height:700px)]:h-8 [@media(max-height:700px)]:w-8" />
       <h1 className="kindle title-glow font-display text-[2.75rem] leading-tight sm:text-7xl tracking-[0.14em] text-ink text-center">
         Solini
       </h1>

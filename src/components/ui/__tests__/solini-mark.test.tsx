@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MARK_LIT_THREAD, MARK_THREADS, SoliniMark } from "../solini-mark";
+import { MARK_LIT_THREAD, MARK_THREADS, SoliniMark, threadSway } from "../solini-mark";
 
 describe("SoliniMark", () => {
   it("weaves one thread for each year of the cycle and lights one", () => {
@@ -28,6 +28,15 @@ describe("SoliniMark", () => {
     const threads = container.querySelectorAll<SVGRectElement>(".mark-thread");
     expect(threads[threads.length - 1].style.getPropertyValue("--weave-delay")).toBe("0ms");
     expect(threads[0].style.getPropertyValue("--weave-delay")).toBe("770ms");
+  });
+
+  it("sways most at the tip and least at the base, in a ripple that climbs", () => {
+    const sway = MARK_THREADS.map((_, i) => parseFloat(threadSway(i)["--sway"]));
+    for (let i = 1; i < sway.length; i++) expect(sway[i]).toBeLessThan(sway[i - 1]);
+    expect(sway[0]).toBeLessThanOrEqual(2);
+    expect(parseFloat(threadSway(0)["--sway-delay"])).toBeGreaterThan(
+      parseFloat(threadSway(11)["--sway-delay"])
+    );
   });
 
   it("draws the same threads as the app icon", () => {

@@ -658,9 +658,23 @@ body {
 .mark-glow {
   opacity: var(--breathe-rest);
 }
+/* Leaning and stretching (set from SoliniMark) pivot on the flame's base. */
+.mark-base {
+  transform-box: view-box;
+  transform-origin: 50% 90%;
+}
+/* Each thread sways side to side, the tip most, in a ripple that climbs the
+ * flame (threadSway() sets the distance, pace and offset). */
+@keyframes sway {
+  from { translate: calc(var(--sway) * -1) 0; }
+  to { translate: var(--sway) 0; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .mark-glow {
     animation: breathe var(--breathe-duration) var(--ease-sine) -4.4s infinite alternate;
+  }
+  .mark-sway {
+    animation: sway var(--sway-duration) var(--ease-sine) var(--sway-delay) infinite alternate;
   }
 }
 @media (prefers-reduced-motion: reduce) {

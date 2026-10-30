@@ -76,3 +76,58 @@ export function stepScrollSpring(spring: ScrollSpring, target: number, dt: numbe
   if (Math.abs(trail) > maxLag) spring.position = target - Math.sign(trail) * maxLag;
   return target - spring.position;
 }
+
+/**
+ * The woven flame's response to movement (see "Living surfaces" in the
+ * design language). The flame leans toward the pointer, by at most
+ * `maxLean` degrees when the pointer is half a screen away, and stretches up
+ * or squats a little as the page scrolls, as a candle's flame does when it is
+ * carried. Both follow a critically damped spring with a `lag` time constant,
+ * slower than scroll weight, so the flame drifts rather than snaps.
+ */
+export const FLAME_MOTION = {
+  lag: 0.28,
+  maxLean: 10,
+  maxStretch: 0.12,
+} as const;
+
+/** One axis of the flame's motion: where it is, and how fast it moves. */
+export interface FlameSpring {
+  value: number;
+  velocity: number;
+}
+
+/** Advances a flame spring by `dt` seconds toward `target`, never overshooting it. */
+export function stepFlameSpring(spring: FlameSpring, target: number, dt: number): number {
+  const omega = 1 / FLAME_MOTION.lag;
+  let remaining = Math.min(dt, 0.1);
+  while (remaining > 0) {
+    const step = Math.min(remaining, 1 / 120);
+    const acceleration = omega * omega * (target - spring.value) - 2 * omega * spring.velocity;
+    spring.velocity += acceleration * step;
+    spring.value += spring.velocity * step;
+    remaining -= step;
+  }
+  return spring.value;
+}
+
+/**
+ * How far the flame leans toward a pointer at `pointerX`, in degrees of skew:
+ * positive leans right. `centerX` is the mark's center; the lean reaches its
+ * limit half a viewport away.
+ */
+export function flameLean(pointerX: number, centerX: number, viewportWidth: number): number {
+  const reach = Math.max(viewportWidth / 2, 1);
+  const share = Math.max(-1, Math.min(1, (pointerX - centerX) / reach));
+  return share * FLAME_MOTION.maxLean;
+}
+
+/**
+ * How much the flame stretches for a scroll trail (from stepScrollSpring), as
+ * a scale offset: scrolling down carries the page up, and the flame squats;
+ * scrolling up stretches it.
+ */
+export function flameStretch(trail: number): number {
+  const share = Math.max(-1, Math.min(1, trail / SCROLL_WEIGHT.maxLag));
+  return -share * FLAME_MOTION.maxStretch;
+}
