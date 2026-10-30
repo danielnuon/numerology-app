@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SectionDivider } from "@/components/ui/section-divider";
-import { InfoPage, MORE_LINK, MorePages, PillLink, Section } from "@/components/ui/page-parts";
+import { InfoPage, MORE_LINK, MorePages, PillLink, PullQuote, Section } from "@/components/ui/page-parts";
 import { HERITAGE_DESCRIPTION, HERITAGE_TITLE, SITE_NAME } from "@/lib/site-copy";
 
 export const metadata: Metadata = {
@@ -118,7 +118,7 @@ export default function HeritagePage() {
 
       <SectionDivider />
 
-      <Section title="The first kingdoms" id="origins">
+      <Section title="The first kingdoms" id="origins" era="1st to 8th centuries">
         <p>
           People have farmed and fished along the Mekong River and the Tonle
           Sap lake for thousands of years. The first kingdom in the region
@@ -147,7 +147,7 @@ export default function HeritagePage() {
 
       <SectionDivider />
 
-      <Section title="Masters of number and time" id="number-and-time">
+      <Section title="Masters of number and time" id="number-and-time" era="The 600s">
         <p>
           Khmer is one of the oldest written languages of mainland Southeast
           Asia, and its earliest stone inscriptions, from the 600s, already
@@ -166,11 +166,14 @@ export default function HeritagePage() {
           found again in 2013, and it is now kept at the National Museum in
           Phnom Penh.
         </p>
+        <PullQuote cite="Stone K-127, 683">
+          The Khmer were writing zero more than a thousand years ago.
+        </PullQuote>
       </Section>
 
       <SectionDivider />
 
-      <Section title="Angkor, built to the sky" id="angkor">
+      <Section title="Angkor, built to the sky" id="angkor" era="802 to 1431">
         <p>
           In 802, a king named Jayavarman II declared himself universal
           monarch on the sacred hill of Phnom Kulen. Historians use that year
@@ -185,6 +188,10 @@ export default function HeritagePage() {
           the Angkor heartland faces east, toward the rising sun, to within a
           few degrees.
         </p>
+        <PullQuote>
+          On the spring equinox, the sun rises directly over Angkor Wat&apos;s
+          central tower.
+        </PullQuote>
         <p>
           Angkor Wat, built for King Suryavarman II in the early 1100s, is
           the largest religious monument on earth, and it stands on
@@ -219,7 +226,7 @@ export default function HeritagePage() {
 
       <SectionDivider />
 
-      <Section title="A kingdom between neighbors" id="independence">
+      <Section title="A kingdom between neighbors" id="independence" era="1431 to 1975">
         <p>
           After Angkor, the kings moved their capitals south, to Longvek,
           Oudong and Phnom Penh. For centuries Cambodia was pressed between
@@ -238,7 +245,7 @@ export default function HeritagePage() {
 
       <SectionDivider />
 
-      <Section title="The Khmer Rouge years" id="khmer-rouge">
+      <Section title="The Khmer Rouge years" id="khmer-rouge" era="1975 to 1979">
         <p>
           From April 1975 to January 1979, the Khmer Rouge, led by Pol Pot,
           ruled Cambodia. They emptied the cities and forced people into
