@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { SoliniMark } from "@/components/ui/solini-mark";
-import { InfoPage, MORE_LINK, MorePages, PillLink, Section } from "@/components/ui/page-parts";
+import { InfoPage, MORE_LINK, MorePages, PillLink, PullQuote, Section } from "@/components/ui/page-parts";
 import { YEAR_TIERS } from "@/lib/numerology/interpretation-data";
 import { ABOUT_DESCRIPTION, ABOUT_TITLE, SITE_NAME, SITE_TAGLINE } from "@/lib/site-copy";
 
@@ -59,6 +59,7 @@ export default function AboutPage() {
           </Link>
           .
         </p>
+        <PullQuote>Solini is alive and well.</PullQuote>
         <p>
           This app is our way of lighting a lantern: to thank Solini for
           passing on what she knew, and to honor everyone lost in the
