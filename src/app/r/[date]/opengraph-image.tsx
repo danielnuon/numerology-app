@@ -8,7 +8,7 @@ import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
 import { getActiveYear, getLifeArea } from "@/lib/numerology/year-lookup";
-import { OG_COLORS, OG_SITE_LABEL, lanternOrb } from "@/lib/og-theme";
+import { OG_COLORS, OG_SITE_LABEL, threadedOrb } from "@/lib/og-theme";
 import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
 import GenericOgImage from "../../opengraph-image";
 import { comparisonImage } from "./comparison-image";
@@ -99,11 +99,11 @@ export default async function OgImage({ params }: Props) {
           {`A 12-year Khmer numerology reading  ·  Year of the ${animal}`}
         </div>
 
-        {/* The cycle as lantern orbs, with this year's orb ringed in gold */}
+        {/* The cycle as threaded orbs, with this year's thread lit gold */}
         <div style={{ display: "flex", gap: 12 }}>
           {result.cycle.map((n, i) => {
-            const { background, border, boxShadow } = lanternOrb(interpretYear(n).tier);
             const isLit = i === litColumn;
+            const { background, border, thread, threadWidth } = threadedOrb(interpretYear(n).tier, isLit);
             return (
               <div
                 key={i}
@@ -111,17 +111,27 @@ export default async function OgImage({ params }: Props) {
                   width: 76,
                   height: 76,
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: 6,
                   borderRadius: 38,
-                  border: isLit ? `3px solid ${OG_COLORS.goldDeep}` : `1px solid ${border}`,
-                  boxShadow: isLit ? `0 0 30px ${OG_COLORS.goldDeep}99` : boxShadow,
+                  border: isLit ? `3px solid ${border}` : `1px solid ${border}`,
                   background,
                   color: OG_COLORS.ink,
                   fontSize: 34,
                 }}
               >
-                {String(n)}
+                <div style={{ display: "flex", lineHeight: 1 }}>{String(n)}</div>
+                <div
+                  style={{
+                    width: Math.round(76 * threadWidth),
+                    height: 4,
+                    borderRadius: 2,
+                    background: thread,
+                    boxShadow: isLit ? `0 0 10px 1px ${OG_COLORS.goldDeep}CC` : "none",
+                  }}
+                />
               </div>
             );
           })}

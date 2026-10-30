@@ -67,7 +67,7 @@ BirthDataForm (on successful submit)
   |    -> returns Metadata with OG title, description, opengraph-image
   |
   |- opengraph-image.tsx (server): decodeBirthDate() -> computeCycleFromBirthDate()
-  |    -> renders 1200x630 OG image with the cycle as lantern orbs and total score
+  |    -> renders 1200x630 OG image with the cycle as threaded orbs and total score
   |
   +- ShareRedirectClient (client): redirects to /?day=D&month=M&year=Y
       -> HomeClient reads searchParams, passes initialValues to BirthDataForm

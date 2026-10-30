@@ -3,8 +3,10 @@
 /**
  * CycleChart
  *
- * The 12-year cycle as a wheel of lantern orbs, starting at the top with the
+ * The 12-year cycle as a wheel of threaded orbs, starting at the top with the
  * birth year and running clockwise, each with its zodiac animal outside it.
+ * Under each number runs one woven thread in its tier's color, and the
+ * current year's thread is lit, as in the woven flame.
  * A gold arc traces the cycle from the birth year to this year, and a dial of
  * twelve segments around this year's orb shows the month of the year, counted
  * from the birthday.
@@ -283,10 +285,8 @@ export function CycleChart({
           }`}
           inert={readingOpen}
         >
-          {/* Ambient light: a fine tick ring that turns very slowly and a glint
-              that travels the ring now and then */}
+          {/* A fine tick ring that turns very slowly */}
           <div aria-hidden="true" className="wheel-ticks pointer-events-none absolute inset-[9%] rounded-full" />
-          <div aria-hidden="true" className="wheel-glint pointer-events-none absolute inset-[14%] rounded-full" />
           <svg
             viewBox="0 0 100 100"
             aria-hidden="true"
@@ -356,12 +356,12 @@ export function CycleChart({
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   style={{
                     ...polar(index, ORB_RADIUS),
-                    // Each lantern breathes at its own pace so the ring never pulses in unison
+                    // Each number floats at its own pace so the ring never moves in unison
                     "--breathe-duration": `${(5 + ((index * 7) % 5) * 0.9).toFixed(1)}s`,
                     "--breathe-delay": `${(-index * 1.3).toFixed(1)}s`,
                   } as React.CSSProperties}
                   className={[
-                    "wheel-orb pressable absolute grid size-[clamp(44px,13cqw,58px)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full",
+                    "wheel-orb pressable absolute grid size-[clamp(44px,13cqw,58px)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full pb-1.5",
                     "focus-visible:outline-offset-[6px]",
                     interp.tier === "zero" ? "text-ink-light" : "text-ink",
                     isCurrent ? "wheel-orb-current" : "",
@@ -373,6 +373,7 @@ export function CycleChart({
                   >
                     {cycleNumber}
                   </span>
+                  <span aria-hidden="true" className="wheel-thread" />
                   <span
                     aria-hidden="true"
                     ref={(el) => {

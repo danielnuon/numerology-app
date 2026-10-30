@@ -14,8 +14,10 @@ export const OG_COLORS = {
   card: "#221C28",
   ink: "#F1E8D8",
   inkLight: "#B4A894",
+  inkFaint: "#85796B",
   gold: "#C99A3E",
   goldDeep: "#E2B65A",
+  goldLight: "#F0CD8C",
   border: "#3B3242",
   zero: "#0E0B11",
   /** An orb's unlit shell, as `.wheel-orb` in globals.css. */
@@ -32,21 +34,25 @@ const TIER_COLORS: Record<YearTier, string> = {
 };
 
 /**
- * A year's number drawn as a lantern orb, the way the cycle wheel draws it
- * (`.wheel-orb` in globals.css): lit from within by its tier's light, with a
- * soft glow around it. Zero is an unlit niche with no glow.
+ * A year's number drawn as a threaded orb, the way the cycle wheel draws it
+ * (`.wheel-orb` and `.wheel-thread` in globals.css): a plain dark orb with a
+ * hairline edge and, under the number, one thread in its tier's color.
+ * `threadWidth` is the thread's share of the orb's width. Zero is an unlit
+ * niche with a short, faint thread. A lit year (`lit`) has a gold thread,
+ * as the woven flame's lit thread.
  */
-export function lanternOrb(tier: YearTier): { background: string; border: string; boxShadow: string } {
-  if (tier === "zero") {
-    return { background: OG_COLORS.zero, border: OG_COLORS.border, boxShadow: "none" };
+export function threadedOrb(
+  tier: YearTier,
+  lit = false
+): { background: string; border: string; thread: string; threadWidth: number } {
+  if (lit) {
+    return { background: OG_COLORS.orb, border: OG_COLORS.goldDeep, thread: OG_COLORS.goldLight, threadWidth: 0.44 };
   }
-  const color = TIER_COLORS[tier];
-  // 8-digit hex: the light at ~40% where it burns, ~50% at the edge, ~30% in the glow.
-  return {
-    background: `radial-gradient(circle at 50% 65%, ${color}66 0%, ${OG_COLORS.orb} 72%)`,
-    border: `${color}80`,
-    boxShadow: `0 0 22px ${color}4D`,
-  };
+  if (tier === "zero") {
+    return { background: OG_COLORS.zero, border: OG_COLORS.border, thread: `${OG_COLORS.inkFaint}80`, threadWidth: 0.22 };
+  }
+  // 8-digit hex: the thread at ~85%, the edge as the wheel's ink hairline at ~11%.
+  return { background: OG_COLORS.orb, border: `${OG_COLORS.ink}1C`, thread: `${TIER_COLORS[tier]}D9`, threadWidth: 0.36 };
 }
 
 /** Interaction colors, as the comparison view's text colors (compatibility-summary.tsx). */

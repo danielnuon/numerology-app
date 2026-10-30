@@ -30,17 +30,6 @@ function numbersIn(min: number, max: number): number[] {
   return Array.from({ length: max - min + 1 }, (_, i) => min + i);
 }
 
-/**
- * Each number is a small lantern orb lit by its tier, as on the cycle wheel,
- * breathing at its own pace so a row never pulses in unison.
- */
-function orbBreath(n: number): React.CSSProperties {
-  return {
-    "--breathe-duration": `${(5 + ((n * 7) % 5) * 0.9).toFixed(1)}s`,
-    "--breathe-delay": `${(-n * 1.3).toFixed(1)}s`,
-  } as React.CSSProperties;
-}
-
 export default function MeaningPage() {
   return (
     <InfoPage title="What the numbers mean">
@@ -70,10 +59,11 @@ export default function MeaningPage() {
                     key={n}
                     id={`number-${n}`}
                     data-tier={tier.tier}
-                    className={`wheel-orb relative flex size-10 scroll-mt-8 items-center justify-center rounded-full font-sans text-lg font-medium tabular-nums ${tier.tier === "zero" ? "text-ink-light" : "text-ink"}`}
-                    style={orbBreath(n)}
+                    className={`wheel-orb relative flex size-10 scroll-mt-8 items-center justify-center rounded-full pb-1.5 font-sans text-lg font-medium tabular-nums ${tier.tier === "zero" ? "text-ink-light" : "text-ink"}`}
                   >
                     {n}
+                    {/* The tier's thread, as on the cycle wheel */}
+                    <span className="wheel-thread" />
                   </span>
                 ))}
               </div>
