@@ -57,6 +57,13 @@ export default function MeaningPage() {
           Twelve numbers, in five kinds of year. Higher numbers are read as
           stronger luck, and zero stands on its own as a turning point.
         </p>
+        <p>
+          The center of your wheel follows the same order: the luckier the
+          year you choose, the brighter and further its light glows. We found
+          no source that ranks the numbers by luck, so this order, and the
+          light that shows it, is Solini&apos;s reading of the method rather
+          than a rule of Khmer numerology.
+        </p>
         <div className="space-y-4">
           {YEAR_TIERS.map((tier) => (
             <article
