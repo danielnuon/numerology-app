@@ -506,6 +506,7 @@ export function CycleChart({
       <p className="mt-3 grid text-center text-sm text-ink-light">
         <span aria-hidden={readingOpen} className={`col-start-1 row-start-1 ${HINT_FADE} ${readingOpen ? "opacity-0" : ""}`}>
           Tap a number to choose a year, then the center to read it in full.
+          The center glows brighter for years read as luckier.
           <span aria-hidden={!showsActiveYear} className={`block ${HINT_FADE} ${showsActiveYear ? "" : "opacity-0"}`}>
             The ring around {activeYear} shows month {monthOfYear} of 12, counted from the birthday.
           </span>

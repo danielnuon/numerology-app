@@ -103,6 +103,22 @@ describe("compositor-only motion", () => {
     expect(offending).toEqual([]);
   });
 
+  it("luckier tiers light the wheel's center brighter and further out", () => {
+    // From the reset up to very strong, as the luck scale runs
+    const order = ["zero", "weak", "moderate", "strong", "very-strong"];
+    const light = order.map((tier) => {
+      const rule = css.match(new RegExp(`\\[data-tier="${tier}"\\]\\s*\\{([^}]*)\\}`))?.[1] ?? "";
+      return {
+        alpha: Number(rule.match(/--hub-lamp:\s*rgba\([^)]*,\s*([\d.]+)\)/)?.[1]),
+        glow: Number(rule.match(/--lamp-glow:\s*([\d.]+)/)?.[1]),
+      };
+    });
+    for (let i = 1; i < light.length; i++) {
+      expect(light[i].glow).toBeGreaterThan(light[i - 1].glow);
+      expect(light[i].alpha).toBeGreaterThanOrEqual(light[i - 1].alpha);
+    }
+  });
+
   it("every title glow names its words for the halo (data-glow)", () => {
     const offending = filesUnder("src", /\.tsx$/)
       .filter((file) => !file.includes("__tests__"))
