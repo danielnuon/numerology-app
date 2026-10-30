@@ -6,6 +6,7 @@
  */
 
 import Link from "next/link";
+import { SoliniMark } from "@/components/ui/solini-mark";
 import { SITE_PAGE_GROUPS, type SitePagePath } from "@/lib/site-pages";
 
 /** An underlined gold link inside running text. */
@@ -20,7 +21,8 @@ export function InfoPage({ title, children }: { title: string; children: React.R
   return (
     <main className="safe-gutter flex flex-1 flex-col items-center pt-9 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       <p className="text-sm uppercase text-ink-light tracking-[0.18em]">
-        <Link href="/" className="hover:text-gold-deep">
+        <Link href="/" className="inline-flex items-center gap-2 hover:text-gold-deep">
+          <SoliniMark className="h-6 w-6" />
           Solini
         </Link>
       </p>

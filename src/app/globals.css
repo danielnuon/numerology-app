@@ -635,6 +635,40 @@ body {
 .kindle {
   animation: kindle 1600ms var(--ease-enter) both;
 }
+/* The woven flame (SoliniMark) weaves itself in while the title kindles:
+ * each thread is drawn across from the left, bottom thread first as weft is
+ * laid on a loom, then the year's thread lights. */
+@keyframes weave {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mark-kindle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.mark-woven .mark-thread {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: weave 700ms var(--ease-enter) both;
+  animation-delay: var(--weave-delay, 0ms);
+}
+.mark-woven .mark-light {
+  animation: mark-kindle 700ms var(--ease-enter) 1250ms both;
+}
+.mark-glow {
+  opacity: var(--breathe-rest);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mark-glow {
+    animation: breathe var(--breathe-duration) var(--ease-sine) -4.4s infinite alternate;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mark-woven .mark-thread,
+  .mark-woven .mark-light {
+    animation-delay: 0s;
+  }
+}
 
 /* === Interaction ===
  * Anything clickable looks clickable: pointer cursor, a visible keyboard

@@ -94,7 +94,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - Selected or "now" animals are `text-gold-deep`; others are `text-ink-light` or `text-gold`.
 - **Tier symbols** (● ◕ ◑ ◔ ⊙) are drawn with `TierIcon` (`components/ui/tier-icon.tsx`), an SVG that is always `aria-hidden="true"`, with the meaning carried by the parent's `aria-label` or visible text. Don't render the Unicode glyphs on the page: each comes from whichever font has it, so they show at different sizes side by side (on iOS, ● is about half the size of ◑). The Satori preview images are the exception, since they can't use the component.
 - Interface glyphs (close, share, arrows) are simple inline SVG strokes that match the zodiac line weight. Do not add an icon library.
-- **The app icon** (`src/app/icon.svg`, with `favicon.ico` and `apple-icon.png` rendered from it) is a round paper lantern lit gold on the page color. Change all three together.
+- **The app icon** (`src/app/icon.svg`, with `favicon.ico` and `apple-icon.png` rendered from it) is the woven flame: twelve gold threads, one for each year of the cycle, laid one above the next so that together they make a flame leaning right, with one thread lit for "now". The threads follow *chong kiet*, Khmer ikat, in which the pattern is dyed into the weft before the cloth is woven. Keep exactly twelve threads with rounded ends, and keep the lit one the eighth from the top. Change all three files together; the Apple icon fills its square with the page color, since iOS rounds the corners itself.
 
 ### The lantern motif
 
@@ -103,7 +103,7 @@ A lantern is Solini's one central image: each year of the cycle is a light, and 
 - **A year's number, shown as a mark, is a lantern orb** lit from within by its tier's light (`.wheel-orb` with `data-tier`): on the cycle wheel, on What the numbers mean and on the share images (`lanternOrb()` in `og-theme.ts`). Zero is an unlit niche. Numbers inside running text, tables and the worked rows on How your cycle is made stay plain, because they are arithmetic, not readings.
 - **The setting is lantern light:** the dusk sky's glows, the lit input wells, the three lantern stops of the total score, and gold glows that breathe.
 - **In words,** "lantern" appears in the brand line, on About and in the home page's closing line. Don't add it to buttons, labels or headings that must say plainly what they do: "Reveal my cycle" stays plain. The not-found page ("No lantern here") is the one playful use.
-- **The app icon** is the only drawn lantern. Don't add lantern illustrations or icons elsewhere; one image used everywhere stops meaning anything.
+- **The woven flame is the only drawn image of the lantern's light.** It appears as the app icon, above the title on the home page (`SoliniMark woven`, which weaves itself in, bottom thread first, as the title kindles) and beside the Solini link at the top of the other pages. Don't add other lantern or flame illustrations or icons; one image used everywhere stops meaning anything.
 
 ## Interaction
 
@@ -158,7 +158,7 @@ The curves are Material 3's. They sit close to Apple's no-overshoot springs, whi
 
 **Rules**
 
-1. Use the tokens. Do not write raw durations or curves for interface motion. Longer one-off choreography (the 1.6s title "kindle", the 900ms `.rise`, the 1.6s gold arc trace) is defined once in `globals.css` and reused by class.
+1. Use the tokens. Do not write raw durations or curves for interface motion. Longer one-off choreography (the 1.6s title "kindle", the woven flame's weave, the 900ms `.rise`, the 1.6s gold arc trace) is defined once in `globals.css` and reused by class.
 2. Interface movement stays small: 10px or less of travel, scale between 0.97 and 1. No bounce or overshoot.
 3. Animate `transform`, `translate`, `opacity` and `filter` only, so the compositor does the work. Never animate a property that changes layout (`height`, grid rows, `letter-spacing`, margins): every frame would lay out and repaint the page, glass blur included, and on a phone that shows as jitter. When content must change size, lay it out once and glide what moved, as `<Reveal>` does; its rounded `clip-path` sweep is the one allowed paint-only property. Scroll-linked effects use CSS scroll-driven animation (`animation-timeline`) where the motion is tied to the scroll position. The one exception is scroll weight, which needs a spring and so runs in `LanternSky`'s existing frame loop (see below). No other scroll listeners.
 4. Entrances fade and settle (`.rise`, `.animate-settle-in`, `.scroll-settle`). Exits are quicker than entrances.
@@ -188,9 +188,10 @@ Glows breathe and floating things carry weight. Add a new living surface to this
 | Ring glint and tick ring | `.wheel-glint`, `.wheel-ticks` | A faint gold glint travels the ring every 14s; a fine tick ring turns once every 3 minutes. |
 | Tap ripple | `.wheel-ripple-run` | One ring spreads from a tapped orb (600ms). Runs once per tap, not a loop. |
 | Wheel depth | `.wheel-depth-ring`, `.wheel-depth-hub` | Scroll-linked (`view()` timeline): the ring and the center shift up to 6px apart as the wheel scrolls through the viewport. |
+| Woven flame glow | `.mark-glow` in `SoliniMark` (home title, page headers) | The soft light behind the lit thread breathes with the title glow's timing, 4.4s out of step with it. The threads themselves never move after the entrance. |
 | Return to now | Cycle wheel selection (`RETURN_TO_CURRENT_MS`) | After 9s with no tap, key, scroll or wheel anywhere on the page, the selection glides back to the current year. Never while a reading is open, while a mouse hovers the wheel, or while keyboard focus is inside it. |
 
-Looping rules live only under `@media (prefers-reduced-motion: no-preference)` on the selectors above (`.wheel-`, `.sky-glow`, `.title-glow`, `.breathe-glow`), use `--ease-sine` or linear, and the shared breath lasts at least 4s and never dims below half. `reduced-motion.test.ts` fails the build otherwise. A new living surface needs a row here and its selector added to that test.
+Looping rules live only under `@media (prefers-reduced-motion: no-preference)` on the selectors above (`.wheel-`, `.sky-glow`, `.title-glow`, `.breathe-glow`, `.mark-glow`), use `--ease-sine` or linear, and the shared breath lasts at least 4s and never dims below half. `reduced-motion.test.ts` fails the build otherwise. A new living surface needs a row here and its selector added to that test.
 
 ### Transitions
 

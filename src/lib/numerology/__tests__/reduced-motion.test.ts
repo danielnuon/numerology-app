@@ -40,7 +40,7 @@ describe("prefers-reduced-motion CSS rules", () => {
     // Glows breathe and the wheel's lanterns live (see "Living surfaces" in
     // docs/standards/design-language.md). Every looping rule must sit in a
     // no-preference block and style one of the registered living surfaces.
-    const LIVING = /\.(wheel-|sky-glow|title-glow|breathe-glow)/;
+    const LIVING = /\.(wheel-|sky-glow|title-glow|breathe-glow|mark-glow)/;
     const lines = cssContent.split("\n");
     lines.forEach((line, index) => {
       if (!/\binfinite\b/.test(line)) return;
