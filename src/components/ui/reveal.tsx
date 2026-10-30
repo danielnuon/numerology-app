@@ -63,7 +63,7 @@ function paintsSurface(el: HTMLElement): boolean {
  * What moves when the slot opens or closes: the elements after it on every
  * level up to the page, and the surfaces that contain it.
  */
-function surroundings(slot: HTMLElement) {
+export function surroundings(slot: HTMLElement) {
   const following: HTMLElement[] = [];
   const surfaces: HTMLElement[] = [];
   for (let node: HTMLElement = slot; node.parentElement && node.parentElement !== document.body; node = node.parentElement) {
@@ -86,7 +86,7 @@ export function useLastPresent<T>(value: T | null | undefined): T | null | undef
   return value ?? shown;
 }
 
-function prefersReducedMotion(): boolean {
+export function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
