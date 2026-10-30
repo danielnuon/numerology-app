@@ -1,4 +1,4 @@
-import { FLAME_MOTION, flameLean, flameStretch, stepFlameSpring, SCROLL_WEIGHT } from "@/lib/motion";
+import { FLAME_MOTION, flameLean, flameStretch, flameTilt, stepFlameSpring, SCROLL_WEIGHT } from "@/lib/motion";
 
 describe("flame motion", () => {
   it("leans toward the pointer, up to the limit half a screen away", () => {
@@ -21,5 +21,22 @@ describe("flame motion", () => {
       expect(spring.value).toBeLessThanOrEqual(5 + 1e-6);
     }
     expect(spring.value).toBeCloseTo(5, 1);
+  });
+});
+
+describe("flameTilt", () => {
+  it("keeps the flame upright: tilting the phone right leans it left on screen", () => {
+    expect(flameTilt(0, 15, 0)).toBeCloseTo(-FLAME_MOTION.maxLean / 2);
+    expect(flameTilt(0, -90, 0)).toBe(FLAME_MOTION.maxLean);
+    expect(flameTilt(0, 0, 0)).toBe(-0);
+  });
+
+  it("reads side-to-side tilt from beta when the phone is held sideways", () => {
+    expect(flameTilt(15, 80, 90)).toBeCloseTo(-FLAME_MOTION.maxLean / 2);
+    expect(flameTilt(15, 80, 270)).toBeCloseTo(FLAME_MOTION.maxLean / 2);
+  });
+
+  it("holds still when the sensor gives no reading", () => {
+    expect(flameTilt(null, null, 0)).toBe(0);
   });
 });

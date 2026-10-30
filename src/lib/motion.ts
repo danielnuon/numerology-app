@@ -131,3 +131,21 @@ export function flameStretch(trail: number): number {
   const share = Math.max(-1, Math.min(1, trail / SCROLL_WEIGHT.maxLag));
   return -share * FLAME_MOTION.maxStretch;
 }
+
+/** Degrees of side-to-side phone tilt at which the flame reaches its full lean. */
+export const FLAME_TILT_REACH = 30;
+
+/**
+ * How far the flame leans when the phone tilts, in the same degrees as
+ * flameLean. A real flame stays upright as the phone turns, so on screen it
+ * leans the opposite way: tilt the phone's right edge down and the flame
+ * leans left. `angle` is the screen orientation angle (0, 90, 180 or 270),
+ * which decides whether side-to-side tilt is the sensor's gamma or beta.
+ */
+export function flameTilt(beta: number | null, gamma: number | null, angle: number): number {
+  const turn = ((angle % 360) + 360) % 360;
+  const side = turn === 90 ? beta : turn === 270 ? (beta == null ? null : -beta) : turn === 180 ? (gamma == null ? null : -gamma) : gamma;
+  if (side == null || Number.isNaN(side)) return 0;
+  const share = Math.max(-1, Math.min(1, side / FLAME_TILT_REACH));
+  return -share * FLAME_MOTION.maxLean;
+}

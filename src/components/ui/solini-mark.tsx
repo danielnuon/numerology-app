@@ -8,12 +8,15 @@
  * with one year's thread lit. The threads follow chong kiet, Khmer ikat, in
  * which the pattern is dyed into the weft before the cloth is woven.
  *
- * The flame is a living surface. Its threads sway like a flame, a ripple
- * that climbs from the base to the tip, and the lit thread's glow breathes.
+ * The flame is a living surface and never quite still. The whole flame
+ * drifts slowly from side to side, its threads sway in a ripple that climbs
+ * from the base to the tip, and the lit thread's glow breathes.
  * "woven" plays the entrance: the threads are laid from the bottom up, as
  * weft is on a loom, then the lit thread kindles. "reactive" lets the flame
- * answer movement: it leans toward the pointer and stretches or squats as
- * the page scrolls, through a slow spring (FLAME_MOTION). Like the sky's
+ * answer movement: it leans toward the pointer or, on a phone, stays upright
+ * as the phone tilts, and stretches or squats as the page scrolls, through a
+ * slow spring (FLAME_MOTION). iPhones only share their tilt after a tap, so
+ * there the flame is a button that asks once. Like the sky's
  * scroll weight, the movement is written by seeking paused animations, and
  * only while something moves. With Reduce Motion the mark is simply there,
  * lit and still.
@@ -21,12 +24,13 @@
  * src/app/icon.svg draws the same threads; a test keeps the two in step.
  */
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import {
   FLAME_MOTION,
   flameLean,
   flameStretch,
+  flameTilt,
   stepFlameSpring,
   stepScrollSpring,
 } from "@/lib/motion";
@@ -75,6 +79,17 @@ export function threadSway(i: number) {
 /** Settled closer than this, the flame holds still and nothing is written. */
 const REST = 0.01;
 
+/** Whether this browser shares the phone's tilt, and if it must ask first. */
+type TiltAccess = "none" | "ask" | "on";
+
+type OrientationPermission = { requestPermission?: () => Promise<"granted" | "denied"> };
+
+function orientationEvent(): OrientationPermission | undefined {
+  return typeof window !== "undefined" && "DeviceOrientationEvent" in window
+    ? (window.DeviceOrientationEvent as unknown as OrientationPermission)
+    : undefined;
+}
+
 export function SoliniMark({
   woven = false,
   reactive = false,
@@ -89,6 +104,22 @@ export function SoliniMark({
   const leanRef = useRef<SVGGElement>(null);
   const stretchRef = useRef<SVGGElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  const [tilt, setTilt] = useState<TiltAccess>("none");
+
+  // Found after the first render, so the server and the browser agree on it.
+  useEffect(() => {
+    if (!reactive || prefersReducedMotion) return;
+    const event = orientationEvent();
+    if (!event) return;
+    setTilt(typeof event.requestPermission === "function" ? "ask" : "on");
+  }, [reactive, prefersReducedMotion]);
+
+  function askForTilt() {
+    orientationEvent()
+      ?.requestPermission?.()
+      .then((answer) => setTilt(answer === "granted" ? "on" : "none"))
+      .catch(() => setTilt("none"));
+  }
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -117,6 +148,8 @@ export function SoliniMark({
     const lean = { value: 0, velocity: 0 };
     const stretch = { value: 0, velocity: 0 };
     const scroll = { position: window.scrollY, velocity: 0 };
+    let pointerLean = 0;
+    let tiltLean = 0;
     let leanTarget = 0;
     let frame = 0;
     let last = 0;
@@ -140,6 +173,7 @@ export function SoliniMark({
     }
 
     function wake() {
+      leanTarget = Math.max(-maxLean, Math.min(maxLean, pointerLean + tiltLean));
       if (!frame) frame = requestAnimationFrame(tick);
     }
 
@@ -148,19 +182,28 @@ export function SoliniMark({
     function handlePointer(event: PointerEvent) {
       if (event.pointerType === "touch") return;
       const box = svg!.getBoundingClientRect();
-      leanTarget = flameLean(event.clientX, box.left + box.width / 2, window.innerWidth);
+      pointerLean = flameLean(event.clientX, box.left + box.width / 2, window.innerWidth);
       wake();
     }
 
     function handleLeave() {
-      leanTarget = 0;
+      pointerLean = 0;
+      wake();
+    }
+
+    function handleTilt(event: DeviceOrientationEvent) {
+      const next = flameTilt(event.beta, event.gamma, window.screen.orientation?.angle ?? 0);
+      if (Math.abs(next - tiltLean) < 0.05) return;
+      tiltLean = next;
       wake();
     }
 
     window.addEventListener("scroll", wake, { passive: true });
     window.addEventListener("pointermove", handlePointer, { passive: true });
     document.documentElement.addEventListener("pointerleave", handleLeave);
+    if (tilt === "on") window.addEventListener("deviceorientation", handleTilt);
     return () => {
+      window.removeEventListener("deviceorientation", handleTilt);
       cancelAnimationFrame(frame);
       leanAnimation.cancel();
       stretchAnimation.cancel();
@@ -168,12 +211,12 @@ export function SoliniMark({
       window.removeEventListener("pointermove", handlePointer);
       document.documentElement.removeEventListener("pointerleave", handleLeave);
     };
-  }, [reactive, prefersReducedMotion]);
+  }, [reactive, prefersReducedMotion, tilt]);
 
   const lit = MARK_THREADS[MARK_LIT_THREAD];
   const last = MARK_THREADS.length - 1;
   const rx = MARK_THREAD_HEIGHT / 2;
-  return (
+  const mark = (
     <svg
       ref={svgRef}
       viewBox="0 0 64 64"
@@ -188,43 +231,61 @@ export function SoliniMark({
       </defs>
       <g ref={leanRef} className="mark-base">
         <g ref={stretchRef} className="mark-base">
-          {MARK_THREADS.map((thread, i) => (
-            <g key={i} className="mark-sway" style={threadSway(i) as React.CSSProperties}>
-              <rect
-                className="mark-thread fill-gold"
-                fillOpacity={0.72}
-                x={thread.x}
-                y={thread.y}
-                width={thread.width}
-                height={MARK_THREAD_HEIGHT}
-                rx={rx}
-                style={{ "--weave-delay": `${(last - i) * WEAVE_STAGGER_MS}ms` } as React.CSSProperties}
-              />
-              {i === MARK_LIT_THREAD && (
-                <g className="mark-light">
-                  <rect
-                    className="mark-glow fill-gold-deep"
-                    filter={`url(#${glowId})`}
-                    x={lit.x}
-                    y={lit.y - 1}
-                    width={lit.width}
-                    height={MARK_THREAD_HEIGHT + 2}
-                    rx={rx + 1}
-                  />
-                  <rect
-                    className="fill-gold-light"
-                    x={lit.x}
-                    y={lit.y}
-                    width={lit.width}
-                    height={MARK_THREAD_HEIGHT}
-                    rx={rx}
-                  />
-                </g>
-              )}
-            </g>
-          ))}
+          <g className="mark-base mark-drift">
+            {MARK_THREADS.map((thread, i) => (
+              <g key={i} className="mark-sway" style={threadSway(i) as React.CSSProperties}>
+                <rect
+                  className="mark-thread fill-gold"
+                  fillOpacity={0.72}
+                  x={thread.x}
+                  y={thread.y}
+                  width={thread.width}
+                  height={MARK_THREAD_HEIGHT}
+                  rx={rx}
+                  style={{ "--weave-delay": `${(last - i) * WEAVE_STAGGER_MS}ms` } as React.CSSProperties}
+                />
+                {i === MARK_LIT_THREAD && (
+                  <g className="mark-light">
+                    <rect
+                      className="mark-glow fill-gold-deep"
+                      filter={`url(#${glowId})`}
+                      x={lit.x}
+                      y={lit.y - 1}
+                      width={lit.width}
+                      height={MARK_THREAD_HEIGHT + 2}
+                      rx={rx + 1}
+                    />
+                    <rect
+                      className="fill-gold-light"
+                      x={lit.x}
+                      y={lit.y}
+                      width={lit.width}
+                      height={MARK_THREAD_HEIGHT}
+                      rx={rx}
+                    />
+                  </g>
+                )}
+              </g>
+            ))}
+          </g>
         </g>
       </g>
     </svg>
+  );
+  if (!reactive) return mark;
+  // The wrapper never changes, so the flame isn't redrawn (and rewoven) when
+  // the tilt button comes or goes.
+  return (
+    <span className="relative inline-flex">
+      {mark}
+      {tilt === "ask" && (
+        <button
+          type="button"
+          onClick={askForTilt}
+          aria-label="Let the flame follow your phone's tilt"
+          className="pressable absolute left-1/2 top-1/2 h-11 w-11 -translate-x-1/2 -translate-y-1/2 rounded-full active:scale-[0.97] active:bg-gold-deep/10"
+        />
+      )}
+    </span>
   );
 }

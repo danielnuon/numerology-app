@@ -3,7 +3,7 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import { render } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MARK_LIT_THREAD, MARK_THREADS, SoliniMark, threadSway } from "../solini-mark";
 
@@ -37,6 +37,28 @@ describe("SoliniMark", () => {
     expect(parseFloat(threadSway(0)["--sway-delay"])).toBeGreaterThan(
       parseFloat(threadSway(11)["--sway-delay"])
     );
+  });
+
+  it("on an iPhone, asks once for the phone's tilt when the flame is tapped", async () => {
+    const requestPermission = jest.fn().mockResolvedValue("granted");
+    Object.defineProperty(window, "DeviceOrientationEvent", {
+      configurable: true,
+      value: { requestPermission },
+    });
+    try {
+      render(<SoliniMark reactive />);
+      const ask = await screen.findByRole("button", { name: "Let the flame follow your phone's tilt" });
+      await act(async () => fireEvent.click(ask));
+      expect(requestPermission).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    } finally {
+      delete (window as { DeviceOrientationEvent?: unknown }).DeviceOrientationEvent;
+    }
+  });
+
+  it("offers no tilt button where the browser can't share the tilt", () => {
+    render(<SoliniMark reactive />);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("draws the same threads as the app icon", () => {
