@@ -34,6 +34,10 @@
  * only while something moves. With Reduce Motion the mark is simply there,
  * lit and still.
  *
+ * "landed" is for a flame that traveled here from the previous page
+ * (FlameAnchor): it is already woven, so it skips the entrance, and its lit
+ * thread flares once as it settles into place.
+ *
  * src/app/icon.svg draws the same threads; a test keeps the two in step.
  */
 
@@ -257,12 +261,15 @@ function playManifest(svg: SVGSVGElement, { to, spark }: Manifesting, done: () =
 export function SoliniMark({
   woven = false,
   reactive = false,
+  landed = false,
   year = 0,
   manifestFrom = null,
   className = "",
 }: {
   woven?: boolean;
   reactive?: boolean;
+  /** The flame traveled here from the previous page: no entrance, one flare as it lands. */
+  landed?: boolean;
   /** The year of the cycle to light, from 0 (the year of birth) to 11. */
   year?: number;
   /** Where a new year's spark starts: the center of the button that asked for it. */
@@ -278,7 +285,7 @@ export function SoliniMark({
   const support = useSyncExternalStore(noSubscription, tiltSupport, () => "none" as const);
   const [answer, setAnswer] = useState<"unasked" | "granted" | "denied">("unasked");
   // Once the entrance has played, a newly lit year kindles without waiting.
-  const [kindled, setKindled] = useState(!woven);
+  const [kindled, setKindled] = useState(!woven || landed);
   useEffect(() => {
     if (!woven) return;
     const timer = setTimeout(() => setKindled(true), KINDLED_MS);
@@ -288,7 +295,7 @@ export function SoliniMark({
   // with Reduce Motion, it is simply lit.
   const [litYear, setLitYear] = useState(year);
   const [manifesting, setManifesting] = useState<Manifesting | null>(null);
-  const [flare, setFlare] = useState(0);
+  const [flare, setFlare] = useState(landed ? 1 : 0);
   if (year !== litYear) {
     setLitYear(year);
     setManifesting(
@@ -431,7 +438,7 @@ export function SoliniMark({
       viewBox="0 0 64 64"
       aria-hidden="true"
       focusable="false"
-      className={`solini-mark ${woven ? "mark-woven" : ""} ${className}`}
+      className={`solini-mark ${woven ? "mark-woven" : ""} ${landed ? "mark-landed" : ""} ${className}`}
     >
       <defs>
         <filter id={glowId} x="-20%" y="-300%" width="140%" height="700%">
@@ -472,7 +479,7 @@ export function SoliniMark({
                     {flare > 0 && (
                       <rect
                         key={flare}
-                        className="mark-flare fill-gold-light"
+                        className={`mark-flare fill-gold-light ${landed && flare === 1 ? "mark-flare-landed" : ""}`}
                         filter={`url(#${glowId})`}
                         x={lit.x - 2}
                         y={lit.y - 2}

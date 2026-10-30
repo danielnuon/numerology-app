@@ -837,6 +837,18 @@ body {
     animation: drift 5.5s var(--ease-sine) -1.3s infinite alternate;
   }
 }
+/* A flame that traveled here from the last page (SoliniMark "landed") is
+ * already woven: it skips the entrance, and its lit thread flares once as it
+ * settles into place, near the end of the travel. */
+.mark-landed .mark-thread,
+.mark-landed .mark-light {
+  animation: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mark-flare-landed {
+    animation-delay: var(--duration-gentle);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .mark-woven .mark-thread,
   .mark-woven .mark-light {
@@ -1150,6 +1162,58 @@ button:not(:disabled),
 }
 @keyframes vt-rise {
   from { opacity: 0; transform: translateY(8px); }
+}
+
+/* === Page arrival: the flame travels, then the page arrives in order ===
+ * Every page's own flame wears one name (FlameAnchor), so on a page change
+ * it glides and scales from where it was to where it lands while the old
+ * page fades out around it. A flame scrolled well out of view gives up the
+ * name, and the new page's flame simply arrives with its page. */
+.flame-anchor {
+  view-transition-name: solini-flame;
+}
+.flame-anchor[data-out-of-view] {
+  view-transition-name: none;
+}
+::view-transition-group(solini-flame) {
+  animation-duration: var(--duration-morph);
+  animation-timing-function: var(--ease-standard);
+}
+/* The new page as a whole only fades in quickly; its parts bring their own
+ * motion (.page-arrive below, and the home page's .rise sequence). */
+::view-transition-new(.page-in) {
+  animation: var(--duration-quick) var(--ease-enter) both vt-appear;
+}
+@keyframes vt-appear {
+  from { opacity: 0; }
+}
+/* On a companion page (InfoPage) the title gathers in out of a soft blur, a
+ * shorter kindle, and each block below rises into place 70ms after the one
+ * above it. The same sequence plays on a direct load. Blocks far down the
+ * page have finished long before they are scrolled to. Elements that follow
+ * the scroll (.scroll-settle) or stay fixed (.follow-flame) keep their own
+ * motion. */
+@keyframes arrive-title {
+  from { opacity: 0; transform: scaleX(1.08); filter: blur(8px); }
+}
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(10px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .page-arrive > :first-child {
+    animation: vt-appear var(--duration-gentle) var(--ease-enter) both;
+  }
+  .arrive-title {
+    animation: arrive-title 900ms var(--ease-enter) 60ms both;
+  }
+  .page-arrive > :nth-child(n + 3):not(.scroll-settle, .follow-flame) {
+    animation: arrive 700ms var(--ease-enter) 550ms both;
+  }
+  .page-arrive > :nth-child(3):not(.scroll-settle, .follow-flame) { animation-delay: 200ms; }
+  .page-arrive > :nth-child(4):not(.scroll-settle, .follow-flame) { animation-delay: 270ms; }
+  .page-arrive > :nth-child(5):not(.scroll-settle, .follow-flame) { animation-delay: 340ms; }
+  .page-arrive > :nth-child(6):not(.scroll-settle, .follow-flame) { animation-delay: 410ms; }
+  .page-arrive > :nth-child(7):not(.scroll-settle, .follow-flame) { animation-delay: 480ms; }
 }
 
 /* === Bloom: the form card becomes the reading ===
