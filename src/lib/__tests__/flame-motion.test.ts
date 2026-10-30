@@ -1,4 +1,4 @@
-import { FLAME_MOTION, flameLean, flameStretch, flameTilt, stepFlameSpring, SCROLL_WEIGHT } from "@/lib/motion";
+import { EASE, FLAME_MOTION, cssEase, flameLean, sparkArc, flameStretch, flameTilt, stepFlameSpring, SCROLL_WEIGHT } from "@/lib/motion";
 
 describe("flame motion", () => {
   it("leans toward the pointer, up to the limit half a screen away", () => {
@@ -38,5 +38,19 @@ describe("flameTilt", () => {
 
   it("holds still when the sensor gives no reading", () => {
     expect(flameTilt(null, null, 0)).toBe(0);
+  });
+
+  it("carries the spark up from the button and bends it into the flame", () => {
+    const path = sparkArc({ x: 200, y: 700 }, { x: 60, y: 90 });
+    expect(path[0]).toEqual({ x: 200, y: 700 });
+    expect(path[path.length - 1]).toEqual({ x: 60, y: 90 });
+    // It rises before it turns: halfway up, it has moved less than halfway across
+    const middle = path[(path.length - 1) / 2];
+    expect(middle.y).toBeLessThan(400);
+    expect(middle.x).toBeGreaterThan(130);
+  });
+
+  it("writes Motion curves as CSS timing functions", () => {
+    expect(cssEase(EASE.standard)).toBe("cubic-bezier(0.2, 0, 0, 1)");
   });
 });

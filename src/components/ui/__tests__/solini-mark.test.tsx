@@ -34,6 +34,30 @@ describe("SoliniMark", () => {
     expect(litY(render(<SoliniMark year={3} />).container)).toBe(MARK_THREADS[8].y);
   });
 
+  it("manifests a new year after the entrance, then lights its thread", () => {
+    jest.useFakeTimers();
+    try {
+      const litY = () => Number(container.querySelector(".mark-light > rect.fill-gold-light:last-child")?.getAttribute("y"));
+      const { container, rerender } = render(<SoliniMark woven />);
+      act(() => jest.advanceTimersByTime(2000));
+      rerender(<SoliniMark woven year={5} manifestFrom={{ x: 100, y: 600 }} />);
+      // The first year keeps the light while the new one is manifested
+      expect(litY()).toBe(MARK_THREADS[11].y);
+      act(() => jest.advanceTimersByTime(10));
+      expect(litY()).toBe(MARK_THREADS[markThread(5)].y);
+      expect(container.querySelector(".mark-flare")).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("lights a year that arrives during the entrance without a manifestation", () => {
+    const { container, rerender } = render(<SoliniMark woven />);
+    rerender(<SoliniMark woven year={5} />);
+    expect(container.querySelector(".mark-flare")).not.toBeInTheDocument();
+    expect(container.querySelectorAll(".mark-flash")).toHaveLength(12);
+  });
+
   it("is decorative, since the name Solini is always written beside it", () => {
     const { container } = render(<SoliniMark />);
     expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");

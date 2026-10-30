@@ -149,3 +149,41 @@ export function flameTilt(beta: number | null, gamma: number | null, angle: numb
   const share = Math.max(-1, Math.min(1, side / FLAME_TILT_REACH));
   return -share * FLAME_MOTION.maxLean;
 }
+
+/**
+ * The woven flame manifesting a reading. A spark rises from the button the
+ * visitor pressed into the flame's base (`sparkMs`), the threads light one
+ * after another up the flame, counting the years from the year of birth
+ * (`stepMs` apart, each glowing for `flashMs`), and the year now kindles
+ * with a flare (`flareMs`). Times are in milliseconds.
+ */
+export const MANIFEST = {
+  sparkMs: 1100,
+  stepMs: 130,
+  flashMs: 640,
+  flareMs: 1600,
+} as const;
+
+/** A point on the page, in CSS pixels from the viewport's top left. */
+export type PagePoint = { x: number; y: number };
+
+/**
+ * The spark's path as `steps + 1` points: it rises straight from the button
+ * and bends into the flame, a quadratic curve whose control point sits
+ * level with the flame, directly above the button.
+ */
+export function sparkArc(from: PagePoint, to: PagePoint, steps = 16): PagePoint[] {
+  const control = { x: from.x, y: to.y };
+  return Array.from({ length: steps + 1 }, (_, k) => {
+    const t = k / steps;
+    const a = (1 - t) ** 2;
+    const b = 2 * (1 - t) * t;
+    const c = t ** 2;
+    return { x: a * from.x + b * control.x + c * to.x, y: a * from.y + b * control.y + c * to.y };
+  });
+}
+
+/** A Motion curve as a CSS timing function, for Web Animations. */
+export function cssEase(curve: readonly number[]): string {
+  return `cubic-bezier(${curve.join(", ")})`;
+}
