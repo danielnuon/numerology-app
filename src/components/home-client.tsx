@@ -31,18 +31,18 @@ import {
   useRef,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useSyncExternalStore,
   startTransition,
   addTransitionType,
   ViewTransition,
-  type ViewTransitionClass,
 } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
 import { MorePages } from "@/components/ui/page-parts";
 import { Reveal, useLastPresent } from "@/components/ui/reveal";
+import { swapInPlace, type Swap } from "@/components/ui/swap-in-place";
 import { BirthDataForm } from "@/components/birth-data-form";
 import { CycleChart } from "@/components/cycle-chart";
 import { YearTimeline } from "@/components/year-timeline";
@@ -104,9 +104,9 @@ const QUIET_LINK =
  * or folds away it rises in or fades out with it (React assigns the
  * transition name).
  */
-function Follows({ children, update = "auto" }: { children: React.ReactNode; update?: ViewTransitionClass }) {
+function Follows({ children }: { children: React.ReactNode }) {
   return (
-    <ViewTransition enter="rise-in" exit="fade-out" update={update}>
+    <ViewTransition enter="rise-in" exit="fade-out">
       {children}
     </ViewTransition>
   );
@@ -261,7 +261,13 @@ export function HomeClient({ searchParams }: Props) {
   );
 
   // Below lg the card shows one view at a time: this year, or all 12 years.
+  // The switch's choice moves first; the view follows once the old one has
+  // faded (swapInPlace).
+  const [chosenView, setChosenView] = useState<ReadingView>("year");
   const [readingView, setReadingView] = useState<ReadingView>("year");
+  const readingViewsRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const viewSwapRef = useRef<Swap | null>(null);
 
   // One selected year shared by the chart and the timeline, so they always
   // agree. null means "the active year" until the user picks something.
@@ -302,33 +308,37 @@ export function HomeClient({ searchParams }: Props) {
       setManifestFrom(submitterRef.current);
       setPickedYear(null);
       setFormOpen(false);
+      setChosenView("year");
       setReadingView("year");
       setBloomed(true);
     });
   }, [hasShareParams]);
 
-  // Switching views crossfades in place while the card morphs to the new
-  // view's height and the blocks below glide with its edge.
+  // Switching views swaps them in place: the outline glides to the new
+  // choice, the old view fades, the card grows or shrinks to the new one and
+  // the blocks below glide with its edge. It all runs on live elements, not
+  // view transition snapshots, which some browsers draw only in part for a
+  // card taller than the screen. If the visitor had scrolled down the old
+  // view, the page glides back to the card's top.
   const handleReadingViewChange = useCallback((view: ReadingView) => {
-    startTransition(() => {
-      addTransitionType("reading-view");
-      setReadingView(view);
-    });
-  }, []);
-
-  // If the visitor had scrolled down the old view, the new one starts from
-  // the card's top. This runs inside the view transition's update, so the
-  // card glides up from where it was instead of the page scrolling under
-  // the transition's snapshots.
-  const shownReadingView = useRef(readingView);
-  useLayoutEffect(() => {
-    if (shownReadingView.current === readingView) return;
-    shownReadingView.current = readingView;
+    startTransition(() => setChosenView(view));
+    const views = readingViewsRef.current;
     const card = readingCardRef.current;
-    if (card && card.getBoundingClientRect().top < 0) {
-      card.scrollIntoView({ block: "start", behavior: "instant" });
-    }
-  }, [readingView]);
+    if (!views || !card) return;
+    viewSwapRef.current?.finish();
+    const panel = (v: ReadingView) => document.getElementById(READING_VIEW_PANEL_IDS[v]);
+    const leaving = view === "year" ? [panel("cycle"), timelineRef.current] : [panel("year")];
+    viewSwapRef.current = swapInPlace({
+      slot: views,
+      outgoing: leaving.filter((el): el is HTMLElement => !!el && el.getClientRects().length > 0),
+      swap: () => flushSync(() => setReadingView(view)),
+      incoming: () =>
+        (view === "year" ? [panel("year")] : [panel("cycle"), timelineRef.current]).filter(
+          (el): el is HTMLElement => !!el
+        ),
+    });
+    if (card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: "start" });
+  }, []);
 
   const handleReadAgain = useCallback(() => {
     startTransition(() => {
@@ -543,7 +553,7 @@ export function HomeClient({ searchParams }: Props) {
         {/* Result card — cycle chart (rendered from localStorage data OR fresh submission) */}
         {showReading && result && (
           <>
-            <ViewTransition name="reading-card" share="reading-bloom" update={{ "reading-view": "reading-swap", default: "none" }} default="none">
+            <ViewTransition name="reading-card" share="reading-bloom" default="none">
             <div
               id={CHART_SECTION_ID}
               ref={readingCardRef}
@@ -582,11 +592,10 @@ export function HomeClient({ searchParams }: Props) {
                 </button>
               </div>
 
-              <ReadingViewTabs view={readingView} onChange={handleReadingViewChange} />
+              <ReadingViewTabs view={chosenView} onChange={handleReadingViewChange} />
 
-              {/* One view at a time below lg, crossfading in place; side by side from lg */}
-              <ViewTransition name="reading-view" update={{ "reading-view": "view-swap", default: "none" }} default="none">
-              <div className="lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
+              {/* One view at a time below lg, swapped in place; side by side from lg */}
+              <div ref={readingViewsRef} className="lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start lg:gap-8">
                 <div
                   id={READING_VIEW_PANEL_IDS.year}
                   role="tabpanel"
@@ -623,14 +632,13 @@ export function HomeClient({ searchParams }: Props) {
                   />
                 </div>
               </div>
-              </ViewTransition>
             </div>
             </ViewTransition>
 
-            {/* Year Timeline Explorer, part of the 12-year view below lg, so it
-                comes and goes with the wheel */}
-            <Follows update={{ "reading-view": "view-swap", default: "auto" }}>
+            {/* Year Timeline Explorer, part of the 12-year view below lg */}
+            <Follows>
             <div
+              ref={timelineRef}
               className={`${readingView === "cycle" ? "" : "max-lg:hidden "}w-full max-w-[900px] xl:max-w-[1200px] mt-6 scroll-settle`}
             >
               {/* Remounts on each switch, so it centers this year once it

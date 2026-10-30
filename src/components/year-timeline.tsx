@@ -69,8 +69,8 @@ export function YearTimeline({
 
   // Keep the selected year centered. The first centering is instant so the
   // page doesn't scroll on load; later ones glide unless motion is reduced.
-  // It runs before paint, so a timeline that appears inside a view
-  // transition is captured already centered instead of jumping after it.
+  // It runs before paint, so a timeline that appears with the Cycle view is
+  // centered from its first frame instead of jumping after it.
   useLayoutEffect(() => {
     const container = containerRef.current;
     const option = optionRefs.current.get(selectedYear);

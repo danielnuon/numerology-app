@@ -126,12 +126,10 @@ function CycleStepper({
 /**
  * The one surface the comparison lives on, whichever state it is in, so a
  * change of state morphs it in place (class `reading-bloom` in globals.css).
- * When the reading card above it switches between Year and Cycle, it glides
- * to its new place with the other blocks below the card.
  */
 function CompareCard({ children }: { children: React.ReactNode }) {
   return (
-    <ViewTransition name="compare-card" update={{ "compare-morph": "reading-bloom", "reading-view": "auto", default: "none" }} default="none">
+    <ViewTransition name="compare-card" update={{ "compare-morph": "reading-bloom", default: "none" }} default="none">
       {children}
     </ViewTransition>
   );

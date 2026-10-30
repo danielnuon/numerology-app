@@ -1013,7 +1013,7 @@ button:not(:disabled),
 }
 /* While a card morphs, the blocks below it glide on the same clock and
  * curve, so they track its bottom edge instead of sliding over it. */
-html:active-view-transition-type(bloom-open, bloom-close, form-reset, compare-morph, reading-view)::view-transition-group(*) {
+html:active-view-transition-type(bloom-open, bloom-close, form-reset, compare-morph)::view-transition-group(*) {
   animation-duration: var(--duration-morph);
 }
 ::view-transition-old(.reading-bloom),
@@ -1051,36 +1051,6 @@ html:active-view-transition-type(bloom-close, form-reset)::view-transition-old(.
 }
 @keyframes reading-glow {
   35% { opacity: 1; }
-}
-
-/* === Year / Cycle: the reading card changes view ===
- * The card (class `reading-swap`) morphs to the new view's height on the
- * morph clock, so the blocks below glide in step with its edge. Its two
- * snapshots differ only in height and the tab labels, so they keep the
- * default crossfade, whose matched curves leave the shared part steady. The
- * view inside (class `view-swap`) clips to its own morphing box, so the
- * taller view never spills over what is below. The old view leaves quickly
- * and the new one waits for most of it to go, so the two never overlap as a
- * double image. */
-::view-transition-group(.reading-swap) {
-  overflow: clip;
-  border-radius: 1rem;
-}
-::view-transition-group(.view-swap) {
-  overflow: clip;
-}
-::view-transition-old(.view-swap) {
-  animation: var(--duration-quick) var(--ease-exit) both vt-fade-out;
-}
-::view-transition-new(.view-swap) {
-  animation: var(--duration-gentle) var(--ease-enter) calc(var(--duration-quick) * 0.6) both vt-fade-in;
-}
-/* The timeline's selection outline leaves and arrives with the timeline */
-html:active-view-transition-type(reading-view)::view-transition-old(timeline-selection) {
-  animation: var(--duration-quick) var(--ease-exit) both vt-fade-out;
-}
-html:active-view-transition-type(reading-view)::view-transition-new(timeline-selection) {
-  animation: var(--duration-gentle) var(--ease-enter) calc(var(--duration-quick) * 0.6) both vt-fade-in;
 }
 
 /* === Reduce Motion ===

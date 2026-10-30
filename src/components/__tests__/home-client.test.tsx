@@ -200,7 +200,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
     expect(yearView.className).not.toMatch(/max-lg:hidden/);
   });
 
-  it("brings the card's top back on a switch only if it was scrolled past, at once so the transition glides it", () => {
+  it("brings the card's top back on a switch only if it was scrolled past", () => {
     render(<HomeClient searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     const card = document.getElementById("reading-view-year")!.closest<HTMLElement>("[tabindex='-1']")!;
@@ -216,7 +216,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
     act(() => {
       fireEvent.click(screen.getByRole("tab", { name: "Year" }));
     });
-    expect(scrollIntoView).toHaveBeenCalledWith({ block: "start", behavior: "instant" });
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" });
   });
 
   it("opens each new reading on this year", () => {

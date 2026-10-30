@@ -460,9 +460,7 @@ export function CycleChart({
             </ViewTransition>
           ) : (
             <div className="wheel-depth-hub grid h-[100cqw] place-items-center">
-              {/* The hub swaps its content in place, except when the whole wheel
-                  comes or goes with the Year / Cycle switch */}
-              <ViewTransition name="wheel-bloom" share="auto" update={{ "reading-view": "none", default: "panel-swap" }} default="none">
+              <ViewTransition name="wheel-bloom" share="auto" update="panel-swap" default="none">
                 <button
                   ref={hubRef}
                   type="button"
