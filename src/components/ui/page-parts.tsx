@@ -26,7 +26,7 @@ export function InfoPage({ title, children }: { title: string; children: React.R
           Solini
         </Link>
       </p>
-      <h1 className="title-glow mt-3 text-center font-display text-4xl leading-tight text-ink tracking-[0.08em] sm:text-6xl">
+      <h1 data-glow={title} className="title-glow mt-3 text-center font-display text-4xl leading-tight text-ink tracking-[0.08em] sm:text-6xl">
         {title}
       </h1>
       {children}

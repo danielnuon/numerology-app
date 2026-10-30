@@ -93,6 +93,26 @@ describe("compositor-only motion", () => {
       .filter((file) => new RegExp(`transition-\\[(${LAYOUT})\\]|transition-all`).test(read(file)));
     expect(offending).toEqual([]);
   });
+
+  it("looping glows move only opacity and scale, never a painted shadow", () => {
+    const loops = [...css.matchAll(/animation:\s*([\w-]+)[^;]*\binfinite\b/g)].map((m) => m[1]);
+    const offending = [...new Set(loops)].filter((name) => {
+      const block = css.match(new RegExp(`@keyframes ${name}\\s*\\{([^{}]*\\{[^}]*\\})*\\s*\\}`))?.[0] ?? "";
+      return /(box-shadow|text-shadow|filter|background)\s*:/.test(block);
+    });
+    expect(offending).toEqual([]);
+  });
+
+  it("every title glow names its words for the halo (data-glow)", () => {
+    const offending = filesUnder("src", /\.tsx$/)
+      .filter((file) => !file.includes("__tests__"))
+      .flatMap((file) =>
+        [...read(file).matchAll(/<[a-z0-9]+\b[^>]*\btitle-glow\b[^>]*>/g)]
+          .filter((tag) => !/\bdata-glow=/.test(tag[0]))
+          .map(() => file)
+      );
+    expect(offending).toEqual([]);
+  });
 });
 
 describe("colors outside CSS", () => {

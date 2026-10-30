@@ -396,7 +396,7 @@ export function HomeClient({ searchParams }: Props) {
       {/* Entrance: the woven flame weaves itself in as the title surfaces out
           of the dark, then each block follows. */}
       <SoliniMark woven reactive className="mb-2 h-12 w-12 sm:mb-3 sm:h-16 sm:w-16 [@media(max-height:700px)]:mb-1 [@media(max-height:700px)]:h-8 [@media(max-height:700px)]:w-8" />
-      <h1 className="kindle title-glow font-display text-[2.75rem] leading-tight sm:text-7xl tracking-[0.14em] text-ink text-center">
+      <h1 data-glow="Solini" className="kindle title-glow font-display text-[2.75rem] leading-tight sm:text-7xl tracking-[0.14em] text-ink text-center">
         Solini
       </h1>
       <p

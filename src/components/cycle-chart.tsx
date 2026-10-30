@@ -477,7 +477,10 @@ export function CycleChart({
                   <span className="text-[clamp(0.75rem,3cqw,0.8rem)] uppercase tracking-[0.14em] text-ink-light">
                     {getLifeArea(selectedIndex + 1)}
                   </span>
-                  <span className="font-sans text-[clamp(1.9rem,12cqw,3.25rem)] font-medium leading-none tabular-nums title-glow">
+                  <span
+                    data-glow={cycle[selectedIndex]}
+                    className="font-sans text-[clamp(1.9rem,12cqw,3.25rem)] font-medium leading-none tabular-nums title-glow [--breathe-delay:-3.1s]"
+                  >
                     {cycle[selectedIndex]}
                   </span>
                   <span className={`text-[clamp(0.8rem,3.4cqw,0.95rem)] leading-tight ${getTierTextClass(selected.tier)}`}>

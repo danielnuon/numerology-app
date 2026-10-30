@@ -14,11 +14,11 @@ import { Reveal } from "@/components/ui/reveal";
 import { interpretTotal } from "@/lib/numerology/interpretation";
 import { TOTAL_SCALE, type TotalTier } from "@/lib/numerology/interpretation-data";
 
-/** Lantern light for each total tier, from the luck tier tokens. */
+/** Lantern light for each total tier, from the luck tier tokens. It radiates as every glow does. */
 const STOP_LIGHT: Record<TotalTier, string> = {
-  weak: "border-tier-weak/70 shadow-[0_0_22px_-4px_var(--color-tier-weak)]",
-  moderate: "border-tier-moderate/70 shadow-[0_0_22px_-4px_var(--color-tier-moderate)]",
-  strong: "border-tier-strong/70 shadow-[0_0_22px_-4px_var(--color-tier-strong)]",
+  weak: "border-tier-weak/70 [--glow-color:var(--color-tier-weak)]",
+  moderate: "border-tier-moderate/70 [--glow-color:var(--color-tier-moderate)]",
+  strong: "border-tier-strong/70 [--glow-color:var(--color-tier-strong)]",
 };
 
 export interface TotalScoreCardProps {
@@ -44,7 +44,9 @@ export function TotalScoreCard({ totalScore }: TotalScoreCardProps) {
           <span className="text-ink-light text-sm uppercase tracking-[0.14em] whitespace-nowrap">
             Total score
           </span>
-          <span className="font-display text-3xl text-gold-deep title-glow tabular-nums">{totalScore}</span>
+          <span data-glow={totalScore} className="font-display text-3xl text-gold-deep title-glow [--breathe-delay:-4.7s] tabular-nums">
+            {totalScore}
+          </span>
         </span>
         <span className="hidden sm:block w-px h-8 bg-border" aria-hidden="true" />
         <span className="min-w-0 flex-1">
@@ -82,7 +84,9 @@ export function TotalScoreCard({ totalScore }: TotalScoreCardProps) {
                   <span
                     className={[
                       "grid size-11 place-items-center rounded-full border bg-parchment font-display text-lg tabular-nums",
-                      yours ? `text-ink ring-1 ring-ink ring-offset-2 ring-offset-manuscript ${STOP_LIGHT[tier]}` : "border-border text-ink-light",
+                      yours
+                        ? `breathe-glow [--glow-blur:24px] [--glow-spread:-3px] text-ink ring-1 ring-ink ring-offset-2 ring-offset-manuscript ${STOP_LIGHT[tier]}`
+                        : "border-border text-ink-light",
                     ].join(" ")}
                   >
                     {stop.total}
