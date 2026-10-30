@@ -31,7 +31,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | `border` | `#3B3242` | Card edges, dividers, secondary button outlines | |
 | `border-light` | `#2E2734` | Faint inner dividers | |
 
-**Tier light.** Each tier has a solid color token for its symbol and text, and a `--lamp` glow set by `data-tier` for orbs and dots.
+**Tier light.** Each tier has a solid color token for its symbol, text and thread, and a `--lamp` glow set by `data-tier` for the light inside orbs, the timeline's dots and the open reading.
 
 | Tier | Numbers | Token | Value | Symbol |
 |------|---------|-------|-------|--------|
@@ -69,7 +69,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Label | Hanken Grotesk, uppercase | 14px (`text-sm`), `tracking-[0.12em]`–`0.18em` | Eyebrow text and short captions |
 | Field label | Hanken Grotesk, sentence case | 16px (`text-base`) | Form field labels |
 | Button | Hanken Grotesk 500–600, sentence case | 16–18px (`text-base`/`text-lg`) | Primary and pill buttons |
-| Numbers | Hanken Grotesk 500, tabular lining figures | Varies | Every cycle number (the wheel, this year's number, lantern orbs, the worked example on How your cycle is made), dates, form fields |
+| Numbers | Hanken Grotesk 500, tabular lining figures | Varies | Every cycle number (the wheel, this year's number, threaded orbs, the worked example on How your cycle is made), dates, form fields |
 | Khmer | Noto Serif Khmer | Matches its context | Any Khmer script (in both font stacks) |
 
 - Marcellus draws 0 like the letter O and 11 like "ll", so any number from 0 to 11 uses the sans face with `tabular-nums`, even where it sits beside display type. The total score (52, 64 or 76) is the one number set in Marcellus, since none of its digits can be misread.
@@ -100,7 +100,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 
 A lantern is Solini's one central image: each year of the cycle is a light, and the app itself is a lantern lit in thanks to Solini and in memory of those lost in the Khmer Rouge genocide. Carry it through light, not through pictures of lanterns.
 
-- **A year's number, shown as a mark, is a lantern orb** lit from within by its tier's light (`.wheel-orb` with `data-tier`): on the cycle wheel, on What the numbers mean and on the share images (`lanternOrb()` in `og-theme.ts`). Zero is an unlit niche. Numbers inside running text, tables and the worked rows on How your cycle is made stay plain, because they are arithmetic, not readings.
+- **A year's number, shown as a mark, is a threaded orb** (`.wheel-orb` with `data-tier`, and a `.wheel-thread` inside): a dark orb shaded as a sphere lit from above, holding its tier's lantern light low inside it and backlit by the same light, which glows close around its edge from behind; a warm gold hairline edge; and, under the number, one hand-dyed thread in its tier's color, like the threads of the woven flame. Threads fade at both ends and neighbors differ a little in length and place, so the ring reads as woven by hand, not as a gauge. The backlight stays close to the orb rather than washing the wheel. This year's thread is lit `gold-light`, as the flame's lit thread is. It is used on the cycle wheel, on What the numbers mean and on the share images (`threadedOrb()` in `og-theme.ts`). Zero is an unlit niche with a short, faint thread. Numbers inside running text, tables and the worked rows on How your cycle is made stay plain, because they are arithmetic, not readings.
 - **The setting is lantern light:** the dusk sky's glows, the lit input wells, the three lantern stops of the total score, and gold glows that breathe.
 - **In words,** "lantern" appears in the brand line, on About and in the home page's closing line. Don't add it to buttons, labels or headings that must say plainly what they do: "Reveal my cycle" stays plain. The not-found page ("No lantern here") is the one playful use.
 - **The woven flame is the only drawn image of the lantern's light.** It appears as the app icon, above the title on the home page (`SoliniMark woven reactive`, which weaves itself in, bottom thread first, as the title kindles, then keeps drifting and swaying and answers the pointer, the phone's tilt and the scroll) and beside the Solini link at the top of the other pages. Don't add other lantern or flame illustrations or icons; one image used everywhere stops meaning anything.
@@ -182,10 +182,11 @@ Glows breathe and floating things carry weight. Add a new living surface to this
 | Glass weight | `.glass` | Scroll weight only: cards on screen drift up to 3px behind a fast scroll, every third card a touch more, then settle. |
 | Drifting dust | `LanternSky` canvas, behind every page | 38 specks rising over 20–60s with a slow flicker, sliding a little with the scroll. Paused while the tab is hidden. Drawn once, still, with Reduce Motion. |
 | Glass light | `.glass::before`, `.glass::after` | Scroll-linked (`view()` timeline), not time-based: as a card crosses the viewport a gold glint (`gold-light` at 45%) slides along its rim from right to left and a 3.5% candle-white glow crosses its face. `background-position` on the card's own pseudo-elements only. Hidden with Reduce Motion, Reduce Transparency, or without scroll-driven animation support. |
-| Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A soft gold halo that breathes in and out, 1.8s each way, on the current year only. Faster than other glows on purpose: it marks "now". |
+| Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A small gold halo (12px) that breathes in and out, 1.8s each way, on the current year only. Faster than other glows on purpose: it marks "now". |
+| Lit thread | Cycle wheel, this year's thread (`.wheel-orb-current .wheel-thread::after`) | The gold light around the lit thread breathes with the woven flame's glow timing (6.5s each way, 4.4s into the breath). |
 | Month dial | Cycle wheel, this month's arc around this year's orb (`.wheel-month-now`) | The arc for the current month of the year breathes between half and full light, 2.4s each way, in step with "now" rather than with the slower lanterns. |
-| Lantern breathing and number float | Every lantern orb (`.wheel-orb::before`, `.wheel-orb-number`): the wheel and the number orbs on What the numbers mean | Each orb's light breathes at its own pace (5–8.6s) while a wheel orb's number floats about 1px. |
-| Ring glint and tick ring | `.wheel-glint`, `.wheel-ticks` | A faint gold glint travels the ring every 14s; a fine tick ring turns once every 3 minutes. |
+| Backlight and number float | Every threaded orb (`.wheel-orb::before`, `.wheel-orb-number`): the wheel and the number orbs on What the numbers mean | The light behind each orb breathes between `--breathe-low` and full and swells from 0.98 to 1.06 of the orb's size, at its own pace (5–8.6s), while a wheel orb's number floats about 1px. |
+| Tick ring | `.wheel-ticks` | A fine tick ring turns once every 3 minutes. |
 | Tap ripple | `.wheel-ripple-run` | One ring spreads from a tapped orb (600ms). Runs once per tap, not a loop. |
 | Wheel depth | `.wheel-depth-ring`, `.wheel-depth-hub` | Scroll-linked (`view()` timeline): the ring and the center shift up to 6px apart as the wheel scrolls through the viewport. |
 | Woven flame glow, drift and sway | `.mark-glow`, `.mark-drift`, `.mark-sway` in `SoliniMark` (home title, page headers) | Never quite still. The light behind the lit thread breathes with the title glow's timing, 4.4s out of step. The whole flame drifts, leaning 2.5° each way and reaching up 1.5%, over 5.5s each way, pivoting on its base. Each thread sways side to side (2.6–3.3s each way, `--ease-sine`), at most about 2 units of the 64-unit mark at the tip and a quarter unit at the base, in a ripple that climbs from base to tip (`threadSway()`). |

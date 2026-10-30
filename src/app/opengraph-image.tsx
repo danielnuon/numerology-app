@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { OG_COLORS, OG_SITE_LABEL, lanternOrb } from "@/lib/og-theme";
+import { OG_COLORS, OG_SITE_LABEL, threadFill, threadOffset, threadedOrb } from "@/lib/og-theme";
 import { SITE_TAGLINE } from "@/lib/site-copy";
 
 export const alt = "Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.";
@@ -56,10 +56,10 @@ export default function OgImage() {
           <div style={{ width: 90, height: 1, background: OG_COLORS.border }} />
         </div>
 
-        {/* Sample cycle as lantern orbs */}
+        {/* Sample cycle as threaded orbs */}
         <div style={{ display: "flex", gap: 14 }}>
           {SAMPLE_CYCLE.map((n, i) => {
-            const { background, border, boxShadow } = lanternOrb(interpretYear(n).tier);
+            const { background, border, boxShadow, thread, threadWidth } = threadedOrb(interpretYear(n).tier);
             return (
               <div
                 key={i}
@@ -67,8 +67,10 @@ export default function OgImage() {
                   width: 66,
                   height: 66,
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: 5,
                   borderRadius: 33,
                   border: `1px solid ${border}`,
                   boxShadow,
@@ -77,7 +79,16 @@ export default function OgImage() {
                   fontSize: 30,
                 }}
               >
-                {String(n)}
+                <div style={{ display: "flex", lineHeight: 1 }}>{String(n)}</div>
+                <div
+                  style={{
+                    width: Math.round(66 * threadWidth),
+                    marginLeft: Math.round(66 * threadOffset(i) * 2),
+                    height: 3,
+                    borderRadius: 2,
+                    background: threadFill(thread),
+                  }}
+                />
               </div>
             );
           })}
