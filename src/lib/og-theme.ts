@@ -35,9 +35,9 @@ const TIER_COLORS: Record<YearTier, string> = {
 
 /**
  * A year's number drawn as a threaded orb, the way the cycle wheel draws it
- * (`.wheel-orb` and `.wheel-thread` in globals.css): a dark orb holding its
- * tier's light low inside it and backlit by the same light, which shows
- * close around its edge, with a warm hairline edge and, under the
+ * (`.wheel-orb` and `.wheel-thread` in globals.css): an opaque dark orb,
+ * backlit by its tier's light, which shows close around its edge, with a
+ * warm hairline edge and, under the
  * number, one hand-dyed thread in its tier's color. `thread` is the thread's
  * color (draw it with `threadFill()`, which fades its ends) and `threadWidth`
  * its share of the orb's width. Zero is an unlit niche with a short, faint
@@ -57,10 +57,10 @@ export function threadedOrb(
     };
   }
   const color = TIER_COLORS[tier];
-  // 8-digit hex: the light at ~40% where it burns, ~45% behind the orb,
-  // the edge at ~13% gold, the thread at ~80%.
+  // 8-digit hex: the light behind the orb at ~45%, the edge at ~13% gold,
+  // the thread at ~80%.
   return {
-    background: `radial-gradient(circle at 50% 80%, ${color}66 0%, ${OG_COLORS.orb} 62%)`,
+    background: OG_COLORS.orb,
     border: lit ? OG_COLORS.goldDeep : `${OG_COLORS.goldDeep}21`,
     boxShadow: `0 0 16px 2px ${color}73`,
     thread: lit ? OG_COLORS.goldLight : `${color}CC`,

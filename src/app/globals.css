@@ -404,9 +404,9 @@ body {
 [data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); }
 
 /* === Cycle wheel ===
- * Twelve threaded orbs on a ring. Each orb is shaded as a sphere, lit from
- * above, with its tier's lantern light low inside it, and backlit: its
- * tier's light glows from behind it, close around its edge, and breathes.
+ * Twelve threaded orbs on a ring. Each orb is an opaque, matte sphere, softly
+ * shaded from above, that lets no light through. It is backlit: its tier's
+ * light glows from behind it, close around its edge, and breathes.
  * Under its number runs one hand-dyed thread in its tier's color, as the
  * threads of the woven flame. The threads fade at their ends and differ a
  * little in length, like dyed weft rather than a gauge. The current year's
@@ -415,9 +415,8 @@ body {
 .wheel-orb {
   isolation: isolate;
   background:
-    radial-gradient(circle at 36% 26%, rgba(255, 244, 226, 0.16) 0, transparent 34%),
-    radial-gradient(circle at 50% 82%, var(--lamp) 0, transparent 58%),
-    radial-gradient(circle at 50% 38%, #2a2231 0, #1d1823 48%, #120e16 100%);
+    radial-gradient(circle at 38% 28%, rgba(255, 244, 226, 0.07) 0, transparent 45%),
+    radial-gradient(circle at 45% 35%, #2a2231 0, #1d1823 55%, #141018 100%);
   box-shadow: inset 0 0 0 1px rgba(226, 182, 90, 0.13), inset 0 -3px 6px rgba(0, 0, 0, 0.35);
 }
 /* The backlight: a layer behind the orb whose light shows only around its
@@ -509,6 +508,7 @@ body {
  * - the current year's orb breathes with a soft gold halo
  * - the current year's lit thread breathes, as the woven flame's does
  * - every orb's backlight breathes and swells at its own pace, like lanterns
+ * - the center's and the open reading's backlight breathes
  * - this month's segment of the current year's month dial breathes
  * - the numbers float about a pixel, each at its own pace
  * - a fine tick ring turns every 3 min
@@ -580,6 +580,10 @@ body {
   .wheel-orb::before {
     animation: backlight var(--breathe-duration) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
   }
+  .wheel-hub::before,
+  .wheel-reading::before {
+    animation: breathe var(--breathe-duration) var(--ease-sine) -1.1s infinite alternate;
+  }
   .wheel-orb-number {
     animation: number-float var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
   }
@@ -609,15 +613,37 @@ body {
 }
 
 /* The center of the wheel and the reading that blooms from it */
+/* Both match the orbs: opaque, matte, with a warm gold hairline, and
+ * backlit by the selected year's tier light, which breathes behind them. */
+.wheel-hub,
+.wheel-reading {
+  position: relative;
+  isolation: isolate;
+}
 .wheel-hub {
-  background: rgba(23, 19, 28, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(241, 232, 216, 0.07);
+  background:
+    radial-gradient(circle at 40% 28%, rgba(255, 244, 226, 0.05) 0, transparent 50%),
+    radial-gradient(circle at 46% 36%, #262029 0, #1b1620 55%, #131017 100%);
+  box-shadow: inset 0 0 0 1px rgba(226, 182, 90, 0.13), inset 0 -6px 14px rgba(0, 0, 0, 0.35);
 }
 .wheel-reading {
-  background:
-    radial-gradient(120% 70% at 50% 110%, var(--lamp), transparent 70%),
-    #1c1722;
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  background: #1c1722;
+}
+.wheel-hub::before,
+.wheel-reading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--breathe-rest);
+}
+.wheel-hub::before {
+  box-shadow: 0 0 16px -2px var(--lamp);
+}
+.wheel-reading::before {
+  box-shadow: 0 0 30px -2px var(--lamp), 0 30px 60px -20px rgba(0, 0, 0, 0.8);
 }
 
 /* The gold arc traces the cycle from the birth year to this year */
