@@ -5,6 +5,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { SiteMenu } from "../site-menu";
 import { SITE_PAGE_GROUPS, type SitePage } from "@/lib/site-pages";
+import { MENU_CLOSE_THREADS, MENU_LINK_THREADS } from "@/components/ui/solini-mark";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/about" }));
 
@@ -38,6 +39,17 @@ describe("SiteMenu", () => {
     expect(icon).toHaveAttribute("aria-hidden", "true");
     expect(icon?.querySelectorAll(".menu-thread")).toHaveLength(12);
     expect(icon?.querySelectorAll(".menu-thread.fill-gold-deep")).toHaveLength(1);
+  });
+
+  it("has a thread from the flame for every link to fly in as its underline", () => {
+    const { container } = render(<SiteMenu />);
+    const links = SITE_PAGE_GROUPS.flatMap((group): readonly SitePage[] => group.pages);
+    expect(MENU_LINK_THREADS).toHaveLength(links.length);
+    // None of them is a thread of the close mark
+    for (const thread of MENU_LINK_THREADS) expect(MENU_CLOSE_THREADS).not.toContain(thread);
+    expect(container.querySelectorAll(".menu-underline")).toHaveLength(links.length);
+    // The current page's underline carries the "now" gold
+    expect(container.querySelectorAll(".menu-underline.bg-gold-deep")).toHaveLength(1);
   });
 
   it("staggers its lines in order, top to bottom", () => {

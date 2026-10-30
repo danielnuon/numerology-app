@@ -110,6 +110,13 @@ export function menuThreadClose(i: number) {
   };
 }
 
+/**
+ * The threads that leave the Menu button's flame to become the menu's link
+ * underlines, top link first: the five above the close mark, tip to base, so
+ * the top thread lands on the top link.
+ */
+export const MENU_LINK_THREADS = [2, 3, 4, 5, 6] as const;
+
 /** Settled closer than this, the flame holds still and nothing is written. */
 const REST = 0.01;
 
