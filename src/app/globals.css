@@ -1057,13 +1057,17 @@ button:not(:disabled),
       animation: unweave linear both;
       animation-timeline: --weave;
     }
+    .weave[data-arrive] .weave-thread {
+      animation: unweave 900ms var(--ease-standard) both;
+      animation-delay: calc(300ms + var(--arrive-delay, 0ms));
+    }
     .heading-thread {
       view-timeline: --heading block;
     }
     .heading-thread::after {
       animation: thread-draw linear both;
       animation-timeline: --heading;
-      animation-range: entry 40% cover 30%;
+      animation-range: entry 0% cover 14%;
     }
     .follow-flame[data-ready] {
       display: block;

@@ -23,6 +23,11 @@ describe("WovenDivider", () => {
     for (let i = 0; i < BASE; i++) expect(starts[i]).toBeGreaterThan(starts[i + 1]);
   });
 
+  it("unweaves on arrival when it is already on screen as the page opens", () => {
+    const { container } = render(<WovenDivider />);
+    expect((container.firstElementChild as HTMLElement).dataset.arrive).toBe("true");
+  });
+
   it("is decorative", () => {
     const { container } = render(<WovenDivider />);
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");

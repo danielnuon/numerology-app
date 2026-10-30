@@ -8,7 +8,8 @@
  * a small flame and, as the page scrolls it up toward the middle of the
  * screen, unweaves: the threads slide apart from the base up and lie end to
  * end as one line, the base thread at the center. Scrolling back weaves the
- * flame again.
+ * flame again. A divider already on screen when the page opens unweaves
+ * once on arrival instead, since the scroll can't carry it.
  *
  * FollowFlame: the flame beside "Solini" at the top of the page lifts off as
  * the page scrolls and settles in the bottom right corner, on a small disc
@@ -65,21 +66,34 @@ export const WEAVE_THREADS = (() => {
     // The ends of the line fade out, as the old hairline did
     const fromCenter = Math.abs(x + width / 2 - cx) / cx;
     // The base thread leaves first; each one above follows a little later
-    const start = 8 + ((BASE - i) / BASE) * 19;
+    const start = 6 + ((BASE - i) / BASE) * 16;
     return {
       x,
       y,
       width,
       opacity: i === BASE ? 1 : 0.85 - 0.6 * fromCenter,
       flame: `translate(${(flameX - x).toFixed(2)}px, ${(flameY - y).toFixed(2)}px) scale(${((thread.width * s) / width).toFixed(4)}, ${((MARK_THREAD_HEIGHT * s) / WEAVE.lineHeight).toFixed(4)})`,
-      range: `cover ${start.toFixed(1)}% cover ${(start + 23).toFixed(1)}%`,
+      range: `cover ${start.toFixed(1)}% cover ${(start + 20).toFixed(1)}%`,
     };
   });
 })();
 
+/** How far apart the threads leave when a divider unweaves on arrival, base first. */
+const ARRIVE_STAGGER_MS = 45;
+
 export function WovenDivider() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // A divider already on screen when the page opens can't be scrolled
+  // through, so the scroll would leave it half woven. It unweaves once, on a
+  // clock, instead (`.weave[data-arrive]`).
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.getBoundingClientRect().top < window.innerHeight) el.dataset.arrive = "true";
+  }, []);
+
   return (
-    <div className="weave my-20 mx-auto w-full max-w-[560px]" aria-hidden="true">
+    <div ref={ref} className="weave my-20 mx-auto w-full max-w-[560px]" aria-hidden="true">
       <svg viewBox={`0 0 ${WEAVE.width} ${WEAVE.height}`} className="block w-full overflow-visible">
         {WEAVE_THREADS.map((thread, i) => (
           <rect
@@ -91,7 +105,13 @@ export function WovenDivider() {
             height={WEAVE.lineHeight}
             rx={WEAVE.lineHeight / 2}
             fillOpacity={thread.opacity}
-            style={{ "--flame": thread.flame, animationRange: thread.range } as React.CSSProperties}
+            style={
+              {
+                "--flame": thread.flame,
+                "--arrive-delay": `${(BASE - i) * ARRIVE_STAGGER_MS}ms`,
+                animationRange: thread.range,
+              } as React.CSSProperties
+            }
           />
         ))}
       </svg>
