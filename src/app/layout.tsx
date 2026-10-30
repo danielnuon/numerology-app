@@ -5,6 +5,7 @@ import {
   Marcellus,
   Noto_Serif_Khmer,
 } from "next/font/google";
+import { HistoryScroll } from "@/components/history-scroll";
 import { LanternSky } from "@/components/lantern-sky";
 import { SiteAnalytics } from "@/components/site-analytics";
 import { SiteMenu } from "@/components/site-menu";
@@ -93,7 +94,8 @@ export default function RootLayout({
       lang="en"
       // Smooth scrolling is for in-page links only. This tells Next.js to
       // switch it off while it moves to a new page, so the page change
-      // lands in place instead of gliding up or down after it.
+      // lands in place instead of gliding up or down after it. HistoryScroll
+      // does the same for Back and Forward.
       data-scroll-behavior="smooth"
       className={`${cormorant.variable} ${cormorantItalic.variable} ${marcellus.variable} ${hanken.variable} ${notoSerifKhmer.variable} h-full antialiased`}
     >
@@ -103,6 +105,7 @@ export default function RootLayout({
           <SiteMenu />
           {children}
         </div>
+        <HistoryScroll />
         <SiteAnalytics />
       </body>
     </html>

@@ -23,9 +23,34 @@ describe("WovenDivider", () => {
     for (let i = 0; i < BASE; i++) expect(starts[i]).toBeGreaterThan(starts[i + 1]);
   });
 
-  it("unweaves on arrival when it is already on screen as the page opens", () => {
-    const { container } = render(<WovenDivider />);
-    expect((container.firstElementChild as HTMLElement).dataset.arrive).toBe("true");
+  describe("on arrival", () => {
+    let report: (isIntersecting: boolean) => void;
+    const original = global.IntersectionObserver;
+    beforeEach(() => {
+      global.IntersectionObserver = class {
+        constructor(callback: IntersectionObserverCallback) {
+          report = (isIntersecting) =>
+            callback([{ isIntersecting } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+        }
+        observe() {}
+        disconnect() {}
+      } as unknown as typeof IntersectionObserver;
+    });
+    afterEach(() => {
+      global.IntersectionObserver = original;
+    });
+
+    it("unweaves on a clock when it is on screen once the page has its scroll position", () => {
+      const { container } = render(<WovenDivider />);
+      report(true);
+      expect((container.firstElementChild as HTMLElement).dataset.arrive).toBe("true");
+    });
+
+    it("stays on the scroll when it is off screen, including above a restored scroll position", () => {
+      const { container } = render(<WovenDivider />);
+      report(false);
+      expect((container.firstElementChild as HTMLElement).dataset.arrive).toBeUndefined();
+    });
   });
 
   it("is decorative", () => {

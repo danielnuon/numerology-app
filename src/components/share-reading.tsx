@@ -37,7 +37,8 @@ type Status = "idle" | "copied" | "failed";
 const STATUS_TEXT: Record<Status, string> = {
   idle: "",
   copied: "Link copied. Paste it anywhere to share your reading.",
-  failed: "Couldn't copy automatically. Copy the link from the address bar instead.",
+  // The link itself follows, since the address bar may not hold it
+  failed: "Couldn't copy automatically. Copy this link instead:",
 };
 
 
@@ -49,12 +50,14 @@ const ACTION_CLASS = [
 
 export function ShareReading({ year, month, day, rule, headline, isShared = false }: Props) {
   const [status, setStatus] = useState<Status>("idle");
+  const [link, setLink] = useState("");
   const sharePath = buildSharePath(year, month, day, rule);
 
   async function handleShare() {
     trackEvent("Reading shared", isShared);
     const url = new URL(sharePath, window.location.origin).toString();
     const outcome = await shareLink({ title: SHARED_READING_TITLE, text: shareReadingText(headline, isShared), url });
+    setLink(url);
     if (outcome === "copied" || outcome === "failed") setStatus(outcome);
   }
 
@@ -95,7 +98,10 @@ export function ShareReading({ year, month, day, rule, headline, isShared = fals
       <p role="status" className="mt-3 min-h-[1.25rem] text-sm text-ink-light">
         {/* Keyed so each new message settles in rather than swapping in place */}
         {STATUS_TEXT[status] && (
-          <span key={status} className="animate-settle-in inline-block">{STATUS_TEXT[status]}</span>
+          <span key={status} className="animate-settle-in inline-block">
+            {STATUS_TEXT[status]}
+            {status === "failed" && <> <span className="select-all break-all text-ink">{link}</span></>}
+          </span>
         )}
       </p>
       <p className="mt-1 text-sm text-ink-light">
