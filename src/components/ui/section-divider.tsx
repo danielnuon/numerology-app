@@ -6,7 +6,7 @@
 export function SectionDivider({ compact = false }: { compact?: boolean }) {
   return (
     <div
-      className={`rise ${compact ? "my-7 sm:my-14" : "my-20"} mx-auto flex w-full max-w-[600px] items-center gap-4`}
+      className={`rise ${compact ? "my-7 sm:my-14 [@media(max-height:700px)]:my-5" : "my-20"} mx-auto flex w-full max-w-[600px] items-center gap-4`}
       style={{ "--rise-delay": "700ms" } as React.CSSProperties}
       aria-hidden="true"
     >
