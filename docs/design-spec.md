@@ -287,7 +287,9 @@ A table, not charts side by side: the comparison is about the same calendar year
 **Type:** Decorative horizontal rule
 **Purpose:** Separate manuscript "pages"
 
-`SectionDivider` (`src/components/ui/section-divider.tsx`): a hairline that fades out at both ends, in the `border` color, with a small `gold` ◇ at its center. `compact` tightens its margins on the landing page.
+`SectionDivider compact` (`src/components/ui/section-divider.tsx`): a hairline that fades out at both ends, in the `border` color, with a small `gold` ◇ at its center, at the top of a page.
+
+Between the sections of a long page, `SectionDivider` is woven (`WovenDivider` in `src/components/ui/woven-flame-parts.tsx`): the flame's twelve threads, `gold` with the base thread in `gold-deep`, lie end to end as one line that fades toward its ends. Until the divider is a little above the middle of the screen the threads hold the flame, so it reads as the logo first; then they unweave into the line, base first, as it scrolls on. A divider already on screen when the page opens unweaves once as the page arrives. On the same pages each section heading has a short `gold` thread under it that draws itself as it scrolls in, and a follow flame rests in the bottom right corner on a disc of glass, lighting a thread for each stretch of the page read (see Living surfaces in the design language).
 
 ---
 
