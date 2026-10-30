@@ -24,6 +24,15 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+// Only the home page's brand line uses it, so only the one italic is loaded
+const cormorantItalic = Cormorant_Garamond({
+  variable: "--font-cormorant-italic",
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
+  display: "swap",
+});
+
 const marcellus = Marcellus({
   variable: "--font-marcellus",
   subsets: ["latin"],
@@ -86,7 +95,7 @@ export default function RootLayout({
       // switch it off while it moves to a new page, so the page change
       // lands in place instead of gliding up or down after it.
       data-scroll-behavior="smooth"
-      className={`${cormorant.variable} ${marcellus.variable} ${hanken.variable} ${notoSerifKhmer.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${cormorantItalic.variable} ${marcellus.variable} ${hanken.variable} ${notoSerifKhmer.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <LanternSky />

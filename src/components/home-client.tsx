@@ -39,7 +39,6 @@ import {
 } from "react";
 import Link from "next/link";
 import { MotionConfig } from "motion/react";
-import { SectionDivider } from "@/components/ui/section-divider";
 import { MorePages } from "@/components/ui/page-parts";
 import { Reveal, useLastPresent } from "@/components/ui/reveal";
 import { BirthDataForm } from "@/components/birth-data-form";
@@ -395,24 +394,39 @@ export function HomeClient({ searchParams }: Props) {
     <main className="safe-gutter flex flex-1 flex-col items-center pt-9 [@media(max-height:700px)]:pt-5 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       {/* Entrance: the woven flame weaves itself in as the title surfaces out
           of the dark, then each block follows. */}
-      <SoliniMark woven reactive className="mb-2 h-12 w-12 sm:mb-3 sm:h-16 sm:w-16 [@media(max-height:700px)]:mb-1 [@media(max-height:700px)]:h-8 [@media(max-height:700px)]:w-8" />
-      <h1 className="kindle title-glow font-display text-[2.75rem] leading-tight sm:text-7xl tracking-[0.14em] text-ink text-center">
-        Solini
-      </h1>
-      <p
-        className="rise mt-2 sm:mt-4 font-display text-lg text-gold-deep text-center tracking-[0.12em]"
-        style={{ "--rise-delay": "500ms" } as React.CSSProperties}
+      {/* The signature: the woven flame and the name side by side, a gold
+          hairline between them, and the brand line below between hairlines
+          (which phones have no room for). Entrance: the flame weaves itself
+          in as the name kindles, then the rest rises in turn. */}
+      <div className="mt-7 sm:mt-0 [@media(max-height:700px)]:mt-6 flex items-center gap-3 sm:gap-5">
+        <SoliniMark woven reactive className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
+        <span
+          aria-hidden="true"
+          className="rise h-14 w-px bg-gradient-to-b from-transparent via-gold/60 to-transparent sm:h-20"
+          style={{ "--rise-delay": "400ms" } as React.CSSProperties}
+        />
+        <div className="flex flex-col items-start">
+          <h1 className="kindle title-glow font-display text-[2.5rem] leading-none sm:text-7xl tracking-[0.12em] text-ink">
+            Solini
+          </h1>
+          <p
+            className="rise mt-1.5 sm:mt-2 pl-[0.12em] text-sm uppercase text-gold-deep tracking-[0.18em]"
+            style={{ "--rise-delay": "500ms" } as React.CSSProperties}
+          >
+            Khmer Numerology
+          </p>
+        </div>
+      </div>
+      <div
+        className="rise mt-5 mb-8 sm:mt-8 sm:mb-14 [@media(max-height:700px)]:mt-3 [@media(max-height:700px)]:mb-5 flex w-full max-w-[560px] items-center sm:gap-4"
+        style={{ "--rise-delay": "650ms" } as React.CSSProperties}
       >
-        Khmer Numerology
-      </p>
-      <p
-        className="rise mt-1 text-sm uppercase text-ink-light text-center text-balance tracking-[0.16em]"
-        style={{ "--rise-delay": "620ms" } as React.CSSProperties}
-      >
-        {SITE_TAGLINE}
-      </p>
-
-      <SectionDivider compact />
+        <span aria-hidden="true" className="hidden h-px flex-1 bg-gradient-to-r from-transparent to-border sm:block" />
+        <p className="flex-1 sm:flex-none font-script italic text-[1.25rem] sm:text-[1.5rem] leading-snug text-ink-light text-center text-balance">
+          {SITE_TAGLINE}
+        </p>
+        <span aria-hidden="true" className="hidden h-px flex-1 bg-gradient-to-l from-transparent to-border sm:block" />
+      </div>
 
       <ErrorBoundary>
         {/* Form card: first visit, after "Forget my date", or "Read for someone else" */}

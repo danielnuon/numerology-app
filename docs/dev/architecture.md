@@ -269,8 +269,8 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |   +- <Suspense>
   |       +- HomeClient .............. "use client", manages CycleResultWithYear state
   |           |- reads searchParams for pre-fill (?day=&month=&year=)
-  |           |- <h1> "Khmer Numerology"
-  |           |- SectionDivider
+  |           |- SoliniMark beside <h1> "Solini" and "Khmer Numerology" (the signature)
+  |           |- brand line (SITE_TAGLINE) between hairlines
   |           +- ErrorBoundary ....... "use client", class component
   |               |- (first visit, "Forget my date" or "Read for someone else")
   |               |   +- BirthDataForm "use client", day/month/year inputs

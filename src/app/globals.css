@@ -37,6 +37,8 @@
 
 /* === Typography === */
   --font-serif: var(--font-marcellus), var(--font-cormorant), var(--font-noto-serif-khmer), Georgia, serif;
+  /* The brand line under the home page's signature, in italic only */
+  --font-script: var(--font-cormorant-italic), Georgia, serif;
   --font-sans: var(--font-hanken), var(--font-noto-serif-khmer), "Helvetica Neue", Arial, sans-serif;
 
   /* === Spacing (temple proportions) === */

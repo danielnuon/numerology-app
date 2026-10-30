@@ -65,6 +65,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Role | Face | Size and spacing | Where |
 |------|------|------------------|-------|
 | Display | Marcellus (`font-display`) | Title 36–72px, `tracking-[0.08em]`–`0.14em`, with `.title-glow` | Site and page titles, section headings, tier labels, the total score |
+| Brand line | Cormorant Garamond italic (`font-script`) | 20–24px, sentence case, `ink-light` | The home page's "A lantern for every year in your cycle" only |
 | Body | Hanken Grotesk (default sans) | 17px, line height 1.65 | Everything else |
 | Label | Hanken Grotesk, uppercase | 14px (`text-sm`), `tracking-[0.12em]`–`0.18em` | Eyebrow text and short captions |
 | Field label | Hanken Grotesk, sentence case | 16px (`text-base`) | Form field labels |
@@ -73,7 +74,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Khmer | Noto Serif Khmer | Matches its context | Any Khmer script (in both font stacks) |
 
 - Marcellus draws 0 like the letter O and 11 like "ll", so any number from 0 to 11 uses the sans face with `tabular-nums`, even where it sits beside display type. The total score (52, 64 or 76) is the one number set in Marcellus, since none of its digits can be misread.
-- Guidance and quiet asides may be italic body text. Do not add new typefaces.
+- Guidance and quiet asides may be italic body text. Do not add new typefaces. Cormorant Garamond, already the display fallback, is loaded in one italic for the brand line; keep it to that line, so it stays a signature rather than a third voice.
 - Keep letter spacing to the values above, so labels and buttons share one rhythm.
 - Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px, and nothing smaller, for labels inside the wheel, the timeline and the worked rows on How your cycle is made, where space is fixed.
 
