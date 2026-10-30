@@ -6,7 +6,7 @@
  */
 
 import Link from "next/link";
-import { SoliniMark } from "@/components/ui/solini-mark";
+import { PageFlame } from "@/components/ui/flame-anchor";
 import { SITE_PAGE_GROUPS, type SitePagePath } from "@/lib/site-pages";
 
 /** An underlined gold link inside running text. */
@@ -16,17 +16,22 @@ export const MORE_LINK =
 /** Anchor of the total score section on How your cycle is made; the comparison links to it. */
 export const TOTAL_SCORE_SECTION_ID = "total-score";
 
-/** Page shell: the Solini wordmark linking home, then a lit title. */
+/**
+ * Page shell: the Solini wordmark linking home, then a lit title. The page
+ * arrives in order (`.page-arrive` in globals.css): the flame travels in from
+ * the last page, the title gathers in, then each block rises after the one
+ * above it.
+ */
 export function InfoPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <main className="safe-gutter flex flex-1 flex-col items-center pt-9 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
+    <main className="page-arrive safe-gutter flex flex-1 flex-col items-center pt-9 sm:pt-16 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))]">
       <p className="text-sm uppercase text-ink-light tracking-[0.18em]">
         <Link href="/" className="inline-flex items-center gap-2 hover:text-gold-deep">
-          <SoliniMark className="h-6 w-6" />
+          <PageFlame className="h-6 w-6" />
           Solini
         </Link>
       </p>
-      <h1 data-glow={title} className="title-glow mt-3 text-center font-display text-4xl leading-tight text-ink tracking-[0.08em] sm:text-6xl">
+      <h1 data-glow={title} className="arrive-title title-glow mt-3 text-center font-display text-4xl leading-tight text-ink tracking-[0.08em] sm:text-6xl">
         {title}
       </h1>
       {children}

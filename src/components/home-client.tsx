@@ -80,6 +80,7 @@ import {
 import { getActiveYear, getCycleIndex, getYearNumber } from "@/lib/numerology/year-lookup";
 import { interpretAreaYear } from "@/lib/numerology/interpretation";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
+import { FlameAnchor, usePageArrival } from "@/components/ui/flame-anchor";
 import { SoliniMark } from "@/components/ui/solini-mark";
 import type { PagePoint } from "@/lib/motion";
 
@@ -280,6 +281,9 @@ export function HomeClient({ searchParams }: Props) {
   // True once the reading has arrived by a bloom, so its own page-load
   // entrance doesn't play a second time.
   const [bloomed, setBloomed] = useState(false);
+  // Opened from a link, the flame traveled here from the last page and is
+  // already woven; loaded directly, it weaves itself in.
+  const arrival = usePageArrival();
   const readingCardRef = useRef<HTMLDivElement>(null);
   // Where the button that asked for a reading was, so the woven flame's
   // spark rises from it (SoliniMark's manifestFrom)
@@ -412,12 +416,15 @@ export function HomeClient({ searchParams }: Props) {
           (which phones have no room for). Entrance: the flame weaves itself
           in as the name kindles, then the rest rises in turn. */}
       <div className="mt-7 sm:mt-0 [@media(max-height:700px)]:mt-6 flex items-center gap-3 sm:gap-5">
-        <SoliniMark
-          woven
-          reactive
-          year={result ? getCycleIndex(result.birthYear, activeYear) : 0}
-          manifestFrom={manifestFrom}
-          className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
+        <FlameAnchor>
+          <SoliniMark
+            woven
+            reactive
+            landed={arrival === "navigate"}
+            year={result ? getCycleIndex(result.birthYear, activeYear) : 0}
+            manifestFrom={manifestFrom}
+            className="h-14 w-14 sm:h-24 sm:w-24 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:w-11" />
+        </FlameAnchor>
         <span
           aria-hidden="true"
           className="rise h-14 w-px bg-gradient-to-b from-transparent via-gold/60 to-transparent sm:h-20"
