@@ -1058,8 +1058,8 @@ button:not(:disabled),
       animation-timeline: --weave;
     }
     .weave[data-arrive] .weave-thread {
-      animation: unweave 900ms var(--ease-standard) both;
-      animation-delay: calc(300ms + var(--arrive-delay, 0ms));
+      animation: unweave 1400ms var(--ease-standard) both;
+      animation-delay: calc(1200ms + var(--arrive-delay, 0ms));
     }
     .heading-thread {
       view-timeline: --heading block;

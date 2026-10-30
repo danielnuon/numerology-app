@@ -26,7 +26,7 @@ import { useEffect, useRef } from "react";
 import { MARK_THREAD_HEIGHT, MARK_THREADS } from "@/components/ui/solini-mark";
 
 /** The divider's drawing: 560 by 48 units, scaled to the width it's given. */
-const WEAVE = { width: 560, height: 48, flameScale: 0.7, lineScale: 1.8, gap: 3, lineHeight: 1.6 } as const;
+const WEAVE = { width: 560, height: 48, flameScale: 1.1, lineScale: 1.8, gap: 3, lineHeight: 1.6 } as const;
 
 /** Index of the base thread, the first year of the cycle. */
 const BASE = MARK_THREADS.length - 1;
@@ -65,21 +65,23 @@ export const WEAVE_THREADS = (() => {
     const flameY = cy - 32 * s + thread.y * s;
     // The ends of the line fade out, as the old hairline did
     const fromCenter = Math.abs(x + width / 2 - cx) / cx;
-    // The base thread leaves first; each one above follows a little later
-    const start = 6 + ((BASE - i) / BASE) * 16;
+    // The flame holds until the divider is a little above the middle of the
+    // screen, so it reads as the logo first. Then the base thread leaves
+    // first and each one above follows a little later
+    const start = 40 + ((BASE - i) / BASE) * 12;
     return {
       x,
       y,
       width,
       opacity: i === BASE ? 1 : 0.85 - 0.6 * fromCenter,
       flame: `translate(${(flameX - x).toFixed(2)}px, ${(flameY - y).toFixed(2)}px) scale(${((thread.width * s) / width).toFixed(4)}, ${((MARK_THREAD_HEIGHT * s) / WEAVE.lineHeight).toFixed(4)})`,
-      range: `cover ${start.toFixed(1)}% cover ${(start + 20).toFixed(1)}%`,
+      range: `cover ${start.toFixed(1)}% cover ${(start + 14).toFixed(1)}%`,
     };
   });
 })();
 
 /** How far apart the threads leave when a divider unweaves on arrival, base first. */
-const ARRIVE_STAGGER_MS = 45;
+const ARRIVE_STAGGER_MS = 60;
 
 export function WovenDivider() {
   const ref = useRef<HTMLDivElement>(null);
