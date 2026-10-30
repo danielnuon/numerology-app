@@ -356,7 +356,7 @@ export function CycleChart({
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   style={{
                     ...polar(index, ORB_RADIUS),
-                    // Each number floats at its own pace so the ring never moves in unison
+                    // Each lantern breathes and floats at its own pace so the ring never pulses in unison
                     "--breathe-duration": `${(5 + ((index * 7) % 5) * 0.9).toFixed(1)}s`,
                     "--breathe-delay": `${(-index * 1.3).toFixed(1)}s`,
                   } as React.CSSProperties}

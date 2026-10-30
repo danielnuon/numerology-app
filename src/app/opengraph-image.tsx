@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { OG_COLORS, OG_SITE_LABEL, threadedOrb } from "@/lib/og-theme";
+import { OG_COLORS, OG_SITE_LABEL, threadFill, threadOffset, threadedOrb } from "@/lib/og-theme";
 import { SITE_TAGLINE } from "@/lib/site-copy";
 
 export const alt = "Solini, Khmer numerology. A sample 12-year cycle: one luck number for each year.";
@@ -59,7 +59,7 @@ export default function OgImage() {
         {/* Sample cycle as threaded orbs */}
         <div style={{ display: "flex", gap: 14 }}>
           {SAMPLE_CYCLE.map((n, i) => {
-            const { background, border, thread, threadWidth } = threadedOrb(interpretYear(n).tier);
+            const { background, border, boxShadow, thread, threadWidth } = threadedOrb(interpretYear(n).tier);
             return (
               <div
                 key={i}
@@ -73,6 +73,7 @@ export default function OgImage() {
                   gap: 5,
                   borderRadius: 33,
                   border: `1px solid ${border}`,
+                  boxShadow,
                   background,
                   color: OG_COLORS.ink,
                   fontSize: 30,
@@ -82,9 +83,10 @@ export default function OgImage() {
                 <div
                   style={{
                     width: Math.round(66 * threadWidth),
+                    marginLeft: Math.round(66 * threadOffset(i) * 2),
                     height: 3,
                     borderRadius: 2,
-                    background: thread,
+                    background: threadFill(thread),
                   }}
                 />
               </div>

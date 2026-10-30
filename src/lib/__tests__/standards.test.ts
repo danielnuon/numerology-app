@@ -126,6 +126,12 @@ describe("colors outside CSS", () => {
 
   it("a lit preview orb's thread is gold, as the woven flame's", () => {
     expect(threadedOrb("strong", true).thread).toBe(OG_COLORS.goldLight);
+    expect(threadedOrb("zero", true).thread).toBe(OG_COLORS.goldLight);
+  });
+
+  it("a preview orb holds its tier's light inside it and behind it", () => {
+    expect(threadedOrb("weak").background).toContain(token("tier-weak"));
+    expect(threadedOrb("weak").boxShadow).toContain(token("tier-weak"));
   });
 
   it("the browser theme and web manifest use the page color", () => {

@@ -101,7 +101,7 @@ Color (the "Temple Lantern" palette and tier light), typography, spacing, shape 
 
 **Design:** The 12 numbers sit on a ring as threaded orbs, starting at the top with the birth year and running clockwise, like a zodiac dial. Each orb:
 - Shows its cycle number in the sans face (Hanken Grotesk, medium, tabular). Marcellus draws 0 like a letter O and 11 like "ll", so it is not used for numbers on the wheel
-- Is a plain dark orb with a hairline edge and no glow around it (`.wheel-orb`). Under the number runs one short woven thread in its tier's color (`.wheel-thread`, colored by `data-tier`), echoing the twelve threads of the woven flame; zero is an unlit niche with a short, faint thread
+- Is a dark orb shaded as a sphere lit from above, holding its tier's lantern light low inside it and backlit by the same light, which glows close around its edge and breathes and swells gently (`.wheel-orb`, `data-tier` sets `--lamp`). A warm gold hairline marks its edge. Under the number runs one hand-dyed thread in its tier's color (`.wheel-thread`), echoing the twelve threads of the woven flame: it fades at both ends, and neighboring threads differ a little in length and place. Zero is an unlit niche with a short, faint thread
 - Has its zodiac animal just outside it (`ZodiacIcon`, read from `getZodiacAnimalForYear`), gold for the selected year
 
 A thin gold arc traces the ring from the birth year to this year.
@@ -303,7 +303,7 @@ A table, not two charts side by side: the comparison is about the same calendar 
 
 **A shared reading:** A share link opens someone else's reading, so nothing on it says "your". This year's panel reads "Their 2026 reading" and "Their 2027 reading begins on…", the share section is "Share this reading", and the comparison offers "Compare it with yours". Under the reading card (and the timeline, when it shows) sits the screen's one primary button, "See your own cycle", with "Free, no sign-up. It takes a few seconds." beneath it; it opens the form like "Read your own". Once the visitor reads their own date, the page speaks to them as "you" again.
 
-**Reading card image:** a reading link's preview image (`/r/[date]/opengraph-image`, 1200×630), also saved by "Download image", shows the birth animal, "Solini", the twelve numbers as threaded orbs, each with its tier's thread, with this year's orb ringed in gold and its thread lit, this year's reading, the total score and the birth date. The site's own preview image shows the worked example's cycle the same way.
+**Reading card image:** a reading link's preview image (`/r/[date]/opengraph-image`, 1200×630), also saved by "Download image", shows the birth animal, "Solini", the twelve numbers as threaded orbs, each lit and backlit by its tier with its tier's thread, with this year's orb ringed in gold and its thread lit, this year's reading, the total score and the birth date. The site's own preview image shows the worked example's cycle the same way.
 
 **Loading state:** Not needed — calculation is instant (client-side). If there's any delay, the button shows a subtle pulse.
 

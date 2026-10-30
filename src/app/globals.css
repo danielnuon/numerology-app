@@ -404,55 +404,81 @@ body {
 [data-tier="zero"] { --lamp: rgba(140, 120, 110, 0.18); }
 
 /* === Cycle wheel ===
- * Twelve threaded orbs on a ring: a plain dark orb with a hairline edge and,
- * under its number, one woven thread in its tier's color, as the threads of
- * the woven flame. No light spills outside an orb. The current year's thread
- * is lit gold, like the flame's lit thread, and its orb has a gold edge. */
+ * Twelve threaded orbs on a ring. Each orb is shaded as a sphere, lit from
+ * above, with its tier's lantern light low inside it, and backlit: its
+ * tier's light glows from behind it, close around its edge, and breathes.
+ * Under its number runs one hand-dyed thread in its tier's color, as the
+ * threads of the woven flame. The threads fade at their ends and differ a
+ * little in length, like dyed weft rather than a gauge. The current year's
+ * thread is lit gold, like the flame's lit thread, and its orb has a gold
+ * edge. */
 .wheel-orb {
-  background: #1d1823;
-  box-shadow: inset 0 0 0 1px rgba(241, 232, 216, 0.11);
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 36% 26%, rgba(255, 244, 226, 0.16) 0, transparent 34%),
+    radial-gradient(circle at 50% 82%, var(--lamp) 0, transparent 58%),
+    radial-gradient(circle at 50% 38%, #2a2231 0, #1d1823 48%, #120e16 100%);
+  box-shadow: inset 0 0 0 1px rgba(226, 182, 90, 0.13), inset 0 -3px 6px rgba(0, 0, 0, 0.35);
+}
+/* The backlight: a layer behind the orb whose light shows only around its
+ * edge. It breathes and swells a little at each orb's own pace. */
+.wheel-orb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 14px 2px var(--lamp);
+  opacity: var(--breathe-rest);
 }
 .wheel-orb[data-tier="zero"] {
-  background: var(--color-tier-zero);
+  background:
+    radial-gradient(circle at 36% 26%, rgba(255, 244, 226, 0.06) 0, transparent 34%),
+    var(--color-tier-zero);
 }
 .wheel-orb-current {
   box-shadow: inset 0 0 0 1px rgba(226, 182, 90, 0.5);
 }
 .wheel-thread {
   position: absolute;
-  left: 32%;
-  right: 32%;
+  left: 31%;
+  right: 31%;
   bottom: 21%;
-  height: 6%;
+  height: 7%;
   min-height: 2px;
   border-radius: 999px;
-  opacity: 0.85;
+  background: linear-gradient(90deg, transparent, var(--thread) 22%, var(--thread) 78%, transparent);
+  opacity: 0.8;
   pointer-events: none;
 }
-.wheel-orb[data-tier="very-strong"] .wheel-thread { background: var(--color-tier-very-strong); }
-.wheel-orb[data-tier="strong"] .wheel-thread { background: var(--color-tier-strong); }
-.wheel-orb[data-tier="moderate"] .wheel-thread { background: var(--color-tier-moderate); }
-.wheel-orb[data-tier="weak"] .wheel-thread { background: var(--color-tier-weak); }
+/* Hand-dyed: no two neighboring threads are quite the same length */
+.wheel-orb:nth-child(3n + 1) .wheel-thread { left: 29%; right: 35%; }
+.wheel-orb:nth-child(3n + 2) .wheel-thread { left: 34%; right: 30%; }
+.wheel-orb[data-tier="very-strong"] { --thread: var(--color-tier-very-strong); }
+.wheel-orb[data-tier="strong"] { --thread: var(--color-tier-strong); }
+.wheel-orb[data-tier="moderate"] { --thread: var(--color-tier-moderate); }
+.wheel-orb[data-tier="weak"] { --thread: var(--color-tier-weak); }
 .wheel-orb[data-tier="zero"] .wheel-thread {
-  left: 39%;
-  right: 39%;
-  background: var(--color-ink-faint);
+  left: 38%;
+  right: 38%;
+  --thread: var(--color-ink-faint);
   opacity: 0.5;
 }
 /* This year's thread is lit, with a gold light of its own that breathes.
- * Doubled class so it outranks the tier colors above. */
+ * Doubled class so it outranks the lengths above. */
 .wheel-orb.wheel-orb-current .wheel-thread {
-  left: 28%;
-  right: 28%;
+  left: 24%;
+  right: 24%;
+  --thread: var(--color-gold-light);
   opacity: 1;
-  background: var(--color-gold-light);
 }
 .wheel-orb-current .wheel-thread::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 18%;
   border-radius: inherit;
-  box-shadow: 0 0 7px 1px rgba(226, 182, 90, 0.8);
+  box-shadow: 0 0 7px 1px rgba(226, 182, 90, 0.7);
   opacity: var(--breathe-rest);
 }
 /* This year's month dial: twelve segments around the current orb */
@@ -482,6 +508,7 @@ body {
  * transform (compositor work, no repaints), and is still under Reduce Motion:
  * - the current year's orb breathes with a soft gold halo
  * - the current year's lit thread breathes, as the woven flame's does
+ * - every orb's backlight breathes and swells at its own pace, like lanterns
  * - this month's segment of the current year's month dial breathes
  * - the numbers float about a pixel, each at its own pace
  * - a fine tick ring turns every 3 min
@@ -517,6 +544,10 @@ body {
   from { opacity: 0.5; }
   to { opacity: 1; }
 }
+@keyframes backlight {
+  from { opacity: var(--breathe-low); transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.06); }
+}
 @keyframes number-float {
   from { transform: translateY(-1px); }
   to { transform: translateY(1px); }
@@ -545,6 +576,9 @@ body {
   }
   .wheel-orb-current .wheel-thread::after {
     animation: breathe 6.5s var(--ease-sine) -4.4s infinite alternate;
+  }
+  .wheel-orb::before {
+    animation: backlight var(--breathe-duration) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;
   }
   .wheel-orb-number {
     animation: number-float var(--breathe-duration, 6s) var(--ease-sine) var(--breathe-delay, 0s) infinite alternate;

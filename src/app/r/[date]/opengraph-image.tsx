@@ -8,7 +8,7 @@ import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
 import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
 import { getActiveYear, getLifeArea } from "@/lib/numerology/year-lookup";
-import { OG_COLORS, OG_SITE_LABEL, threadedOrb } from "@/lib/og-theme";
+import { OG_COLORS, OG_SITE_LABEL, threadFill, threadOffset, threadedOrb } from "@/lib/og-theme";
 import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
 import GenericOgImage from "../../opengraph-image";
 import { comparisonImage } from "./comparison-image";
@@ -103,7 +103,7 @@ export default async function OgImage({ params }: Props) {
         <div style={{ display: "flex", gap: 12 }}>
           {result.cycle.map((n, i) => {
             const isLit = i === litColumn;
-            const { background, border, thread, threadWidth } = threadedOrb(interpretYear(n).tier, isLit);
+            const { background, border, boxShadow, thread, threadWidth } = threadedOrb(interpretYear(n).tier, isLit);
             return (
               <div
                 key={i}
@@ -117,6 +117,7 @@ export default async function OgImage({ params }: Props) {
                   gap: 6,
                   borderRadius: 38,
                   border: isLit ? `3px solid ${border}` : `1px solid ${border}`,
+                  boxShadow,
                   background,
                   color: OG_COLORS.ink,
                   fontSize: 34,
@@ -126,9 +127,10 @@ export default async function OgImage({ params }: Props) {
                 <div
                   style={{
                     width: Math.round(76 * threadWidth),
+                    marginLeft: Math.round(76 * threadOffset(i) * 2),
                     height: 4,
                     borderRadius: 2,
-                    background: thread,
+                    background: threadFill(thread),
                     boxShadow: isLit ? `0 0 10px 1px ${OG_COLORS.goldDeep}CC` : "none",
                   }}
                 />
