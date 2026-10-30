@@ -16,6 +16,9 @@ export const MORE_LINK =
 /** Anchor of the total score section on How your cycle is made; the comparison links to it. */
 export const TOTAL_SCORE_SECTION_ID = "total-score";
 
+/** Anchor of the section on comparing three or more people; a comparison of three or more links to it. */
+export const HOUSEHOLD_SECTION_ID = "household";
+
 /** Page shell: the Solini wordmark linking home, then a lit title. */
 export function InfoPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (

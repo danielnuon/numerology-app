@@ -6,6 +6,8 @@ import {
   decodeShareSegment,
   decodeComparisonSegment,
   buildComparisonSharePath,
+  cleanPersonName,
+  decodeComparisonNames,
 } from "../url-encoding";
 
 describe("encodeBirthDate", () => {
@@ -200,41 +202,90 @@ describe("share segments with a New Year rule", () => {
 describe("comparison share segments", () => {
   it("decodes two dates joined by +", () => {
     expect(decodeComparisonSegment("1997-07-24+2000-03-15")).toEqual({
-      first: { year: 1997, month: 7, day: 24, rule: "khmer" },
-      second: { year: 2000, month: 3, day: 15, rule: "khmer" },
+      people: [
+        { year: 1997, month: 7, day: 24, rule: "khmer" },
+        { year: 2000, month: 3, day: 15, rule: "khmer" },
+      ],
     });
   });
 
   it("keeps each person's New Year rule", () => {
     const decoded = decodeComparisonSegment("1997-02-10-cny+2000-03-15");
-    expect(decoded?.first.rule).toBe("chinese");
-    expect(decoded?.second.rule).toBe("khmer");
+    expect(decoded?.people.map((person) => person.rule)).toEqual(["chinese", "khmer"]);
   });
 
   it("accepts a percent-encoded +", () => {
-    expect(decodeComparisonSegment("1997-07-24%2B2000-03-15")?.second.year).toBe(2000);
+    expect(decodeComparisonSegment("1997-07-24%2B2000-03-15")?.people[1].year).toBe(2000);
   });
 
   it("returns null for a single date, so it stays a one-person link", () => {
     expect(decodeComparisonSegment("1997-07-24")).toBeNull();
   });
 
-  it("returns null when either half is invalid or there are three dates", () => {
+  it("decodes up to six people", () => {
+    const six = "1997-07-24+2000-03-15+2001-01-01+1968-11-12+2018-09-01+1970-04-20";
+    expect(decodeComparisonSegment(six)?.people).toHaveLength(6);
+    expect(decodeComparisonSegment(`${six}+2020-01-01`)).toBeNull();
+  });
+
+  it("returns null when any date is invalid", () => {
     expect(decodeComparisonSegment("invalid+also-invalid")).toBeNull();
     expect(decodeComparisonSegment("1997-07-24+2000-02-30")).toBeNull();
-    expect(decodeComparisonSegment("1997-07-24+2000-03-15+2001-01-01")).toBeNull();
+    expect(decodeComparisonSegment("1997-07-24+2000-03-15+")).toBeNull();
   });
 
   it("builds a path that decodes back to the same readings", () => {
-    const first = { year: 1997, month: 7, day: 24, rule: "khmer" as const };
-    const second = { year: 2000, month: 3, day: 5, rule: "chinese" as const };
-    const path = buildComparisonSharePath(first, second);
-    expect(path).toBe("/r/1997-07-24+2000-03-05-cny");
-    expect(decodeComparisonSegment(path.slice(3))).toEqual({ first, second });
+    const people = [
+      { year: 1997, month: 7, day: 24, rule: "khmer" as const },
+      { year: 2000, month: 3, day: 5, rule: "chinese" as const },
+      { year: 2021, month: 5, day: 3, rule: "khmer" as const },
+    ];
+    const path = buildComparisonSharePath(people);
+    expect(path).toBe("/r/1997-07-24+2000-03-05-cny+2021-05-03");
+    expect(decodeComparisonSegment(path.slice(3))).toEqual({ people });
+  });
+
+  it("builds a two-person path exactly as before", () => {
+    const people = [
+      { year: 1997, month: 7, day: 24, rule: "khmer" as const },
+      { year: 2000, month: 3, day: 15, rule: "khmer" as const },
+    ];
+    expect(buildComparisonSharePath(people, [null, null])).toBe("/r/1997-07-24+2000-03-15");
+  });
+
+  it("adds names in the query string only when someone has one", () => {
+    const people = [
+      { year: 1997, month: 7, day: 24, rule: "khmer" as const },
+      { year: 2000, month: 3, day: 15, rule: "khmer" as const },
+    ];
+    expect(buildComparisonSharePath(people, [null, "Sam & Jo"])).toBe(
+      "/r/1997-07-24+2000-03-15?n=&n=Sam+%26+Jo"
+    );
   });
 
   it("leaves single-person decoding unchanged", () => {
     expect(decodeShareSegment("1997-07-24+2000-03-15")).toBeNull();
     expect(decodeShareSegment("1997-07-24")).not.toBeNull();
+  });
+});
+
+describe("comparison names", () => {
+  it("trims, collapses spaces and drops control characters", () => {
+    expect(cleanPersonName("  Mom \n  Lee ")).toBe("Mom Lee");
+    expect(cleanPersonName("Sam\u0000")).toBe("Sam");
+  });
+
+  it("returns null for a missing or blank name", () => {
+    expect(cleanPersonName(undefined)).toBeNull();
+    expect(cleanPersonName("   ")).toBeNull();
+  });
+
+  it("keeps at most 16 characters", () => {
+    expect(cleanPersonName("Grandmother Sophea")).toBe("Grandmother Soph");
+  });
+
+  it("gives one name or null per person, ignoring extras", () => {
+    expect(decodeComparisonNames(["", "Sam", "Mai", "Extra"], 3)).toEqual([null, "Sam", "Mai"]);
+    expect(decodeComparisonNames(undefined, 2)).toEqual([null, null]);
   });
 });

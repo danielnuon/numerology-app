@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { HomeClient } from "../home-client";
 import {
@@ -137,6 +137,24 @@ describe("HomeClient: the form blooms into the reading", () => {
     expect(screen.getByRole("heading", { name: "Two cycles together" })).toBeInTheDocument();
     expect(screen.getByText("March 15, 2000")).toBeInTheDocument();
     expect(localStorage.getItem(BIRTH_DATE_STORAGE_KEY)).toBeNull();
+  });
+
+  it("opens a shared household comparison with its names", () => {
+    render(
+      <HomeClient
+        searchParams={{
+          day: "24",
+          month: "7",
+          year: "1997",
+          p: ["1996-02-10", "2021-05-03-cny", "not-a-date"],
+          n: ["Dany", "Sam", "Mai", "Lost"],
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { name: "Three cycles together" })).toBeInTheDocument();
+    const headers = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual(["Year", "Dany", "Sam", "Mai", "Together"]);
   });
 
   it("ignores partner params without a shared reading", () => {

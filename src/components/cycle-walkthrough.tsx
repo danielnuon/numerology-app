@@ -13,10 +13,18 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { MORE_LINK, NumberRow, PillLink, Section, TOTAL_SCORE_SECTION_ID } from "@/components/ui/page-parts";
+import {
+  HOUSEHOLD_SECTION_ID,
+  MORE_LINK,
+  NumberRow,
+  PillLink,
+  Section,
+  TOTAL_SCORE_SECTION_ID,
+} from "@/components/ui/page-parts";
 import { SectionDivider } from "@/components/ui/section-divider";
 import { computeCycleFromBirthDate, validateBirthDate } from "@/lib/numerology/derive";
-import { INTERACTION_TEXT, STABILITY_TEXT } from "@/lib/numerology/compatibility";
+import { INTERACTION_TEXT, MAX_COMPARED_PEOPLE, STABILITY_TEXT } from "@/lib/numerology/compatibility";
+import { peopleCountWord } from "@/lib/site-copy";
 import { interpretTotal } from "@/lib/numerology/interpretation";
 import { getLifeArea } from "@/lib/numerology/year-lookup";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "@/lib/numerology/zodiac";
@@ -229,6 +237,58 @@ export function CycleWalkthrough({ date }: Props) {
           both numbers are low, &ldquo;Risk&rdquo;. Solini says &ldquo;{STABILITY_TEXT.challenging.label}&rdquo;
           and &ldquo;{INTERACTION_TEXT.risk.label}&rdquo; instead, so that comparing two people you care
           about never reads as a warning. The reading behind them is the same. The wording is our choice.
+        </p>
+      </Section>
+
+      <SectionDivider />
+
+      <Section title="6. Comparing three or more people" id={HOUSEHOLD_SECTION_ID}>
+        <p>
+          Khmer numerology says luck is shared with the people closest to you, such as a partner or the
+          family you live with. But its rules only compare two people at a time. It has no rule for a
+          whole household. So when you compare three to {peopleCountWord(MAX_COMPARED_PEOPLE).toLowerCase()}{" "}
+          people, Solini extends the two-person rule in the way that seems most faithful to it. This
+          part is our choice, not a rule of Khmer numerology.
+        </p>
+        <p>For each year, Solini looks at everyone born by then and checks these in order:</p>
+        <ul className="glass space-y-2 rounded-2xl p-3 text-sm min-[360px]:p-4 sm:p-6">
+          <li>
+            <span className="text-ink">{INTERACTION_TEXT.unstable.label}</span> if anyone is in a reset
+            year (0). A 0 overrides every pair, so it unsettles the whole group too. The comparison
+            names whose reset it is.
+          </li>
+          <li>
+            <span className="text-ink">{INTERACTION_TEXT.amplified.label}</span> if everyone&apos;s year is
+            strong (7 to 11).
+          </li>
+          <li>
+            <span className="text-ink">{INTERACTION_TEXT.stabilized.label}</span> if at least one year is
+            strong and there are at least as many strong years as low ones (1 to 3): enough strength to
+            steady the rest.
+          </li>
+          <li>
+            <span className="text-ink">{INTERACTION_TEXT.risk.label}</span> if low years outnumber all
+            the others.
+          </li>
+          <li>
+            <span className="text-ink">{INTERACTION_TEXT.neutral.label}</span> otherwise.
+          </li>
+        </ul>
+        <p>
+          With two people these checks give exactly Khmer numerology&apos;s own rule, so a two-person
+          comparison is unchanged. With more, most years come out {INTERACTION_TEXT.stabilized.label} or{" "}
+          {INTERACTION_TEXT.unstable.label}, because one strong year steadies the others and any reset
+          unsettles everyone. Each person&apos;s number on the row shows who is strong and who is low.
+        </p>
+        <p>
+          The totals extend the same way: the rules above read &ldquo;both&rdquo; as &ldquo;all&rdquo;. All at
+          76 is {STABILITY_TEXT.strong.label}, all at 64 or more is {STABILITY_TEXT.moderate.label}, any at 64
+          or more with someone at 52 is {STABILITY_TEXT.mixed.label}, and all at 52 is{" "}
+          {STABILITY_TEXT.challenging.label}.
+        </p>
+        <p>
+          If you&apos;d rather rely on Khmer numerology&apos;s own rule alone, open &ldquo;Pair by pair&rdquo; in
+          the comparison. It shows this year for every pair, two people at a time.
         </p>
       </Section>
 

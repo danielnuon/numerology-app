@@ -6,7 +6,8 @@
  * Client component rendered on the share route (/r/[date]).
  * Redirects to the home page with pre-fill query params so the
  * birth data form auto-populates and computes the cycle result. A shared
- * comparison also passes the partner's date (?pday=&pmonth=&pyear=&pny=).
+ * comparison also passes everyone else's reading as one ?p= each (a share
+ * segment, such as 2000-03-15-cny) and any names as one ?n= per person.
  *
  * Uses native `window.location.replace()` instead of Next.js's
  * `router.replace()` for reliable query param preservation
@@ -15,7 +16,7 @@
 
 import { useEffect } from "react";
 import type { NewYearRule } from "@/lib/numerology/zodiac";
-import type { DecodedShare } from "@/lib/numerology/url-encoding";
+import { encodeComparisonSegment, type DecodedShare } from "@/lib/numerology/url-encoding";
 
 interface Props {
   day: number;
@@ -23,23 +24,23 @@ interface Props {
   year: number;
   /** New Year rule the reading was shared with; passed on as ?ny=. */
   rule: NewYearRule;
-  /** The partner in a shared comparison, if the link has one. */
-  partner?: DecodedShare | null;
+  /** Everyone else in a shared comparison, in the link's order. */
+  others?: DecodedShare[];
+  /** Each person's name in a shared comparison, the reading's first; null where none. */
+  names?: (string | null)[];
 }
 
 /** The home page URL that opens this reading, and the comparison if there is one. */
-export function homeUrlFor({ day, month, year, rule, partner }: Props): string {
+export function homeUrlFor({ day, month, year, rule, others = [], names = [] }: Props): string {
   const params = new URLSearchParams({
     day: String(day),
     month: String(month),
     year: String(year),
     ny: rule,
   });
-  if (partner) {
-    params.set("pday", String(partner.day));
-    params.set("pmonth", String(partner.month));
-    params.set("pyear", String(partner.year));
-    params.set("pny", partner.rule);
+  for (const other of others) params.append("p", encodeComparisonSegment([other]));
+  if (names.some((name) => name !== null)) {
+    for (const name of names) params.append("n", name ?? "");
   }
   return `/?${params.toString()}`;
 }
