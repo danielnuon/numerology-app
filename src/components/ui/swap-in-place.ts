@@ -145,7 +145,9 @@ export function swapInPlace({ slot, outgoing, swap, incoming }: Options): Swap {
 
       return Promise.all(animations.map((animation) => animation.finished)).then(finish);
     })
-    .catch(() => {});
+    // An animation canceled from outside rejects. Land the swap anyway, so
+    // no fade, clip or held height is left behind
+    .catch(finish);
 
   return { finish };
 }
