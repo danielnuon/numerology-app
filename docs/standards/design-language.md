@@ -2,6 +2,8 @@
 
 Solini looks like a temple at night, lit by lanterns. The page is a deep violet dark, text is warm candle white, gold marks what matters, and each luck tier glows with its own light. It should feel calm and alive at once: slow light and drift in the background, quick and familiar responses under the finger.
 
+Its methods follow the BIO DIGITAL design language (materials, depth, spring physics, adaptive density), expressed in Solini's own lantern identity. [ADR-003](../decisions/adr-003-bio-digital-methods.md) maps the two and records where Solini departs from it and why.
+
 This document holds the rules. Token values live in [`src/app/globals.css`](../../src/app/globals.css) (CSS) and [`src/lib/motion.ts`](../../src/lib/motion.ts) (Motion). Component specs live in [docs/design-spec.md](../design-spec.md).
 
 ## Principles
@@ -84,11 +86,38 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - **Spacing** follows Tailwind's 4px scale, used in 8px steps for layout: 8, 16, 24, 32, 48, 64, 96. Sections breathe; cramped feels anxious.
 - **Gutters** come from `.safe-gutter`: 16px on phones and 32px from 640px, widened to clear the notch in landscape.
 - **Widths.** The form card is at most 480px, reading text at most 640px, the cycle card at most 900px (1200px from `xl`).
-- **Radii.** Cards and panels `rounded-2xl`. Buttons, pills, toggles and orbs `rounded-full`. Small cells and inputs `rounded-md` to `rounded-xl`. Nothing square-cornered, nothing bubbly.
+- **Radii.** Radius grows with the size of the shape, on BIO DIGITAL's scale: R1 6px (`rounded-md`) for small cells and details, R2 12px (`rounded-xl`) for inputs and small containers, R3 16px (`rounded-2xl`) for cards and panels, and Pill (`rounded-full`) for buttons, pills, toggles and orbs. R2 is 12px rather than the spec's 10px so it stays a Tailwind default. Nothing square-cornered, nothing bubbly. Solini has no large environmental forms, so R4 to R6 are unused; a new one starts on that scale (22, 30, 40px).
 - **Surfaces.** Cards are `.glass`: the manuscript color at 72% over the sky, a 14px backdrop blur, a 1px `border` edge and `--shadow-card`. A faint gold glint slides along each card's rim as it scrolls, and cards trail a fast scroll by up to 3px (see Living surfaces). With Reduce Transparency the card is solid manuscript with no blur and no glint. Raised overlays use `--shadow-raised`; gold glows use `--shadow-glow`, and a glow that is always on breathes (`.breathe-glow`).
+- **Material and depth** are chosen from [Materials and depth](#materials-and-depth) below.
 - **Dividers** are a hairline that fades out at both ends with a gold ◇ in the middle (`SectionDivider compact`, at the top of a page). Between the sections of a long page the divider is woven from the flame's twelve threads (`SectionDivider`, see Living surfaces).
 - **Long copy pages** (About, Our heritage, How your cycle is made, What the numbers mean) take their ornament from the woven flame only: woven dividers, a short gold thread under each section heading, the follow flame in the corner, and at most one pull quote per section (`PullQuote`: large italic under a short thread, no glow, hidden from screen readers since it repeats the text, and never on a grave passage such as the Khmer Rouge years). Sections of history may carry a small date line above the heading (`Section era`).
 - **Breakpoints.** Every screen must work from 320px wide up. Check at least 320px (small phone), 768px (tablet) and 1280px (desktop). No horizontal page scroll and no clipped or truncated text at any width.
+
+## Materials and depth
+
+Every surface is one of four materials, and sits at one of five depths. Material decides how a surface looks and how it moves; depth decides what is in front. Choose from these tables before inventing a surface.
+
+| Material | In Solini | Looks | Moves |
+|----------|-----------|-------|-------|
+| Carbon | The page (`parchment`) under the dusk sky; a zero year's unlit niche | Deep, quiet, matte | Never, except the sky's living glows |
+| Porcelain | Opaque `manuscript` surfaces: the menu panel, `manuscript-alt` panels inside a card, every card under Reduce Transparency | Matte, solid, no blur | Stiff: press and selection only |
+| Membrane | `.glass`: cards over the sky, the follow flame's disc | Manuscript at 72% over a 14px blur, a hairline edge, light along its rim | Carries scroll weight, catches the glass light |
+| Crystal | Gold-edged light that marks meaning: the primary button, a threaded orb's gold edge, this year's lit thread | Clear gold edge or fill with a glow | Radiates (Living surfaces); never deforms |
+
+- Porcelain is the plain choice. Membrane is for surfaces that float over the sky. Crystal is precious, as gold is: at most one crystal action per screen, plus the marks of "now".
+- Blur never sits under text that needs it to be legible, and a membrane is never stacked on another membrane.
+- A material's motion goes with it: a surface changed from porcelain to membrane gains scroll weight; one changed the other way loses it.
+
+| Depth | Name | In Solini | Shadow |
+|-------|------|-----------|--------|
+| D0 | Environment | The page, the dusk sky, the drifting dust | None |
+| D1 | Surface | Content laid on the page: headings, dividers, running text | None |
+| D2 | Elevated | Cards (`.glass`) and controls on them | `--shadow-card` |
+| D3 | Floating | The menu panel, the follow flame | `--shadow-raised` |
+| D4 | Focused | The open reading and dialogs; what lies behind is `inert` | The reading's own tier backlight |
+
+- A deeper surface comes from somewhere: the menu grows from its button, the reading blooms from the wheel's center or the form card. Closing it returns there.
+- Depth is shown by shadow, scale, translucency and light together, never by a heavier shadow alone. Gold glows (`--shadow-glow`) are light, not depth.
 
 ## Iconography
 
@@ -117,7 +146,7 @@ A lantern is Solini's one central image: each year of the cycle is a light, and 
 | Rest | Clear affordance: an outline, a pill or an orb. Pointer cursor (set globally for buttons, tabs and options). |
 | Hover | Only on devices that hover (Tailwind 4's `hover:` already applies only there). Brighten or fill; never move. |
 | Focus | 2px `gold-deep` outline, 2px offset, from the global `:focus-visible` rule. Do not remove it or restyle it per component. |
-| Pressed | Scale to 0.97 on a quick, no-bounce response: `pressable active:scale-[0.97]` in CSS, or `whileTap={{ scale: PRESS.scale, transition: PRESS.spring }}` in Motion. Inline text links dim instead of scaling. |
+| Pressed | Compress to 0.97 and recover on the press spring (`SPRING.press`, critically damped, so no bounce): `pressable active:scale-[0.97]` in CSS, or `whileTap={{ scale: PRESS.scale, transition: PRESS.spring }}` in Motion. Inline text links dim instead of scaling. |
 | Selected | A 1px ink outline (`ring-1 ring-ink`) that glides to the new choice with a shared `<ViewTransition>`. Gold is never used for "selected". |
 | Disabled | Lower opacity, default cursor, no hover or press. |
 
@@ -134,6 +163,16 @@ A lantern is Solini's one central image: each year of the cycle is a light, and 
 - Groups of choices use the platform pattern: `tablist`/`tab` for the wheel and timeline, `radiogroup`/`radio` for the toggle. One Tab stop per group (roving `tabindex`), arrow keys to move, Home and End to jump.
 - Dialogs and expanded readings move focus to their close button, close on Escape, on Close and on a tap outside, and return focus to what opened them. The content behind is `inert`.
 - Touch targets are at least 44×44px.
+
+**Information density.** Detail is revealed as the visitor asks for it, never rearranged behind their back. Solini has three levels, in BIO DIGITAL's terms:
+
+| Level | Where | Shows |
+|-------|-------|-------|
+| Ambient | The first visit, and this year's card | The essentials: the form, then this year's number, tier and a line about it |
+| Engaged | The reading's Year view, the wheel | The cycle, the selected year's reading, the next years |
+| Immersed | The Cycle view, the comparison, How your cycle is made, What the numbers mean | Every year, the arithmetic, the sources and open questions |
+
+Each step up is taken by an explicit control (a tab, a button, a "How to read this" disclosure, a link), and each can be undone the same way. Nothing essential hides at a lower level: the active year's number and tier are always in view once a reading exists.
 
 ## Motion
 
@@ -152,12 +191,22 @@ Motion explains a change or gives a surface slow, ambient life. It is never a sp
 | `--ease-standard` / `EASE.standard` | `cubic-bezier(0.2, 0, 0, 1)` | Things changing in place |
 | `--ease-exit` / `EASE.exit` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | Things leaving |
 | `--ease-sine` | `cubic-bezier(0.37, 0, 0.63, 1)` | Ambient breathing that runs back and forth (CSS only) |
-| `PRESS` | scale 0.97, spring with no bounce | Pressed feedback in Motion |
+| `SPRING.press` / `--ease-spring-press`, `--duration-spring-press` | stiffness 1600, damping 80, mass 1 (critically damped); 277ms to rest | Pressed feedback, in CSS (`.pressable`) and Motion (`PRESS`) alike |
+| `PRESS` | scale 0.97 on `SPRING.press` | Pressed feedback in Motion |
 | `--breathe-duration` | 6.5s each way | One breath of a living glow |
 | `--breathe-low` / `--breathe-rest` | 0.64 / 0.82 | A glow's dimmest point, and where it rests with Reduce Motion |
 | `SCROLL_WEIGHT` | 0.09s lag, at most 120px of trail, cards at most 3px | Scroll weight (JavaScript only) |
 
 The curves are Material 3's. They sit close to Apple's no-overshoot springs, which is what makes the app feel familiar.
+
+### Physics
+
+Interactive motion is caused by forces, not timed: a surface the visitor pushes, or that is carried by the scroll, is a mass on a spring with a damper (F = −kx − cv), and settles into rest. Today that is the press (`SPRING.press`), scroll weight (`SCROLL_WEIGHT`, a spring with ω = 1/0.09s) and the flame's response (`FLAME_MOTION`, ω = 1/0.28s). Choreographed sequences (a page change, a Reveal, the bloom) keep their timed curves, because they show a change rather than answer a push.
+
+- **One spring, everywhere.** A spring is defined once in `SPRING` in `motion.ts`. Motion uses it directly; CSS plays it through `springCurve()`, which samples the same spring as a `linear()` easing and its settling time. The generated values are pasted into `globals.css`, and `standards.test.ts` fails if they drift. Browsers without `linear()` fall back to the timed curve.
+- **Critically damped.** Every interface spring has a damping ratio of at least 1, so nothing overshoots (`spring.test.ts`). BIO DIGITAL's "elastic recovery" would add, at a 3% press, a fraction of a pixel nobody sees, so Solini keeps its springs still at rest; elasticity lives in the flame, which is large enough to show it.
+- **Integrate safely.** Springs step with semi-implicit Euler in steps no longer than 1/120s, so they behave the same at 60Hz, 120Hz or after a dropped frame.
+- **By material.** Porcelain and crystal are stiff (the press spring); a membrane trails (scroll weight); the flame is soft and slow. A new spring is added to `SPRING` with its purpose, not written inline.
 
 **Rules**
 

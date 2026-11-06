@@ -42,7 +42,7 @@ Data flows one way: `lib/numerology` computes, components display, routes compos
 - Long class lists are written as an array joined with spaces, one concern per line, as `birth-data-form.tsx` does. Comment a line when the reason is not obvious.
 - Arbitrary values (`max-w-[640px]`, `tracking-[0.14em]`) are fine for layout and type values that the design language lists. They are not fine for colors.
 - Pressed feedback is always `pressable active:scale-[0.97]` in CSS or `PRESS` from `src/lib/motion.ts` in Motion. ESLint rejects any other pressed scale.
-- Animation imports come from `motion/react`. Durations and curves come from `MOTION`, `EASE` and `PRESS` in `src/lib/motion.ts`, or the matching CSS variables.
+- Animation imports come from `motion/react`. Durations, curves and springs come from `MOTION`, `EASE`, `SPRING` and `PRESS` in `src/lib/motion.ts`, or the matching CSS variables. A spring CSS needs is generated with `springCurve()`, never hand-tuned.
 - Every new animation is checked with Reduce Motion on.
 
 ## Comments and documentation

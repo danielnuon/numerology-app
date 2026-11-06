@@ -18,10 +18,63 @@ export const EASE = {
   exit: [0.3, 0, 0.8, 0.15],
 } as const;
 
-/** Press feedback: a quick, critically damped spring with no bounce. */
+/**
+ * Springs for interactive motion (see "Physics" in the design language).
+ * Each is a mass on a spring with a damper, F = -kx - cv: `stiffness` is k,
+ * `damping` is c and `mass` is m, in the units Motion uses. CSS plays the
+ * same spring through `springCurve()`, so a control feels the same whether
+ * CSS or Motion moves it.
+ */
+export interface Spring {
+  stiffness: number;
+  damping: number;
+  mass: number;
+}
+
+export const SPRING = {
+  /**
+   * Press and release. Porcelain-stiff and critically damped: it reaches 95%
+   * of the way in about 120ms and never overshoots, as Apple's buttons don't.
+   */
+  press: { stiffness: 1600, damping: 80, mass: 1 },
+} as const satisfies Record<string, Spring>;
+
+/** How damped a spring is: 1 settles fastest without overshoot, below 1 overshoots. */
+export function dampingRatio({ stiffness, damping, mass }: Spring): number {
+  return damping / (2 * Math.sqrt(stiffness * mass));
+}
+
+/**
+ * A spring's move from 0 to 1 as a CSS `linear()` easing and the duration it
+ * takes to settle, so a CSS transition follows the same physics as Motion.
+ * Integrated with semi-implicit Euler in 1ms steps until the spring is within
+ * 0.1% of rest, then sampled at `points` evenly spaced times.
+ */
+export function springCurve(spring: Spring, points = 24): { easing: string; durationMs: number } {
+  const { stiffness, damping, mass } = spring;
+  const step = 0.001;
+  const positions = [0];
+  let x = 0;
+  let v = 0;
+  while (positions.length < 10_000 && (Math.abs(1 - x) > 0.001 || Math.abs(v) > 0.01)) {
+    const acceleration = (-stiffness * (x - 1) - damping * v) / mass;
+    v += acceleration * step;
+    x += v * step;
+    positions.push(x);
+  }
+  const last = positions.length - 1;
+  const samples = Array.from({ length: points + 1 }, (_, k) => {
+    if (k === points) return 1;
+    const value = positions[Math.round((k / points) * last)];
+    return Math.round(value * 1000) / 1000;
+  });
+  return { easing: `linear(${samples.join(", ")})`, durationMs: last };
+}
+
+/** Press feedback: the press spring, the same one CSS's `.pressable` plays. */
 export const PRESS = {
   scale: 0.97,
-  spring: { type: "spring", visualDuration: MOTION.quick, bounce: 0 },
+  spring: { type: "spring", ...SPRING.press },
 } as const;
 
 /**
