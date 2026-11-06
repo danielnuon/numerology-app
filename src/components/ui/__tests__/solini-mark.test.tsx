@@ -20,7 +20,7 @@ describe("SoliniMark", () => {
     expect(MARK_THREADS).toHaveLength(12);
     const { container } = render(<SoliniMark />);
     expect(container.querySelectorAll(".mark-thread")).toHaveLength(12);
-    expect(container.querySelectorAll(".mark-light rect.fill-gold-light")).toHaveLength(1);
+    expect(container.querySelectorAll(".mark-light .mark-core")).toHaveLength(1);
   });
 
   it("counts the years up from the base and lights the first year on its own", () => {
@@ -28,23 +28,24 @@ describe("SoliniMark", () => {
     expect(markThread(0)).toBe(11);
     expect(markThread(11)).toBe(0);
     expect(markThread(12)).toBe(11);
-    const litY = (container: HTMLElement) =>
-      Number(container.querySelector(".mark-light rect.fill-gold-light")?.getAttribute("y"));
-    expect(litY(render(<SoliniMark />).container)).toBe(MARK_THREADS[11].y);
-    expect(litY(render(<SoliniMark year={3} />).container)).toBe(MARK_THREADS[8].y);
+    const litThread = (container: HTMLElement) =>
+      Number(container.querySelector(".mark-light")?.closest("[data-thread]")?.getAttribute("data-thread"));
+    expect(litThread(render(<SoliniMark />).container)).toBe(11);
+    expect(litThread(render(<SoliniMark year={3} />).container)).toBe(8);
   });
 
   it("manifests a new year after the entrance, then lights its thread", () => {
     jest.useFakeTimers();
     try {
-      const litY = () => Number(container.querySelector(".mark-light > rect.fill-gold-light:last-child")?.getAttribute("y"));
+      const litThread = () =>
+        Number(container.querySelector(".mark-light")?.closest("[data-thread]")?.getAttribute("data-thread"));
       const { container, rerender } = render(<SoliniMark woven />);
       act(() => jest.advanceTimersByTime(2000));
       rerender(<SoliniMark woven year={5} manifestFrom={{ x: 100, y: 600 }} />);
       // The first year keeps the light while the new one is manifested
-      expect(litY()).toBe(MARK_THREADS[11].y);
+      expect(litThread()).toBe(11);
       act(() => jest.advanceTimersByTime(10));
-      expect(litY()).toBe(MARK_THREADS[markThread(5)].y);
+      expect(litThread()).toBe(markThread(5));
       expect(container.querySelector(".mark-flare")).toBeInTheDocument();
     } finally {
       jest.useRealTimers();
@@ -60,15 +61,15 @@ describe("SoliniMark", () => {
 
   it("is decorative, since the name Solini is always written beside it", () => {
     const { container } = render(<SoliniMark />);
-    expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector(".solini-mark")).toHaveAttribute("aria-hidden", "true");
   });
 
   it("plays the weave only when asked, laying the bottom thread first", () => {
     const { container: still } = render(<SoliniMark />);
-    expect(still.querySelector("svg")).not.toHaveClass("mark-woven");
+    expect(still.querySelector(".solini-mark")).not.toHaveClass("mark-woven");
     const { container } = render(<SoliniMark woven />);
-    expect(container.querySelector("svg")).toHaveClass("mark-woven");
-    const threads = container.querySelectorAll<SVGRectElement>(".mark-thread");
+    expect(container.querySelector(".solini-mark")).toHaveClass("mark-woven");
+    const threads = container.querySelectorAll<HTMLElement>(".mark-thread");
     expect(threads[threads.length - 1].style.getPropertyValue("--weave-delay")).toBe("0ms");
     expect(threads[0].style.getPropertyValue("--weave-delay")).toBe("770ms");
   });
@@ -94,6 +95,18 @@ describe("SoliniMark", () => {
     expect(parseFloat(threadSway(0)["--sway-delay"])).toBeGreaterThan(
       parseFloat(threadSway(11)["--sway-delay"])
     );
+  });
+
+  it("is drawn with HTML, not SVG, so its living motion runs on the compositor", () => {
+    // Browsers animate SVG content on the main thread (ADR-003, Phase 3 results)
+    const { container } = render(<SoliniMark woven reactive />);
+    expect(container.querySelector("svg")).toBeNull();
+    const threads = container.querySelectorAll<HTMLElement>(".mark-sway");
+    expect(threads).toHaveLength(12);
+    // Each thread sits on the icon's 64-unit grid
+    const tip = MARK_THREADS[0];
+    expect(parseFloat(threads[0].style.left)).toBeCloseTo((tip.x / 64) * 100, 3);
+    expect(parseFloat(threads[0].style.top)).toBeCloseTo((tip.y / 64) * 100, 3);
   });
 
   it("on an iPhone, asks once for the phone's tilt when the flame is tapped", async () => {
