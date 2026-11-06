@@ -326,7 +326,7 @@ The palette, type, spacing, motion rules, living surfaces and transitions are de
 
 The app respects `prefers-reduced-motion` at two levels:
 - **CSS**: a global `@media (prefers-reduced-motion: reduce)` rule in `globals.css` collapses animations, transitions, smooth scrolling and view transitions. Ambient and scroll-driven animations are declared only inside `@media (prefers-reduced-motion: no-preference)`.
-- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling, and `LanternSky` draws its dust once, still.
+- **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling, and `LanternSky` draws its dust once, still. The dust's drawing logic is `src/lib/dust.ts`; `LanternSky` hands its canvas to `dust.worker.ts` with `transferControlToOffscreen()` and falls back to drawing on the main thread where that isn't supported.
 
 ## Testing Conventions
 

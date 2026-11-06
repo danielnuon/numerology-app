@@ -100,7 +100,16 @@ This is the price of Continuous Vitality, which BIO DIGITAL asks to keep low-fre
 | As shipped | 744–797ms | 625–676ms |
 | With the dust canvas's frame loop stopped | 586–667ms | 225–247ms |
 
-The second row shows what the flame cost on its own. What remains at rest is mostly the dust canvas, which redraws on the main thread every frame; drawing it off the main thread is the next step.
+The second row shows what the flame cost on its own. What remains at rest is mostly the dust canvas, which redraws on the main thread every frame.
+
+**Follow-up: the dust moved to a worker.** `LanternSky` now hands its canvas to a worker (`dust.worker.ts`) as an OffscreenCanvas, and its own scroll-weight loop runs only while something is still moving, woken by a passive scroll listener. Measured the same way:
+
+| Busy time at rest, per 3s | Before | After |
+|---------------------------|--------|-------|
+| Main thread | 625–695ms | 167–199ms |
+| Dust worker | none | about 385ms |
+
+The main thread is now nearly free at rest, so taps and scrolls never wait behind the dust. Total CPU fell less, about 650ms to 560ms: the drawing mostly moved rather than shrank, so the battery saving is modest. Browsers without OffscreenCanvas in workers draw on the main thread as before.
 
 ## Consequences
 
