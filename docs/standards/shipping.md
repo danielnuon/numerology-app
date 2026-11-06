@@ -41,6 +41,12 @@ npm run build
 - Contrast: meaningful text uses `ink`, `ink-light` or `gold-deep`.
 - Any new looping or ambient motion is listed under "Living surfaces" in the design language, and any new state change uses one of its shared transitions.
 
+**Performance** (for changes to motion, surfaces or what loads)
+
+- Motion holds 60fps, and 120fps where the screen supports it: a frame fits in 16.7ms (8.3ms at 120Hz). Check scrolling and the changed motion in a DevTools performance recording with 4× CPU throttling, by recording frames rather than reading Layout Shift entries.
+- Field vitals stay within Google's "good" thresholds at the 75th percentile: LCP at most 2.5s, INP at most 200ms, CLS at most 0.1. Speed Insights on the Vercel dashboard reports them for production.
+- Costly effects are justified in the PR: a new backdrop blur, a large shadow, a filter, or anything that runs every frame. Prefer `transform` and `opacity`, which the design language requires for animation anyway.
+
 **Code and docs**
 
 - New logic has tests; a bug fix has a test that fails without it.

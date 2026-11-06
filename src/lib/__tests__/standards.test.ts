@@ -2,7 +2,7 @@
  * Project standards that a linter can't see (docs/standards/README.md lists
  * where each rule is enforced):
  * - American spelling across code, comments, copy and docs
- * - Motion tokens agree between CSS (globals.css) and JavaScript (motion.ts)
+ * - Motion tokens and springs agree between CSS (globals.css) and JavaScript (motion.ts)
  * - Nothing animates a property that changes layout
  * - Colors repeated outside CSS (preview images, browser theme, manifest)
  *   agree with the color tokens
@@ -10,7 +10,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { EASE, MOTION } from "@/lib/motion";
+import { EASE, MOTION, SPRING, springCurve } from "@/lib/motion";
 import { OG_COLORS, threadedOrb } from "@/lib/og-theme";
 import manifest from "@/app/manifest";
 
@@ -71,6 +71,20 @@ describe("motion tokens", () => {
     expect(cssVar("ease-enter")).toBe(bezier(EASE.enter));
     expect(cssVar("ease-standard")).toBe(bezier(EASE.standard));
     expect(cssVar("ease-exit")).toBe(bezier(EASE.exit));
+  });
+
+  it("pressed controls transition the property Tailwind's scale utility sets", () => {
+    // Tailwind 4's active:scale-[0.97] writes `scale`, not `transform`, so a
+    // .pressable that only transitioned transform jumped instead of easing.
+    const rules = [...css.matchAll(/\.pressable\s*\{([^}]*)\}/g)].map((m) => m[1]);
+    expect(rules.length).toBeGreaterThan(0);
+    for (const rule of rules) expect(rule).toMatch(/(^|[\s,:])scale[\s,]/);
+  });
+
+  it("the CSS press spring is the one in motion.ts", () => {
+    const { easing, durationMs } = springCurve(SPRING.press);
+    expect(cssVar("ease-spring-press")).toBe(easing);
+    expect(cssVar("duration-spring-press")).toBe(`${durationMs}ms`);
   });
 });
 
