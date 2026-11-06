@@ -8,46 +8,26 @@
  * through the light. Purely decorative, so it is
  * hidden from assistive tech and never takes pointer events.
  *
+ * The dust is drawn in a worker on an OffscreenCanvas (`dust.worker.ts`), so
+ * the main thread does nothing while the page is at rest. Where a browser
+ * can't hand a canvas to a worker, it is drawn here, every frame, as before.
+ *
  * It also gives the page its scroll weight: one spring trails the scroll
  * position (stepScrollSpring), and the glows and every glass card lag
  * behind a fast scroll by a few pixels, then settle. The dust drifts a
  * little with the scroll too. Only `translate` moves, through paused
- * animations that each frame seeks, on the cards on screen, and only while
- * something moves.
+ * animations that each frame seeks, on the cards on screen. The loop runs
+ * only while the spring is moving: a scroll wakes it, and it stops once
+ * everything has settled.
  *
- * With Reduce Motion the dust is drawn once, nothing trails and the loop
- * stops. Drawing pauses while the tab is hidden.
+ * With Reduce Motion the dust is drawn once, nothing trails and nothing
+ * loops. Drawing pauses while the tab is hidden.
  */
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "motion/react";
 import { SCROLL_WEIGHT, stepScrollSpring } from "@/lib/motion";
-
-const MOTE_COUNT = 38;
-
-interface Mote {
-  x: number;
-  y: number;
-  radius: number;
-  driftX: number;
-  driftY: number;
-  alpha: number;
-  phase: number;
-}
-
-function seedMotes(): Mote[] {
-  return Array.from({ length: MOTE_COUNT }, () => ({
-    x: Math.random(),
-    y: Math.random(),
-    radius: 0.6 + Math.random() * 1.6,
-    // Fractions of the viewport per millisecond: rising across the screen
-    // takes 20 to 60 seconds.
-    driftX: (Math.random() - 0.5) * 0.00003,
-    driftY: -0.000017 - Math.random() * 0.000033,
-    alpha: 0.15 + Math.random() * 0.35,
-    phase: Math.random() * Math.PI * 2,
-  }));
-}
+import { type DustMessage, drawMotes, driftMotes, seedMotes, slideMotes } from "@/lib/dust";
 
 /**
  * Pixels per CSS pixel for the dust canvas. Specks this soft look the same
@@ -64,20 +44,98 @@ const REST = 0.05;
 /** How much of the scroll lag each glow takes (dusk, lantern, ember): nearer lights trail more. */
 const GLOW_LAG_SHARE = [0.4, 0.55, 0.15];
 
+/** Whether this browser can draw the dust off the main thread. */
+function canDrawInWorker(canvas: HTMLCanvasElement): boolean {
+  return typeof Worker === "function" && typeof canvas.transferControlToOffscreen === "function";
+}
+
+/**
+ * The dust, drawn in a worker where the browser allows it and here
+ * otherwise. Both take the same messages.
+ */
+function startDust(canvas: HTMLCanvasElement, still: boolean): { send: (message: DustMessage) => void; stop: () => void } {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const dpr = canvasScale();
+
+  if (canDrawInWorker(canvas)) {
+    let worker: Worker | null = null;
+    try {
+      // The worker is made before the canvas is handed over, so if it can't
+      // start (a strict content policy, say), the dust is drawn here instead.
+      worker = new Worker(new URL("./dust.worker.ts", import.meta.url), { type: "module" });
+      const offscreen = canvas.transferControlToOffscreen();
+      const start: DustMessage = { type: "start", canvas: offscreen, width, height, dpr, still };
+      worker.postMessage(start, [offscreen]);
+      const running = worker;
+      return { send: (message) => running.postMessage(message), stop: () => running.terminate() };
+    } catch {
+      worker?.terminate();
+    }
+  }
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return { send: () => {}, stop: () => {} };
+  const motes = seedMotes();
+  let scale = dpr;
+  let cssHeight = height;
+  let frame = 0;
+  let last = 0;
+  let visible = true;
+  const size = (w: number, h: number, s: number) => {
+    scale = s;
+    cssHeight = h;
+    canvas.width = Math.round(w * s);
+    canvas.height = Math.round(h * s);
+  };
+  const draw = (now: number) => {
+    frame = 0;
+    const elapsed = Math.min(now - (last || now), 100);
+    last = now;
+    if (!still) driftMotes(motes, elapsed);
+    drawMotes(ctx, motes, scale, now, still);
+    if (!still && visible) frame = requestAnimationFrame(draw);
+  };
+  const restart = () => {
+    cancelAnimationFrame(frame);
+    last = 0;
+    draw(performance.now());
+  };
+  size(width, height, dpr);
+  restart();
+  return {
+    send(message) {
+      if (message.type === "resize") {
+        size(message.width, message.height, message.dpr);
+        restart();
+      } else if (message.type === "scroll") {
+        slideMotes(motes, message.scrolled, cssHeight);
+      } else if (message.type === "visible") {
+        visible = message.visible;
+        if (visible) restart();
+        else cancelAnimationFrame(frame);
+      }
+    },
+    stop: () => cancelAnimationFrame(frame),
+  };
+}
+
 export function LanternSky() {
   const skyRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    const canvas = canvasRef.current;
     const sky = skyRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
+    if (!sky) return;
 
-    const motes = seedMotes();
+    // A canvas handed to a worker can't be handed over again, so each run of
+    // this effect draws on a canvas of its own.
+    const canvas = document.createElement("canvas");
+    sky.append(canvas);
+    const dust = startDust(canvas, Boolean(prefersReducedMotion));
+
     let frame = 0;
-    let last = performance.now();
+    let last = 0;
     const spring = { position: window.scrollY, velocity: 0 };
     let lastScroll = window.scrollY;
     let cardTrail = 0;
@@ -87,7 +145,7 @@ export function LanternSky() {
     // away the cached style of the glows' own CSS animations.
     const RANGE = SCROLL_WEIGHT.maxLag;
     const offsets = new WeakMap<HTMLElement, { animation: Animation; px: number }>();
-    const glows = Array.from(sky?.querySelectorAll<HTMLElement>(".sky-glow") ?? []);
+    const glows = Array.from(sky.querySelectorAll<HTMLElement>(".sky-glow"));
     let cards: HTMLElement[] = [];
     let cardsFoundAt = -Infinity;
 
@@ -125,7 +183,8 @@ export function LanternSky() {
 
     // Weight: each glow trails the spring by its share of the lag, and the
     // cards drift with a softer copy of it, every third card a touch more.
-    function applyWeight(dt: number, now: number) {
+    // Returns whether anything is still moving.
+    function applyWeight(dt: number, now: number): boolean {
       const scroll = window.scrollY;
       const trail = stepScrollSpring(spring, scroll, dt);
       cardTrail += (trail - cardTrail) * Math.min(1, dt * 10);
@@ -151,74 +210,54 @@ export function LanternSky() {
       const scrolled = scroll - lastScroll;
       lastScroll = scroll;
       if (scrolled !== 0 && Math.abs(scrolled) < SCROLL_WEIGHT.snapDistance) {
-        const height = canvas!.clientHeight || 1;
-        for (const mote of motes) mote.y -= (scrolled / height) * 0.08 * (mote.radius / 2.2);
+        dust.send({ type: "scroll", scrolled });
       }
+
+      return (
+        scrolled !== 0 ||
+        Math.abs(trail) > REST ||
+        Math.abs(spring.velocity) > REST ||
+        Math.abs(cardTrail) > REST
+      );
+    }
+
+    function tick(now: number) {
+      const dt = last ? Math.min(now - last, 100) / 1000 : 1 / 60;
+      last = now;
+      const moving = applyWeight(dt, now);
+      frame = moving && !document.hidden ? requestAnimationFrame(tick) : 0;
+      if (!frame) last = 0;
+    }
+
+    // A scroll wakes the weight; it runs until the page has settled
+    function wake() {
+      if (!frame && !prefersReducedMotion) frame = requestAnimationFrame(tick);
     }
 
     // Match the canvas to its box, which is the large viewport (taller than
     // innerHeight while mobile toolbars are showing).
-    function resize() {
-      const dpr = canvasScale();
-      canvas!.width = canvas!.clientWidth * dpr;
-      canvas!.height = canvas!.clientHeight * dpr;
+    function handleResize() {
+      dust.send({ type: "resize", width: canvas.clientWidth, height: canvas.clientHeight, dpr: canvasScale() });
     }
 
-    function draw(now: number) {
-      const elapsed = Math.min(now - last, 100);
-      last = now;
-      if (!prefersReducedMotion) applyWeight(elapsed / 1000, now);
-      const dpr = canvasScale();
-      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
-      for (const mote of motes) {
-        if (!prefersReducedMotion) {
-          mote.x += mote.driftX * elapsed;
-          mote.y += mote.driftY * elapsed;
-          if (mote.y < -0.02) {
-            mote.y = 1.02;
-            mote.x = Math.random();
-          } else if (mote.y > 1.02) {
-            mote.y = -0.02;
-            mote.x = Math.random();
-          }
-        }
-        // A slow flicker, as if passing in and out of the light
-        const flicker = prefersReducedMotion
-          ? 1
-          : 0.75 + 0.25 * Math.sin(now / 2400 + mote.phase);
-        ctx!.beginPath();
-        ctx!.arc(mote.x * canvas!.width, mote.y * canvas!.height, mote.radius * dpr, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(240, 205, 140, ${mote.alpha * flicker})`;
-        ctx!.fill();
-      }
-      if (!prefersReducedMotion && !document.hidden) {
-        frame = requestAnimationFrame(draw);
-      }
-    }
-
-    function start() {
-      cancelAnimationFrame(frame);
-      last = performance.now();
+    function handleVisibility() {
       // Coming back to the tab, the page is where it is: nothing to catch up on
       spring.position = lastScroll = window.scrollY;
       spring.velocity = 0;
-      draw(last);
+      dust.send({ type: "visible", visible: !document.hidden });
     }
 
-    function handleResize() {
-      resize();
-      start();
-    }
-
-    resize();
-    start();
+    window.addEventListener("scroll", wake, { passive: true });
     window.addEventListener("resize", handleResize);
-    document.addEventListener("visibilitychange", start);
+    document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       cancelAnimationFrame(frame);
+      dust.stop();
+      canvas.remove();
       [...glows, ...cards].forEach((el) => offsets.get(el)?.animation.cancel());
+      window.removeEventListener("scroll", wake);
       window.removeEventListener("resize", handleResize);
-      document.removeEventListener("visibilitychange", start);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [prefersReducedMotion]);
 
@@ -227,7 +266,6 @@ export function LanternSky() {
       <div className="sky-glow sky-glow-dusk" />
       <div className="sky-glow sky-glow-lantern" />
       <div className="sky-glow sky-glow-ember" />
-      <canvas ref={canvasRef} />
     </div>
   );
 }
