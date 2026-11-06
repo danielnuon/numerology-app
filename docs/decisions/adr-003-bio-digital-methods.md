@@ -59,7 +59,7 @@ Each place the spec and Solini disagree, and what Solini does.
 4. **Day environment.** The spec defines light and dark environments. Solini stays dark only. A day mode would be a second identity to design and maintain, and the lantern light only reads at night.
 5. **Elastic recovery.** The spec asks a pressed button to recover elastically. Solini's controls compress by 3%, and at that travel any overshoot a spring can add is a fraction of a pixel: invisible, but it would break Solini's no-overshoot rule. So the press is now a true spring (phase 1), critically damped. Elasticity stays where it can be seen, in the flame.
 6. **Hover.** The spec gives cards a "proximity response" on hover; Solini's rule is that hover never moves anything. Solini keeps the rule, and any hover response is light (a brighter edge), never movement.
-7. **Membrane as the default.** The spec says porcelain is the default and translucency is for floating surfaces. Solini does the reverse: glass is on every card and the floating menu is opaque. The dusk sky showing through the cards is part of the look, so this is not changed by decree; phase 3 measures what the blur costs on a phone and brings the evidence before anything changes.
+7. **Membrane as the default.** The spec says porcelain is the default and translucency is for floating surfaces. Solini does the reverse: glass is on every card and the floating menu is opaque. The dusk sky showing through the cards is part of the look, so this is not changed by decree; phase 3 measured what the blur costs and found no measurable cost, so the cards stay glass (see Phase 3 results below).
 8. **Stack.** The spec suggests CSS Modules. Solini keeps Tailwind with tokens, which already centralizes design intent in tokens, and already uses Motion for React.
 
 ### Phases
@@ -68,9 +68,30 @@ Each phase is one PR, reviewed and checked on mobile, tablet and desktop.
 
 1. **Foundations (this PR).** Name materials, depth, radius and density in the design language. Add spring tokens (`SPRING`, `springCurve()`) and play the press spring in CSS and Motion alike, with tests that keep the two equal and forbid overshoot. Add a performance budget to the shipping standard. The one visible change is the press: it used to jump to 0.97 in one frame (see the audit), and now compresses and recovers on one spring everywhere.
 2. **Restrained Reduce Motion (shipped).** With Reduce Motion on, changes of state crossfade briefly in place instead of cutting, as Apple's platforms do; nothing moves, scales or loops. This follows the spec's "replace large movements with restrained transitions" and keeps state changes legible.
-3. **Materials, measured.** Profile the glass cards' backdrop blur over the moving sky on a 4× throttled phone and on a real one. If the cost is material, propose porcelain for in-flow cards and membrane for floating surfaces, with screenshots of both, for the owner to choose.
+3. **Materials, measured (done: glass stays).** Profile the glass cards' backdrop blur over the moving sky. Results below.
 4. **Spring transitions.** Move the remaining interactive motion that is still timed (the selection glide, the menu, the Year and Cycle switch) onto named springs where a spring describes it better, keeping choreographed sequences on their curves.
 5. **Component contracts.** Give each component in `docs/design-spec.md` its material, depth and motion beside the states it already lists.
+
+## Phase 3 results
+
+Measured on a production build of the shared reading (`/r/1997-07-24`) in headless Chromium, emulating a 390×844 phone at 3× density with 4× CPU throttling. Each run compared the page as it is with the same page where every `.glass` card and the follow flame's disc is solid `manuscript` with no backdrop blur. Two to three runs each.
+
+| Measure | Glass | Solid | Difference |
+|---------|-------|-------|------------|
+| Scrolling the whole page twice: frame interval, median and 95th percentile | 16.7ms, 16.7ms | 16.7ms, 16.8ms | None |
+| Scrolling: compositor and display thread busy time | 683–705ms | 674–689ms | Within run-to-run noise |
+| Idle for 3s: display thread busy time | 1181–1268ms | 1183–1288ms | Within run-to-run noise |
+
+**Decision.** The blur shows no measurable cost, so in-flow cards stay membrane (glass) and the spec's porcelain-by-default is not adopted. The reason is identity: the dusk sky showing through the cards is part of Solini's look, and nothing measured argues against it.
+
+**Limits of the evidence.** Headless Chromium composites in software, so this does not measure a phone's GPU, where blur cost lives. A real-device check needs Safari's Web Inspector on a Mac with an iPhone attached (Timeline, "Rendering Frames"). If that ever shows dropped frames while scrolling, revisit this choice.
+
+**What the profile did find.** At rest, the page is not idle. With 4× throttling the main thread is busy about 18% of the time (about 530ms in 3s) and the display thread about 40%, all of it from living surfaces: with Reduce Motion both fall to almost nothing. Two pieces stand out:
+
+- The woven flame's sway and drift run on SVG elements, which Chromium cannot animate on the compositor (the trace reports SVG targets with independent transform properties). Every sway frame goes through style, paint and commit on the main thread. Stopping the SVG animations saves about a fifth of the idle main-thread time.
+- The drifting dust canvas redraws every frame by design.
+
+This is the price of Continuous Vitality, which BIO DIGITAL asks to keep low-frequency and cheap. It is within budget here, since frames still land on time, but it costs battery on a phone left open. Moving the flame's sway to HTML elements or to a single composited layer is a possible later optimization; it is not part of this ADR.
 
 ## Consequences
 

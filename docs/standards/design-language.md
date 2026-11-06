@@ -104,7 +104,7 @@ Every surface is one of four materials, and sits at one of five depths. Material
 | Membrane | `.glass`: cards over the sky, the follow flame's disc | Manuscript at 72% over a 14px blur, a hairline edge, light along its rim | Carries scroll weight, catches the glass light |
 | Crystal | Gold-edged light that marks meaning: the primary button, a threaded orb's gold edge, this year's lit thread | Clear gold edge or fill with a glow | Radiates (Living surfaces); never deforms |
 
-- Porcelain is the plain choice. Membrane is for surfaces that float over the sky. Crystal is precious, as gold is: at most one crystal action per screen, plus the marks of "now".
+- Porcelain is the plain choice. Membrane is for surfaces that float over the sky, and in Solini every card floats over the sky, so cards are membrane. BIO DIGITAL makes porcelain the default; Solini keeps glass cards because the sky showing through is part of its look, and profiling found no measurable cost (ADR-003, Phase 3 results). Crystal is precious, as gold is: at most one crystal action per screen, plus the marks of "now".
 - Blur never sits under text that needs it to be legible, and a membrane is never stacked on another membrane.
 - A material's motion goes with it: a surface changed from porcelain to membrane gains scroll weight; one changed the other way loses it.
 
