@@ -36,6 +36,17 @@ describe("prefers-reduced-motion CSS rules", () => {
     expect(blockContent).toMatch(/::view-transition-group\(\*\)/);
   });
 
+  it("with reduced motion, view transitions only fade the new view in, without travel", () => {
+    const block = cssContent.match(/\* lands \(restrained transitions[\s\S]*?\n\}/)?.[0] ?? "";
+    // Groups don't glide or grow, and the old view is gone at once
+    expect(block).toMatch(/::view-transition-group\(\*\),\s*::view-transition-image-pair\(\*\)\s*\{\s*animation:\s*none\s*!important/);
+    expect(block).toMatch(/::view-transition-old\(\*\)\s*\{\s*animation:\s*vt-fade-out 0s both !important/);
+    expect(block).toMatch(/::view-transition-new\(\*\)\s*\{\s*animation:\s*vt-appear /);
+    // The fade it uses changes opacity and nothing else
+    const appear = cssContent.match(/@keyframes vt-appear\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(appear.trim()).toBe("from { opacity: 0;");
+  });
+
   it("loops only on living surfaces, and only when motion is allowed", () => {
     // Glows breathe and the wheel's lanterns live (see "Living surfaces" in
     // docs/standards/design-language.md). Every looping rule must sit in a

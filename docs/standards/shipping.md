@@ -37,7 +37,7 @@ npm run build
 
 - Uses tokens and the shared pressed, focus, hover and selected states from the design language.
 - Keyboard: every new control is reachable, operable and shows the focus ring.
-- Reduce Motion: with it on, nothing moves, scales or loops.
+- Reduce Motion: with it on, nothing moves, scales or loops, and a change of state still shows as a brief fade in place.
 - Contrast: meaningful text uses `ink`, `ink-light` or `gold-deep`.
 - Any new looping or ambient motion is listed under "Living surfaces" in the design language, and any new state change uses one of its shared transitions.
 

@@ -16,12 +16,13 @@
  *
  * Everything moves live, on real elements, so it doesn't depend on how a
  * browser snapshots a view transition (a tall card, taller than the screen,
- * is the case that goes wrong). With Reduce Motion, or where Web
- * Animations are missing, the swap is instant.
+ * is the case that goes wrong). With Reduce Motion the page takes its new
+ * shape at once and the new view only fades in where it lands; where Web
+ * Animations are missing the swap is instant.
  */
 
 import { EASE, MOTION } from "@/lib/motion";
-import { prefersReducedMotion, surroundings } from "@/components/ui/reveal";
+import { fadeInPlace, prefersReducedMotion, surroundings } from "@/components/ui/reveal";
 
 const ease = (curve: readonly number[]) => `cubic-bezier(${curve.join(", ")})`;
 
@@ -44,6 +45,7 @@ export interface Swap {
 export function swapInPlace({ slot, outgoing, swap, incoming }: Options): Swap {
   if (prefersReducedMotion() || typeof slot.animate !== "function") {
     swap();
+    if (prefersReducedMotion()) fadeInPlace(incoming());
     return { finish: () => {} };
   }
 
