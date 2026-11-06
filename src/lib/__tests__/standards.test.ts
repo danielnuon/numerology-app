@@ -86,6 +86,12 @@ describe("motion tokens", () => {
     expect(cssVar("ease-spring-press")).toBe(easing);
     expect(cssVar("duration-spring-press")).toBe(`${durationMs}ms`);
   });
+
+  it.each(["glide", "swift"] as const)("the CSS %s spring is the one in motion.ts", (name) => {
+    const { easing, durationMs } = springCurve(SPRING[name]);
+    expect(cssVar(`ease-spring-${name}`)).toBe(easing);
+    expect(cssVar(`duration-spring-${name}`)).toBe(`${durationMs}ms`);
+  });
 });
 
 describe("compositor-only motion", () => {

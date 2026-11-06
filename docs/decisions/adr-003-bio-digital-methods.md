@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (phase 1). Later phases are proposed below and each lands in its own PR.
+Accepted. Phases 1 to 4 have shipped; phase 5 is proposed below. Each phase lands in its own PR.
 
 ## Context
 
@@ -69,7 +69,7 @@ Each phase is one PR, reviewed and checked on mobile, tablet and desktop.
 1. **Foundations (this PR).** Name materials, depth, radius and density in the design language. Add spring tokens (`SPRING`, `springCurve()`) and play the press spring in CSS and Motion alike, with tests that keep the two equal and forbid overshoot. Add a performance budget to the shipping standard. The one visible change is the press: it used to jump to 0.97 in one frame (see the audit), and now compresses and recovers on one spring everywhere.
 2. **Restrained Reduce Motion (shipped).** With Reduce Motion on, changes of state crossfade briefly in place instead of cutting, as Apple's platforms do; nothing moves, scales or loops. This follows the spec's "replace large movements with restrained transitions" and keeps state changes legible.
 3. **Materials, measured (done: glass stays).** Profile the glass cards' backdrop blur over the moving sky. Results below.
-4. **Spring transitions.** Move the remaining interactive motion that is still timed (the selection glide, the menu, the Year and Cycle switch) onto named springs where a spring describes it better, keeping choreographed sequences on their curves.
+4. **Spring transitions (shipped).** The selection outline, `<Reveal>`, the Year and Cycle switch's glide and sweep, and the menu panel unfolding move on two named springs, `SPRING.glide` and `SPRING.swift`. Choreographed sequences and fades keep their curves. Results below.
 5. **Component contracts.** Give each component in `docs/design-spec.md` its material, depth and motion beside the states it already lists.
 
 ## Phase 3 results
@@ -110,6 +110,14 @@ The second row shows what the flame cost on its own. What remains at rest is mos
 | Dust worker | none | about 385ms |
 
 The main thread is now nearly free at rest, so taps and scrolls never wait behind the dust. Total CPU fell less, about 650ms to 560ms: the drawing mostly moved rather than shrank, so the battery saving is modest. Browsers without OffscreenCanvas in workers draw on the main thread as before.
+
+## Phase 4 results
+
+Two critically damped springs replace the timed spatial moves. Each is tuned so the move keeps the pace it had: `SPRING.glide` (stiffness 400, damping 40) is halfway in 84ms and 95% there by 240ms, as 400ms of `--ease-standard` was (80ms and 263ms); `SPRING.swift` (stiffness 900, damping 60) is halfway in 56ms and 95% there by 160ms, as 250ms of it was (50ms and 164ms). A test holds them to that pace.
+
+What changes is the shape of the arrival, not the speed. A spring has no fixed end: it eases into rest over a longer, softer tail (503ms and 354ms to within 0.1%), where the Bézier curve stopped at its set time. Side by side the difference is slight. The reasons to make it anyway are that every interactive move now comes from one physical model, so a new one is chosen from `SPRING` rather than timed by eye, and that the spring's tail is what makes Apple's motion read as settling rather than stopping.
+
+Two limits. These are CSS transitions, view transitions and Web Animations, which play a spring as a fixed `linear()` curve, so a move that is interrupted restarts from where it is without carrying its speed (a Reveal toggled mid-way reverses along its curve, as before). And a closing Reveal holds the page's old shape until its glide ends, so it now lets go at 354ms rather than 250ms; by 250ms the glide is 99% done, so nothing visible waits.
 
 ## Consequences
 
