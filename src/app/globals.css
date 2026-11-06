@@ -1312,7 +1312,8 @@ html:active-view-transition-type(bloom-close, form-reset)::view-transition-old(.
 }
 
 /* === Reduce Motion ===
- * Nothing moves or scales; changes happen instantly. */
+ * Nothing moves, scales or loops. What a change brings in fades in where it
+ * lands (restrained transitions, ADR-003); everything else is instant. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -1325,14 +1326,38 @@ html:active-view-transition-type(bloom-close, form-reset)::view-transition-old(.
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* A change of state still reads as a change: nothing travels, grows or
+   * glides, but what is new fades in where it lands. The old snapshot is
+   * gone at once, so two versions are never seen at different sizes. */
   ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
+  ::view-transition-image-pair(*) {
     animation: none !important;
   }
-  /* With no animation the old snapshot would sit over the new view
-   * for a frame or two. Hide it so the swap is a clean cut. */
   ::view-transition-old(*) {
-    opacity: 0 !important;
+    animation: vt-fade-out 0s both !important;
+  }
+  ::view-transition-new(*) {
+    animation: vt-appear var(--duration-standard) var(--ease-standard) both !important;
+  }
+  /* Status messages fade in place instead of rising */
+  .animate-settle-in {
+    animation: vt-appear var(--duration-standard) var(--ease-standard) both !important;
+  }
+  /* The menu fades in and out where it stands */
+  .menu-panel,
+  .menu-panel[data-open="true"],
+  .menu-item,
+  .menu-panel[data-open="true"] .menu-item {
+    transform: none !important;
+  }
+  .menu-panel {
+    transition:
+      opacity var(--duration-quick) var(--ease-standard),
+      visibility 0s linear var(--duration-quick) !important;
+  }
+  .menu-panel[data-open="true"] {
+    transition:
+      opacity var(--duration-standard) var(--ease-standard),
+      visibility 0s !important;
   }
 }

@@ -143,7 +143,7 @@ A thin gold arc traces the ring from the birth year to this year.
 - While the reading is open the ring behind it is `inert`
 - Orbs are at least 44px; focus ring is a 2px gold-deep outline
 
-**Implementation hint:** Orbs are absolutely placed on a square that is a size container, so sizes use `cqw`. The ring and the tab panel share one grid cell. Selection ring and bloom use React `<ViewTransition>`; entrance stagger via Motion; Reduce Motion turns both off.
+**Implementation hint:** Orbs are absolutely placed on a square that is a size container, so sizes use `cqw`. The ring and the tab panel share one grid cell. Selection ring and bloom use React `<ViewTransition>`; entrance stagger via Motion; with Reduce Motion the selection ring simply appears at its new place and the reading fades in, with no travel or stagger.
 
 ### Birth Data Form
 **Type:** Centered parchment card

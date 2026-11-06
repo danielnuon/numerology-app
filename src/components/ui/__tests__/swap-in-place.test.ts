@@ -37,13 +37,16 @@ describe("swapInPlace", () => {
     delete (Element.prototype as Partial<Element>).animate;
   });
 
-  it("swaps at once with Reduce Motion", () => {
+  it("swaps at once with Reduce Motion, and only fades the new view in", () => {
     setReducedMotion(true);
-    mockAnimate();
+    const started = mockAnimate();
     const { slot, old } = setup();
+    const fresh = document.createElement("p");
     const swap = jest.fn();
-    swapInPlace({ slot, outgoing: [old], swap, incoming: () => [] });
+    swapInPlace({ slot, outgoing: [old], swap, incoming: () => [fresh] });
     expect(swap).toHaveBeenCalledTimes(1);
+    expect(started.map(({ target }) => target)).toEqual([fresh]);
+    expect(started[0].keyframes).toEqual([{ opacity: 0 }, { opacity: 1 }]);
   });
 
   it("swaps at once without Web Animations", () => {

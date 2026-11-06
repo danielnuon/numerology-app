@@ -216,7 +216,7 @@ Interactive motion is caused by forces, not timed: a surface the visitor pushes,
 4. Entrances fade and settle (`.rise`, `.animate-settle-in`, `.scroll-settle`). Exits are quicker than entrances.
 5. **Loops are for living surfaces only.** A loop must be one of the living surfaces below: slow, small, symmetric (`--ease-sine`, or linear for a turning ring), decorative and fully off with Reduce Motion. Script-driven loops (canvas, timers) also pause while the tab is hidden; browsers already do this for CSS animation. Tailwind's `animate-pulse`, `animate-spin`, `animate-bounce` and `animate-ping` are too fast and too large, and ESLint rejects them.
 6. **Every state change is a transition.** Nothing appears, disappears or jumps in one frame. Use the shared transitions below; do not invent new ones for a single component.
-7. **Reduce Motion** turns everything off: nothing moves, scales or loops, and changes are instant. Glows rest at `--breathe-rest`, so the page looks the same, only still. CSS is covered by the global rule in `globals.css`; JavaScript animation uses `<MotionConfig reducedMotion="user">` at the root or `useReducedMotion()`.
+7. **Reduce Motion** keeps every change legible without movement: nothing moves, scales, glides or loops, and what a change brings in fades in where it lands over `--duration-standard`, opacity only. The old view is gone at once, so two versions are never seen at different sizes. That covers view transitions (a page change, the bloom, the selection outline, which simply appears at its new place), `<Reveal>` and `swapInPlace` (`fadeInPlace()`), status messages and the menu. Everything else is instant. Glows rest at `--breathe-rest`, so the page looks the same, only still. CSS is covered by the global rule in `globals.css`; JavaScript animation uses `<MotionConfig reducedMotion="user">` at the root or `useReducedMotion()`, and Web Animations check `prefersReducedMotion()` from `reveal.tsx`. This follows BIO DIGITAL's "restrained transitions, not reduced functionality" (ADR-003).
 
 ### Living surfaces
 
@@ -254,7 +254,7 @@ Looping rules live only under `@media (prefers-reduced-motion: no-preference)` o
 
 ### Transitions
 
-Every change of state uses one of these. Old content leaves quickly (`--duration-quick`, `--ease-exit`) so it never competes with the new; new content arrives more gently (`--duration-gentle`, `--ease-enter`), rising a few pixels as it fades in. With Reduce Motion each is an instant cut.
+Every change of state uses one of these. Old content leaves quickly (`--duration-quick`, `--ease-exit`) so it never competes with the new; new content arrives more gently (`--duration-gentle`, `--ease-enter`), rising a few pixels as it fades in. With Reduce Motion each becomes a fade in place (rule 7 above): the new content fades in where it lands, and nothing travels.
 
 | Transition | Where | Behavior |
 |------------|-------|----------|

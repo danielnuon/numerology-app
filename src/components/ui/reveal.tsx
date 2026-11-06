@@ -90,6 +90,21 @@ export function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/**
+ * With Reduce Motion, content that a change brings in fades in where it
+ * lands instead of appearing in one frame: nothing moves or grows, so the
+ * change still reads as a change (see "Reduce Motion" in the design language).
+ */
+export function fadeInPlace(elements: Element[]): void {
+  elements.forEach((el) => {
+    if (typeof el.animate !== "function") return;
+    el.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: MOTION.standard * 1000,
+      easing: `cubic-bezier(${EASE.standard.join(", ")})`,
+    });
+  });
+}
+
 export function Reveal({ open, id, className = "", children }: Props) {
   const slotRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -123,6 +138,7 @@ export function Reveal({ open, id, className = "", children }: Props) {
 
     if (prefersReducedMotion() || typeof slot.animate !== "function") {
       setShown(open);
+      if (open && prefersReducedMotion()) fadeInPlace([content]);
       return;
     }
 

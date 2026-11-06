@@ -87,14 +87,16 @@ describe("Reveal motion", () => {
     expect(panel).not.toHaveAttribute("data-shown");
   });
 
-  it("opens and closes at once with Reduce Motion", () => {
+  it("opens and closes at once with Reduce Motion, fading the content in without moving it", () => {
     window.matchMedia = jest.fn().mockReturnValue({ matches: true }) as unknown as typeof window.matchMedia;
     const { rerender } = render(<Page open={false} />);
     rerender(<Page open />);
     expect(document.getElementById("more")).toHaveAttribute("data-shown");
+    expect(calls).toHaveLength(1);
+    expect(calls[0].frames).toEqual([{ opacity: 0 }, { opacity: 1 }]);
     rerender(<Page open={false} />);
     expect(document.getElementById("more")).not.toHaveAttribute("data-shown");
-    expect(calls).toHaveLength(0);
+    expect(calls).toHaveLength(1);
     delete (window as { matchMedia?: unknown }).matchMedia;
   });
 });
