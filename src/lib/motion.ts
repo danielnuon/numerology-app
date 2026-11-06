@@ -37,6 +37,18 @@ export const SPRING = {
    * of the way in about 120ms and never overshoots, as Apple's buttons don't.
    */
   press: { stiffness: 1600, damping: 80, mass: 1 },
+  /**
+   * Moves that open or grow: a Reveal opening, the view switch growing, the
+   * menu panel unfolding. Halfway in 84ms, 95% by 240ms and at rest by about
+   * 500ms, the shape 400ms of `--ease-standard` had, with no curve's tail.
+   */
+  glide: { stiffness: 400, damping: 40, mass: 1 },
+  /**
+   * Short moves and things that close or shrink: the selection outline, a
+   * Reveal closing, the view switch shrinking. Halfway in 56ms, 95% by 160ms
+   * and at rest by about 350ms, the shape 250ms of `--ease-standard` had.
+   */
+  swift: { stiffness: 900, damping: 60, mass: 1 },
 } as const satisfies Record<string, Spring>;
 
 /** How damped a spring is: 1 settles fastest without overshoot, below 1 overshoots. */
@@ -49,8 +61,12 @@ export function dampingRatio({ stiffness, damping, mass }: Spring): number {
  * takes to settle, so a CSS transition follows the same physics as Motion.
  * Integrated with semi-implicit Euler in 1ms steps until the spring is within
  * 0.1% of rest, then sampled at `points` evenly spaced times.
+ *
+ * `backward` gives the curve for an animation played with `direction:
+ * "reverse"`, so that played backward it still moves as the spring does:
+ * quick away from where it starts, easing into where it lands.
  */
-export function springCurve(spring: Spring, points = 24): { easing: string; durationMs: number } {
+export function springCurve(spring: Spring, points = 24, backward = false): { easing: string; durationMs: number } {
   const { stiffness, damping, mass } = spring;
   const step = 0.001;
   const positions = [0];
@@ -68,7 +84,28 @@ export function springCurve(spring: Spring, points = 24): { easing: string; dura
     const value = positions[Math.round((k / points) * last)];
     return Math.round(value * 1000) / 1000;
   });
-  return { easing: `linear(${samples.join(", ")})`, durationMs: last };
+  const values = backward ? samples.map((_, k) => Math.round((1 - samples[points - k]) * 1000) / 1000) : samples;
+  return { easing: `linear(${values.join(", ")})`, durationMs: last };
+}
+
+/** Whether this browser plays `linear()` easing (Safari 17.2 and later, Chrome 113 and later). */
+export function supportsLinearEasing(): boolean {
+  return typeof CSS !== "undefined" && typeof CSS.supports === "function" && CSS.supports("transition-timing-function", "linear(0, 1)");
+}
+
+/**
+ * Web Animation timing that plays `spring`. Browsers without `linear()`
+ * easing keep the timed curve the move had before it became a spring:
+ * `fallbackMs` on `--ease-standard`.
+ */
+export function springTiming(
+  spring: Spring,
+  fallbackMs: number,
+  backward = false
+): { duration: number; easing: string } {
+  if (!supportsLinearEasing()) return { duration: fallbackMs, easing: cssEase(EASE.standard) };
+  const { easing, durationMs } = springCurve(spring, 24, backward);
+  return { duration: durationMs, easing };
 }
 
 /** Press feedback: the press spring, the same one CSS's `.pressable` plays. */

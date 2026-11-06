@@ -70,6 +70,13 @@
    * to the JavaScript spring, so regenerate it rather than editing it. */
   --duration-spring-press: 277ms;
   --ease-spring-press: linear(0, 0.093, 0.247, 0.42, 0.559, 0.681, 0.766, 0.836, 0.882, 0.919, 0.942, 0.961, 0.973, 0.981, 0.987, 0.991, 0.994, 0.996, 0.997, 0.998, 0.999, 0.999, 0.999, 1, 1);
+  /* The glide and swift springs (SPRING.glide and SPRING.swift), the same
+   * way: glide for moves that open or grow, swift for short moves and for
+   * what closes or shrinks. Browsers without linear() keep the timed curves. */
+  --duration-spring-glide: 503ms;
+  --ease-spring-glide: linear(0, 0.071, 0.212, 0.365, 0.506, 0.625, 0.72, 0.793, 0.849, 0.891, 0.922, 0.944, 0.96, 0.971, 0.98, 0.986, 0.99, 0.993, 0.995, 0.997, 0.998, 0.998, 0.999, 0.999, 1);
+  --duration-spring-swift: 354ms;
+  --ease-spring-swift: linear(0, 0.081, 0.237, 0.389, 0.536, 0.656, 0.749, 0.816, 0.869, 0.907, 0.935, 0.953, 0.968, 0.978, 0.984, 0.989, 0.992, 0.995, 0.996, 0.997, 0.998, 0.999, 0.999, 0.999, 1);
   /* Living surfaces: every glow breathes between --breathe-low and full
    * light over --breathe-duration each way (see "Living surfaces" in the
    * design language). The glows are drawn about 22% brighter than their
@@ -1000,6 +1007,16 @@ button:not(:disabled),
     transform var(--duration-gentle) var(--ease-enter);
   transition-delay: calc(60ms + var(--i, 0) * 35ms);
 }
+/* Unfolding is a move that opens, so where linear() plays it the panel
+ * unfolds on the glide spring. Folding away stays a quick exit. */
+@supports (transition-timing-function: linear(0, 1)) {
+  .menu-panel[data-open="true"] {
+    transition:
+      opacity var(--duration-standard) var(--ease-enter),
+      transform var(--duration-spring-glide) var(--ease-spring-glide),
+      visibility 0s;
+  }
+}
 /* The flame in the Menu button turns into a close mark: the lit thread and
  * the one above swing to the center and cross while the others fade up the
  * flame (menuThreadClose() sets where each goes and when). */
@@ -1204,6 +1221,16 @@ button:not(:disabled),
 ::view-transition-group(*) {
   animation-duration: var(--duration-standard);
   animation-timing-function: var(--ease-standard);
+}
+/* The selection outline glides to the new choice on the swift spring */
+@supports (transition-timing-function: linear(0, 1)) {
+  ::view-transition-group(wheel-selection),
+  ::view-transition-group(timeline-selection),
+  ::view-transition-group(new-year-selection),
+  ::view-transition-group(reading-view-selection) {
+    animation-duration: var(--duration-spring-swift);
+    animation-timing-function: var(--ease-spring-swift);
+  }
 }
 ::view-transition-old(.panel-swap) {
   animation: var(--duration-quick) var(--ease-exit) both vt-fade-out;
