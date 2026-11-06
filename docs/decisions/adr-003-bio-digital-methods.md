@@ -91,7 +91,16 @@ Measured on a production build of the shared reading (`/r/1997-07-24`) in headle
 - The woven flame's sway and drift run on SVG elements, which Chromium cannot animate on the compositor (the trace reports SVG targets with independent transform properties). Every sway frame goes through style, paint and commit on the main thread. Stopping the SVG animations saves about a fifth of the idle main-thread time.
 - The drifting dust canvas redraws every frame by design.
 
-This is the price of Continuous Vitality, which BIO DIGITAL asks to keep low-frequency and cheap. It is within budget here, since frames still land on time, but it costs battery on a phone left open. Moving the flame's sway to HTML elements or to a single composited layer is a possible later optimization; it is not part of this ADR.
+This is the price of Continuous Vitality, which BIO DIGITAL asks to keep low-frequency and cheap. It is within budget here, since frames still land on time, but it costs battery on a phone left open.
+
+**Follow-up: the flame moved to HTML.** `SoliniMark` now draws its threads as HTML elements on the same 64-unit grid, so the sway, drift and glow run on the compositor; it looks the same side by side. Measured the same way (3s at rest on the shared reading, old and new builds alternated over two rounds):
+
+| Main-thread busy time at rest | Before | After |
+|-------------------------------|--------|-------|
+| As shipped | 744–797ms | 625–676ms |
+| With the dust canvas's frame loop stopped | 586–667ms | 225–247ms |
+
+The second row shows what the flame cost on its own. What remains at rest is mostly the dust canvas, which redraws on the main thread every frame; drawing it off the main thread is the next step.
 
 ## Consequences
 

@@ -38,10 +38,16 @@
  * (FlameAnchor): it is already woven, so it skips the entrance, and its lit
  * thread flares once as it settles into place.
  *
+ * The mark is drawn with HTML elements rather than SVG, so that its living
+ * motion (the sway, the drift, the breathing glow) runs on the compositor.
+ * Browsers animate SVG content on the main thread, repainting the mark every
+ * frame, which kept an idle page busy (ADR-003, Phase 3 results). Positions
+ * are on the same 64-unit grid as the icon: `--mark-unit` is one unit.
+ *
  * src/app/icon.svg draws the same threads; a test keeps the two in step.
  */
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useReducedMotion } from "motion/react";
 import {
   EASE,
@@ -100,10 +106,17 @@ const WEAVE_STAGGER_MS = 70;
 export function threadSway(i: number) {
   const height = 1 - i / (MARK_THREADS.length - 1);
   return {
-    "--sway": `${(0.25 + 1.65 * height ** 1.5).toFixed(2)}px`,
+    // In units of the 64-unit mark
+    "--sway": (0.25 + 1.65 * height ** 1.5).toFixed(2),
     "--sway-duration": `${(2.6 + (i % 3) * 0.35).toFixed(2)}s`,
     "--sway-delay": `${(-i * 0.32).toFixed(2)}s`,
   };
+}
+
+/** Where a thread sits in the mark, as fractions of the 64-unit square. */
+function threadBox({ x, y, width }: MarkThread): React.CSSProperties {
+  const percent = (units: number) => `${((units / 64) * 100).toFixed(3)}%`;
+  return { left: percent(x), top: percent(y), width: percent(width), height: percent(MARK_THREAD_HEIGHT) };
 }
 
 /** The two threads that become the menu's close mark: the lit one and the one above it. */
@@ -184,7 +197,7 @@ const SPARK_TRAIL = [
  * Plays a manifestation on a drawn mark and calls `done` when the new year's
  * thread should take the light. Returns a cleanup that stops what's pending.
  */
-function playManifest(svg: SVGSVGElement, { to, spark }: Manifesting, done: () => void) {
+function playManifest(svg: HTMLElement, { to, spark }: Manifesting, done: () => void) {
   const timers: ReturnType<typeof setTimeout>[] = [];
   const sparks: HTMLElement[] = [];
   const box = svg.getBoundingClientRect();
@@ -229,7 +242,7 @@ function playManifest(svg: SVGSVGElement, { to, spark }: Manifesting, done: () =
   });
 
   // Count up the flame from the year of birth, one thread after another
-  const flashes = svg.querySelectorAll<SVGRectElement>(".mark-flash");
+  const flashes = svg.querySelectorAll<HTMLElement>(".mark-flash");
   for (let year = 0; year <= to; year++) {
     flashes[markThread(year)]?.animate([{ opacity: 0 }, { opacity: 0.85, offset: 0.3 }, { opacity: 0 }], {
       duration: MANIFEST.flashMs,
@@ -276,10 +289,9 @@ export function SoliniMark({
   manifestFrom?: PagePoint | null;
   className?: string;
 }) {
-  const glowId = useId();
-  const svgRef = useRef<SVGSVGElement>(null);
-  const leanRef = useRef<SVGGElement>(null);
-  const stretchRef = useRef<SVGGElement>(null);
+  const svgRef = useRef<HTMLSpanElement>(null);
+  const leanRef = useRef<HTMLSpanElement>(null);
+  const stretchRef = useRef<HTMLSpanElement>(null);
   const prefersReducedMotion = useReducedMotion();
   // Read on the client only ("none" on the server), so the two agree.
   const support = useSyncExternalStore(noSubscription, tiltSupport, () => "none" as const);
@@ -429,90 +441,49 @@ export function SoliniMark({
   }, [reactive, prefersReducedMotion, tilt]);
 
   const litThread = markThread(shownYear);
-  const lit = MARK_THREADS[litThread];
   const last = MARK_THREADS.length - 1;
-  const rx = MARK_THREAD_HEIGHT / 2;
   const mark = (
-    <svg
+    <span
       ref={svgRef}
-      viewBox="0 0 64 64"
       aria-hidden="true"
-      focusable="false"
       className={`solini-mark ${woven ? "mark-woven" : ""} ${landed ? "mark-landed" : ""} ${className}`}
     >
-      <defs>
-        <filter id={glowId} x="-20%" y="-300%" width="140%" height="700%">
-          <feGaussianBlur stdDeviation="2.2" />
-        </filter>
-      </defs>
-      <g ref={leanRef} className="mark-base">
-        <g ref={stretchRef} className="mark-base">
-          <g className="mark-base mark-drift">
+      <span ref={leanRef} className="mark-base">
+        <span ref={stretchRef} className="mark-base">
+          <span className="mark-base mark-drift">
             {MARK_THREADS.map((thread, i) => (
-              <g key={i} className="mark-sway" style={threadSway(i) as React.CSSProperties}>
-                <rect
-                  className="mark-thread fill-gold"
-                  fillOpacity={0.72}
-                  x={thread.x}
-                  y={thread.y}
-                  width={thread.width}
-                  height={MARK_THREAD_HEIGHT}
-                  rx={rx}
+              <span
+                key={i}
+                data-thread={i}
+                className="mark-sway"
+                style={{ ...threadBox(thread), ...threadSway(i) } as React.CSSProperties}
+              >
+                <span
+                  className="mark-thread mark-fill bg-gold/72"
                   style={{ "--weave-delay": `${(last - i) * WEAVE_STAGGER_MS}ms` } as React.CSSProperties}
                 />
-                {woven && (
-                  <rect
-                    className="mark-flash fill-gold-light"
-                    opacity={0}
-                    x={thread.x}
-                    y={thread.y}
-                    width={thread.width}
-                    height={MARK_THREAD_HEIGHT}
-                    rx={rx}
-                  />
-                )}
+                {woven && <span className="mark-flash mark-fill bg-gold-light" style={{ opacity: 0 }} />}
                 {i === litThread && (
-                  <g
+                  <span
                     className={`mark-light ${flare ? "mark-manifested" : ""}`}
                     style={kindled ? ({ "--kindle-delay": "0ms" } as React.CSSProperties) : undefined}
                   >
                     {flare > 0 && (
-                      <rect
+                      <span
                         key={flare}
-                        className={`mark-flare fill-gold-light ${landed && flare === 1 ? "mark-flare-landed" : ""}`}
-                        filter={`url(#${glowId})`}
-                        x={lit.x - 2}
-                        y={lit.y - 2}
-                        width={lit.width + 4}
-                        height={MARK_THREAD_HEIGHT + 4}
-                        rx={rx + 2}
+                        className={`mark-flare mark-fill bg-gold-light ${landed && flare === 1 ? "mark-flare-landed" : ""}`}
                       />
                     )}
-                    <rect
-                      className="mark-glow fill-gold-deep"
-                      filter={`url(#${glowId})`}
-                      x={lit.x}
-                      y={lit.y - 1}
-                      width={lit.width}
-                      height={MARK_THREAD_HEIGHT + 2}
-                      rx={rx + 1}
-                    />
-                    <rect
-                      className="fill-gold-light"
-                      x={lit.x}
-                      y={lit.y}
-                      width={lit.width}
-                      height={MARK_THREAD_HEIGHT}
-                      rx={rx}
-                    />
-                  </g>
+                    <span className="mark-glow mark-fill bg-gold-deep" />
+                    <span className="mark-core mark-fill bg-gold-light" />
+                  </span>
                 )}
-              </g>
+              </span>
             ))}
-          </g>
-        </g>
-      </g>
-    </svg>
+          </span>
+        </span>
+      </span>
+    </span>
   );
   if (!reactive) return mark;
   // The wrapper never changes, so the flame isn't redrawn (and rewoven) when
