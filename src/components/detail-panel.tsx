@@ -76,7 +76,7 @@ export function DetailPanel({
 
       <p className="mb-3 text-sm text-ink-light">{describeYearPlanet(weekday, columnIndex + 1)}</p>
 
-      <p className="text-sm italic border-l-2 pl-3 border-gold/40 text-ink-light">
+      <p className="thread-above text-sm italic text-ink-light">
         {interp.guidance}
       </p>
 

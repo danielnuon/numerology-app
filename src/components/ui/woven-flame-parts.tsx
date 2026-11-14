@@ -143,6 +143,9 @@ export function followThreadRange(i: number) {
   return `${((year - 1) * step).toFixed(2)}% ${(year * step).toFixed(2)}%`;
 }
 
+/** Scroll the follow flame's glide to the corner takes (`animation-range` in globals.css). */
+export const FOLLOW_GLIDE_PX = 160;
+
 export function FollowFlame() {
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -162,12 +165,24 @@ export function FollowFlame() {
       const inset = (to.width - svg.getBoundingClientRect().width) / 2;
       root.style.setProperty("--from-x", `${(from.left - to.left - inset).toFixed(1)}px`);
       root.style.setProperty("--from-y", `${(from.top + window.scrollY - to.top - inset).toFixed(1)}px`);
-      root.dataset.ready = "true";
+      // A page too short to scroll through the glide has no timeline to
+      // follow, so the flame would sit in the corner from the start and the
+      // mark beside "Solini" would step aside for nothing. Keep it home.
+      const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollRange >= FOLLOW_GLIDE_PX) root.dataset.ready = "true";
+      else delete root.dataset.ready;
     };
     measure();
     window.addEventListener("resize", measure);
     document.fonts?.ready.then(measure);
-    return () => window.removeEventListener("resize", measure);
+    // The page can grow or shrink after load (a disclosure, late content),
+    // which can change whether it scrolls far enough for the flame
+    const resizes = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    resizes?.observe(document.body);
+    return () => {
+      window.removeEventListener("resize", measure);
+      resizes?.disconnect();
+    };
   }, []);
 
   return (

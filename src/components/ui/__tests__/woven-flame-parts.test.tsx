@@ -2,7 +2,15 @@
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MARK_THREADS } from "@/components/ui/solini-mark";
-import { FollowFlame, WEAVE_THREADS, WovenDivider, followThreadRange } from "@/components/ui/woven-flame-parts";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import {
+  FOLLOW_GLIDE_PX,
+  FollowFlame,
+  WEAVE_THREADS,
+  WovenDivider,
+  followThreadRange,
+} from "@/components/ui/woven-flame-parts";
 
 const BASE = MARK_THREADS.length - 1;
 
@@ -66,7 +74,15 @@ describe("FollowFlame", () => {
     expect(followThreadRange(0)).toBe("90.91% 100.00%");
   });
 
+  /** Sets how far the page can scroll, which jsdom doesn't lay out. */
+  const setScrollRange = (range: number) =>
+    Object.defineProperty(document.documentElement, "scrollHeight", {
+      configurable: true,
+      value: window.innerHeight + range,
+    });
+
   it("lifts off the mark beside Solini and is hidden from screen readers", () => {
+    setScrollRange(FOLLOW_GLIDE_PX * 4);
     const { container } = render(
       <>
         <span data-follow-from="" />
@@ -77,5 +93,23 @@ describe("FollowFlame", () => {
     expect(flame).toHaveAttribute("aria-hidden", "true");
     expect(flame.dataset.ready).toBe("true");
     expect(flame.style.getPropertyValue("--from-x")).toMatch(/px$/);
+  });
+
+  it("measures its glide by the same scroll range the CSS uses", () => {
+    const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
+    const glide = css.match(/\.follow-mark \{[^}]*animation-range: 0px (\d+)px/);
+    expect(Number(glide?.[1])).toBe(FOLLOW_GLIDE_PX);
+  });
+
+  it("stays home on a page too short to scroll through its glide", () => {
+    setScrollRange(FOLLOW_GLIDE_PX - 1);
+    const { container } = render(
+      <>
+        <span data-follow-from="" />
+        <FollowFlame />
+      </>
+    );
+    const flame = container.querySelector(".follow-flame") as HTMLElement;
+    expect(flame.dataset.ready).toBeUndefined();
   });
 });

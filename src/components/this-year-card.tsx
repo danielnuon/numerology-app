@@ -61,7 +61,7 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, 
       className="w-full rounded-2xl border border-border bg-gold-deep/[0.04] px-5 py-6 sm:px-8 text-center"
       aria-labelledby="this-year-heading"
     >
-      <p className="text-sm uppercase tracking-[0.12em] text-ink-light">
+      <p className="text-sm uppercase tracking-[0.14em] text-ink-light">
         {possessive} {activeYear} reading
       </p>
 
@@ -81,7 +81,7 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, 
       <div className="mx-auto mt-5 max-w-[42ch] space-y-3 text-left text-base leading-relaxed text-ink-light">
         <p>{interpretation.reading}</p>
         <p>{describeYearPlanet(weekday, cycleIndex + 1)}</p>
-        <p className="italic border-l-2 pl-3 border-gold/40">{interpretation.guidance}</p>
+        <p className="thread-above italic">{interpretation.guidance}</p>
       </div>
 
       <div className="mx-auto mt-6 max-w-[42ch] border-t border-border-light pt-4 text-sm">

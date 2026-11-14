@@ -70,7 +70,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 | Display | Marcellus (`font-display`) | Title 36–72px, `tracking-[0.08em]`–`0.14em`, with `.title-glow` | Site and page titles, section headings, tier labels, the total score |
 | Brand line | Cormorant Garamond italic (`font-script`) | 20–24px, sentence case, `ink-light` | The home page's "A lantern for every year in your cycle" only |
 | Body | Hanken Grotesk (default sans) | 17px, line height 1.65 | Everything else |
-| Label | Hanken Grotesk, uppercase | 14px (`text-sm`), `tracking-[0.12em]`–`0.18em` | Eyebrow text and short captions |
+| Label | Hanken Grotesk, uppercase | 14px (`text-sm`, 12px inside fixed-size parts), `tracking-[0.14em]` | Short captions that add something the heading below doesn't say (whose reading and which year, a table's column names, a footer group). The brand's own small caps ("Khmer numerology" under the title, "Solini" above a page title) keep `0.18em`. |
 | Field label | Hanken Grotesk, sentence case | 16px (`text-base`) | Form field labels |
 | Button | Hanken Grotesk 500–600, sentence case | 16–18px (`text-base`/`text-lg`) | Primary and pill buttons |
 | Numbers | Hanken Grotesk 500, tabular lining figures | Varies | Every cycle number (the wheel, this year's number, threaded orbs, the worked example on How your cycle is made), dates, form fields |
@@ -79,6 +79,7 @@ Use tokens through Tailwind classes (`text-ink`, `bg-manuscript`, `border-border
 - Marcellus draws 0 like the letter O and 11 like "ll", so any number from 0 to 11 uses the sans face with `tabular-nums`, even where it sits beside display type. The total score (52, 64 or 76) is the one number set in Marcellus, since none of its digits can be misread.
 - Guidance and quiet asides may be italic body text. Do not add new typefaces. Cormorant Garamond, already the display fallback, is loaded in one italic for the brand line; keep it to that line, so it stays a signature rather than a third voice.
 - Keep letter spacing to the values above, so labels and buttons share one rhythm.
+- A label is not a habit. Don't put one over a heading that already says the same thing ("Birth day" over "Born on a Thursday"); the heading alone is clearer. See [Generic, generated-looking UI](#generic-generated-looking-ui).
 - Running text, notes and links on the home page and the reading are at least 14px. Many visitors are older readers on phones; reserve 12px, and nothing smaller, for labels inside the wheel, the timeline and the worked rows on How your cycle is made, where space is fixed.
 
 ## Spacing, layout and shape
@@ -236,7 +237,7 @@ Glows radiate and floating things carry weight. Add a new living surface to this
 | Glass light | `.glass::before`, `.glass::after` | Scroll-linked (`view()` timeline), not time-based: as a card crosses the viewport a gold glint (`gold-light` at 45%) slides along its rim from right to left and a 3.5% candle-white glow crosses its face. `background-position` on the card's own pseudo-elements only. Hidden with Reduce Motion, Reduce Transparency, or without scroll-driven animation support. |
 | Woven divider | `SectionDivider` between sections (`.weave`, `WovenDivider`) | Scroll-linked (`view()` timeline), not time-based. Each divider waits as the flame, large enough to read as the logo, until it is a little above the middle of the screen; then, over the next sixth of the screen, its twelve threads slide out, base first, and lie end to end as one line with the base thread at the center; scrolling back weaves the flame again. A divider on screen when the page opens (judged where the page lands, including a position restored by Back or Forward or a linked section) can't be scrolled through, so it unweaves once on arrival instead (after a 1.2s hold so the flame is seen, 1.4s on `--ease-standard`, threads 60ms apart, base first). `transform` on each thread only. The finished line, still, with Reduce Motion or without scroll-driven animation support. |
 | Heading thread | Under each `Section` heading (`.heading-thread::after`) | Scroll-linked (`view()` timeline): a 44px gold thread draws from the left as the heading scrolls in. `transform` only. Drawn and still with Reduce Motion or without support. |
-| Follow flame | Bottom right corner of the long copy pages (`FollowFlame`, `.follow-*`) | Scroll-linked (`scroll(root)` timeline). Over the first 160px of scroll the flame beside "Solini" glides to the bottom right corner, where a disc of glass gathers behind it (the header mark steps aside, since the follow flame starts exactly over it). Its threads then light one at a time, base to tip, across the page's scroll, so it shows how far the visitor has read. Its start is measured once on load and on resize, not on scroll. Decorative and never in the way of a tap (`pointer-events: none`). Not shown with Reduce Motion or without support; the header mark stays. On a page change it carries the shared `solini-flame` view-transition name in place of the header mark. |
+| Follow flame | Bottom right corner of the long copy pages (`FollowFlame`, `.follow-*`) | Scroll-linked (`scroll(root)` timeline). Over the first 160px of scroll the flame beside "Solini" glides to the bottom right corner, where a disc of glass gathers behind it (the header mark steps aside, since the follow flame starts exactly over it). Its threads then light one at a time, base to tip, across the page's scroll, so it shows how far the visitor has read. Its start is measured once on load and whenever the window or page resizes, not on scroll. A page too short to scroll through the glide (the not-found page) keeps its flame beside "Solini" and shows no follow flame. Decorative and never in the way of a tap (`pointer-events: none`). Not shown with Reduce Motion or without support; the header mark stays. On a page change it carries the shared `solini-flame` view-transition name in place of the header mark. |
 | Current-year pulse | Cycle wheel, this year's orb (`.wheel-orb-current::after`) | A small gold halo (12px) that breathes in and out, 1.8s each way, on the current year only. Faster than other glows on purpose: it marks "now". |
 | Lit thread | Cycle wheel, this year's thread (`.wheel-orb-current .wheel-thread::after`) | The gold light around the lit thread radiates with the woven flame's glow timing (6.5s each way, 4.4s into the breath). |
 | Month dial | Cycle wheel, this month's arc around this year's orb (`.wheel-month-now`) | The arc for the current month of the year breathes between half and full light, 2.4s each way, in step with "now" rather than with the slower lanterns. |
@@ -270,6 +271,29 @@ Every change of state uses one of these. Old content leaves quickly (`--duration
 | Follow | The blocks below the reading card on the home page (timeline, comparison, share, links, footer) | Each sits in its own `<ViewTransition>`. When a card above them changes size they glide to their new place on the card's clock (`--duration-morph` during a morph) so they track its edge; as the reading blooms in or folds away they rise in or fade out with it (`rise-in` and `fade-out`, the same classes as a page change). |
 | Scroll settle | Sections entering the viewport (`.scroll-settle`) | Scroll-linked: fades in and rises 12px over the first 60% of its entry. |
 | Smooth scroll | In-page anchors and recentering | `scroll-behavior: smooth`; instant with Reduce Motion. Never for a page change: Next.js switches it off for links (`data-scroll-behavior`), and `HistoryScroll` switches it off for a second after Back or Forward, so the restored page lands in place instead of gliding there. |
+
+## Generic, generated-looking UI
+
+Interfaces built quickly with AI tools have a recognizable look: a purple or indigo gradient, Inter for every word, a centered hero over three identical icon cards, emoji as icons, gradient headline text, a tracked all-caps label over every heading, a colored bar down the side of every callout, cards nested inside cards, the same fade-up on every section, and copy that would fit any product. Visitors read those tells as "nobody chose this", which costs trust. Solini avoids the look by making each of its choices specific to the lantern and the woven flame, not by being plainer.
+
+Several of Solini's choices overlap with those tells on the surface. They stay, because each is tied to the identity and held to rules:
+
+| Looks like | In Solini | Why it isn't generic |
+|------------|-----------|----------------------|
+| Dark mode with glows | Lantern light | Every glow is a lantern: it marks a tier, "now" or the primary action, and radiates on one shared breath. No glow is decoration alone. |
+| Glassmorphism | `.glass` cards over the dusk sky | One material, one blur, never stacked, solid under Reduce Transparency (Materials and depth). |
+| Fade-up on every section | One choreographed arrival per page, plus scroll-linked weaving | Order and timing follow meaning (the title kindles, the flame weaves base first); nothing loops that isn't a light. |
+| Purple background | `parchment`, a near-black violet dusk | The only gradient is the sky; no gradient fills a button, a card or text. |
+
+Rules that keep it that way:
+
+- No gradient text, gradient buttons or gradient card fills. Gold is solid.
+- No emoji or icon-library icons. Icons are the engraved zodiac set, `TierIcon` and simple strokes (Iconography).
+- No colored bar down the side of a quote or callout. A line to carry away sits under a short gold thread (`.thread-above`), the mark the flame's threads give headings and pull quotes.
+- A label over a heading must add information (see Typography).
+- One level of panel inside a card at most: a lit panel (`bg-gold-deep/[0.04]`, a `border` edge) inside the glass card, never a panel inside a panel.
+- Fill the layout you have. When a reading sits in two columns, neither column runs on alone beside empty space; secondary panels go under both.
+- Copy follows the Writing standard's rules on specific, plain words.
 
 ## Accessibility
 
