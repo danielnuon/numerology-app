@@ -211,7 +211,7 @@ Each panel ends with a gold text link to its section of the meaning page, where 
 
 ### Total Score Card
 
-Below the wheel, the total score sits in a quiet card: the number in `gold-deep` display type, its band ("Balanced / moderate cycle") and one line of description. The whole card is a button (`aria-expanded`): a chevron and "See the scale" show it opens, the border turns `gold` on hover, and the card presses to 0.97.
+Below the wheel, the total score sits in a quiet card: the number in `gold-deep` display type, its band ("Balanced cycle") and one line of description. The whole card is a button (`aria-expanded`): a chevron and "See the scale" show it opens, the border turns `gold` on hover, and the card presses to 0.97.
 
 Every cycle totals exactly 52, 64 or 76, so the scale is three stops, not a range. Opened, the card settles in a row of three lantern stops on a hairline rail:
 
@@ -303,7 +303,7 @@ Between the sections of a long page, `SectionDivider` is woven (`WovenDivider` i
 3. The form card blooms into the reading in the same place. A shared-element view transition (`reading-card`, class `reading-bloom`) grows the card to the reading's size over 520ms while the form fades out in 320ms and the reading scales up from 0.96. A soft gold glow (`.reading-bloom-glow`) swells and fades inside the card over 900ms. The page does not scroll to the result; it only scrolls if the card's top would sit above the viewport.
 4. Cycle orbs swell in one by one, clockwise from the birth year, with 40ms stagger (400ms, `--ease-enter`)
 5. The gold arc traces the ring from the birth year to this year, and the center shows this year's preview
-6. The total score card fades in below the chart: "Total score 64 · Balanced / moderate cycle". Tapping it opens the scale of totals (see Total Score Card).
+6. The total score card fades in below the chart: "Total score 64 · Balanced cycle". Tapping it opens the scale of totals (see Total Score Card).
 
 **Reading summary:** The top of the reading card names whose reading it is: the birth date ("July 24, 1997") and "Year of the Ox · Born on a Thursday". A share link adds "A reading shared with you" above them.
 

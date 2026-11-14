@@ -10,7 +10,7 @@ describe("What the numbers mean page", () => {
   it("covers every year number, tier and life area", () => {
     const { container } = render(<MeaningPage />);
     for (let n = 0; n <= 11; n++) expect(container.querySelector(`#number-${n}`)).toHaveTextContent(String(n));
-    for (const label of ["Reset / unstable", "Weak luck", "Moderate / neutral", "Strong luck", "Very strong luck"]) {
+    for (const label of ["Reset year", "Weak luck", "Moderate luck", "Strong luck", "Very strong luck"]) {
       expect(screen.getByRole("heading", { name: new RegExp(label.replace("/", "\\/")) })).toBeInTheDocument();
     }
     expect(screen.getAllByRole("listitem").some((li) => li.textContent?.startsWith("12Protection."))).toBe(true);
@@ -48,9 +48,9 @@ describe("What the numbers mean page", () => {
     const section = document.getElementById("total-score")!;
     const totals = within(section).getAllByRole("term").map((term) => term.textContent);
     expect(totals).toEqual([
-      "52 · Weak / difficult cycle",
-      "64 · Balanced / moderate cycle",
-      "76 · Strong / favorable cycle",
+      "52 · Difficult cycle",
+      "64 · Balanced cycle",
+      "76 · Favorable cycle",
     ]);
     expect(section).toHaveTextContent("About 1 in 2 cycles total 64.");
     expect(section).not.toHaveTextContent(/and above|Below 60|60–67/);
