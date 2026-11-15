@@ -38,22 +38,23 @@ const MAX_STRENGTH = Math.max(...Object.values(DAY_PLANETS).map((p) => p.strengt
 const PANEL = "rounded-2xl border border-border bg-gold-deep/[0.04] px-5 py-5 sm:px-6 text-left";
 
 interface Props {
+  /** Layout classes for the pair, so the reading can set them side by side. */
+  className?: string;
   /** Birth weekday (1–7, Sunday=1). */
   weekday: Weekday;
   /** The zodiac animal of the birth year, under the reading's New Year rule. */
   animal: ZodiacAnimal;
 }
 
-export function BirthReading({ weekday, animal }: Props) {
+export function BirthReading({ className = "mt-4 space-y-4", weekday, animal }: Props) {
   const day = BIRTH_DAYS[weekday];
   const planet = DAY_PLANETS[weekday];
   const zodiac = ZODIAC_READINGS[animal];
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className={className}>
       <section className={PANEL} aria-labelledby="birth-day-heading">
-        <p className="text-sm uppercase tracking-[0.12em] text-ink-light">Birth day</p>
-        <h2 id="birth-day-heading" className="mt-1 font-display text-xl text-ink tracking-[0.03em]">
+        <h2 id="birth-day-heading" className="font-display text-xl text-ink tracking-[0.03em]">
           Born on a {planet.day}
         </h2>
         <p className="mt-0.5 text-sm text-gold-deep">
@@ -90,8 +91,7 @@ export function BirthReading({ weekday, animal }: Props) {
       <section className={PANEL} aria-labelledby="birth-animal-heading">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm uppercase tracking-[0.12em] text-ink-light">Zodiac animal</p>
-            <h2 id="birth-animal-heading" className="mt-1 font-display text-xl text-ink tracking-[0.03em]">
+            <h2 id="birth-animal-heading" className="font-display text-xl text-ink tracking-[0.03em]">
               Year of the {animal}
             </h2>
             <p className="mt-0.5 text-sm text-gold-deep">

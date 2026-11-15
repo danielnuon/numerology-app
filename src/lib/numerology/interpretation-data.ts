@@ -49,7 +49,7 @@ export interface TotalTierEntry {
 export const YEAR_TIERS: readonly YearTierEntry[] = [
   {
     tier: "zero",
-    label: "Reset / unstable",
+    label: "Reset year",
     description:
       "A turning point. Tradition reads zero as a year of change, when old patterns close and new ones are still forming.",
     guidance:
@@ -69,7 +69,7 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
   },
   {
     tier: "moderate",
-    label: "Moderate / neutral",
+    label: "Moderate luck",
     description:
       "A balanced year, with neither strong tailwinds nor heavy headwinds.",
     guidance:
@@ -105,7 +105,7 @@ export const YEAR_TIERS: readonly YearTierEntry[] = [
 export const TOTAL_TIERS: readonly TotalTierEntry[] = [
   {
     tier: "weak",
-    label: "Weak / difficult cycle",
+    label: "Difficult cycle",
     description:
       "Your cycle as a whole leans toward challenge. Patience serves you, and your stronger years are the ones to build on.",
     min: 0,
@@ -113,7 +113,7 @@ export const TOTAL_TIERS: readonly TotalTierEntry[] = [
   },
   {
     tier: "moderate",
-    label: "Balanced / moderate cycle",
+    label: "Balanced cycle",
     description:
       "Your cycle as a whole is balanced: some years ask for patience, others open doors.",
     min: 60,
@@ -121,7 +121,7 @@ export const TOTAL_TIERS: readonly TotalTierEntry[] = [
   },
   {
     tier: "strong",
-    label: "Strong / favorable cycle",
+    label: "Favorable cycle",
     description:
       "Your cycle as a whole leans favorable, with conditions that broadly support growth.",
     min: 68,

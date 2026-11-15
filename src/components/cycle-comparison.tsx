@@ -124,7 +124,7 @@ function CycleStepper({
       >
         <Chevron direction="left" />
       </button>
-      <p aria-live="polite" className="text-center text-xs uppercase tracking-[0.12em] text-ink-light tabular-nums">
+      <p aria-live="polite" className="text-center text-xs uppercase tracking-[0.14em] text-ink-light tabular-nums">
         Cycle {selected}–{selected + 11}
         {sharedYears < 12 && ` · ${sharedYears} years together`}
       </p>
@@ -541,7 +541,7 @@ export function CycleComparison({
             onChange={handleCycleChange}
           />
         ) : (
-          <p className="mt-5 text-center text-xs uppercase tracking-[0.12em] text-ink-light tabular-nums">
+          <p className="mt-5 text-center text-xs uppercase tracking-[0.14em] text-ink-light tabular-nums">
             Cycle {cycleStart}–{cycleStart + 11}
           </p>
         )}
@@ -564,7 +564,7 @@ export function CycleComparison({
               <col className="w-[5.5rem] sm:w-[8.5rem]" />
             </colgroup>
             <thead>
-              <tr className="text-xs uppercase tracking-[0.12em] text-ink-light">
+              <tr className="text-xs uppercase tracking-[0.14em] text-ink-light">
                 <th scope="col" className="py-2 pr-1 align-bottom font-normal sm:pr-2">Year</th>
                 {terms.map((term, i) => (
                   <th
@@ -593,7 +593,7 @@ export function CycleComparison({
                   <tr key={row.year} className={`border-t border-border-light ${isNow ? "text-gold-deep" : "text-ink"}`}>
                     <th scope="row" className={`py-2 pr-1 text-sm tabular-nums sm:pr-2 ${isNow ? "font-semibold" : "font-normal text-ink-light"}`}>
                       {row.year}
-                      {isNow && <span className="block text-xs uppercase tracking-[0.12em]">Now</span>}
+                      {isNow && <span className="block text-xs uppercase tracking-[0.14em]">Now</span>}
                     </th>
                     {row.numbers.map((value, i) => (
                       <td key={i} className="px-0.5 py-2 text-center"><CycleNumber value={value} isCompact={isGroup} /></td>

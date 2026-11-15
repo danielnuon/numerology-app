@@ -216,7 +216,7 @@ JavaScript `Date.getDay()` returns 0=Sunday through 6=Saturday. The codebase con
 
 ### Modulo-12 semantics: zero is valid
 
-`sum % 12` produces values 0-11. Zero IS a valid cycle value representing "Reset / unstable" -- it is not treated as an error or sentinel. The interpretation engine has an explicit `zero` tier (min: 0, max: 0) with its own label, description, and guidance. The wheel renders zero-tier orbs as unlit charcoal niches (`--color-tier-zero`).
+`sum % 12` produces values 0-11. Zero IS a valid cycle value representing "Reset year" -- it is not treated as an error or sentinel. The interpretation engine has an explicit `zero` tier (min: 0, max: 0) with its own label, description, and guidance. The wheel renders zero-tier orbs as unlit charcoal niches (`--color-tier-zero`).
 
 ### Column indexing: mixed 0-indexed and 1-indexed
 

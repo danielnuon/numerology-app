@@ -27,7 +27,7 @@ describe("share route metadata", () => {
     // Born between Chinese New Year and Khmer New Year 1994, so the animal and this year's reading differ by rule
     const khmer = await metadataFor("1994-03-01");
     const chinese = await metadataFor("1994-03-01-cny");
-    expect(khmer.description).toMatch(/^2026: Moderate \/ neutral · Status\. /);
+    expect(khmer.description).toMatch(/^2026: Moderate luck · Status\. /);
     expect(chinese.description).toMatch(/^2026: Strong luck · Status\. /);
   });
 

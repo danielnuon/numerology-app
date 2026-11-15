@@ -67,7 +67,7 @@ export function Section({
 }) {
   return (
     <section id={id} className="w-full max-w-[640px] scroll-mt-8">
-      {era && <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-ink-light tabular-nums">{era}</p>}
+      {era && <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-ink-light tabular-nums">{era}</p>}
       <h2 className="heading-thread font-display text-2xl text-gold-deep tracking-[0.04em] sm:text-3xl">{title}</h2>
       <div className="mt-4 space-y-4 text-ink-light leading-relaxed">{children}</div>
     </section>
@@ -86,7 +86,7 @@ export function PullQuote({ children, cite }: { children: React.ReactNode; cite?
       className="pull-quote scroll-settle !my-8 grid justify-items-center gap-3.5 text-center font-script text-[1.625rem] italic leading-snug text-ink text-balance sm:text-[1.8rem]"
     >
       {children}
-      {cite && <span className="font-sans text-xs not-italic uppercase tracking-[0.18em] text-ink-light">{cite}</span>}
+      {cite && <span className="font-sans text-xs not-italic uppercase tracking-[0.14em] text-ink-light">{cite}</span>}
     </p>
   );
 }
@@ -103,7 +103,7 @@ export function NumberRow({
 }) {
   return (
     <div className="mt-4">
-      <p className="text-sm uppercase tracking-[0.12em] text-ink-light">{label}</p>
+      <p className="text-sm uppercase tracking-[0.14em] text-ink-light">{label}</p>
       <div className="mt-1.5 grid grid-cols-12 gap-0.5 sm:gap-1">
         {values.map((value, i) => (
           <span
@@ -137,27 +137,41 @@ export function PillLink({ href, children }: { href: string; children: React.Rea
 
 /**
  * The site's pages in their two groups, at the foot of a page. The current
- * page is left out; the Menu button at the top lists them all.
+ * page is left out, and so are pages the page already links to just above
+ * (`linkedAbove`), so the same links never appear twice in a row; a group
+ * left with nothing is dropped. The Menu button at the top lists them all.
  */
-export function MorePages({ current }: { current?: SitePagePath }) {
+export function MorePages({
+  current,
+  linkedAbove = [],
+}: {
+  current?: SitePagePath;
+  linkedAbove?: readonly SitePagePath[];
+}) {
+  const groups = SITE_PAGE_GROUPS.map((group) => ({
+    title: group.title,
+    pages: group.pages.filter((page) => page.href !== current && !linkedAbove.includes(page.href)),
+  })).filter((group) => group.pages.length > 0);
+
   return (
-    <nav aria-label="More about Solini" className="mt-12 grid w-full max-w-[640px] gap-6 text-center sm:grid-cols-2">
-      {SITE_PAGE_GROUPS.map((group) => (
+    <nav
+      aria-label="More about Solini"
+      className={`mt-12 grid w-full max-w-[640px] gap-6 text-center ${groups.length > 1 ? "sm:grid-cols-2" : ""}`}
+    >
+      {groups.map((group) => (
         <div key={group.title}>
           <p className="text-sm uppercase tracking-[0.14em] text-ink-light">{group.title}</p>
           <ul className="mt-1">
-            {group.pages
-              .filter((page) => page.href !== current)
-              .map((page) => (
-                <li key={page.href}>
-                  <Link
-                    href={page.href}
-                    className="inline-flex min-h-[44px] items-center text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
-                  >
-                    {page.label}
-                  </Link>
-                </li>
-              ))}
+            {group.pages.map((page) => (
+              <li key={page.href}>
+                <Link
+                  href={page.href}
+                  className="inline-flex min-h-[44px] items-center text-sm text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
+                >
+                  {page.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       ))}

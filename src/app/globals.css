@@ -1070,6 +1070,17 @@ button:not(:disabled),
 
 /* Heading thread: a short gold thread under each section heading, drawn from
  * the left as the heading scrolls in, the way weft is drawn across a loom. */
+/* The same short thread above a reading's guidance line, still: the woven
+ * flame's mark for "a line to carry with you", in place of a quote bar. */
+.thread-above::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 1.5px;
+  margin-bottom: 0.625rem;
+  border-radius: 1px;
+  background: var(--color-gold);
+}
 .heading-thread::after {
   content: "";
   display: block;

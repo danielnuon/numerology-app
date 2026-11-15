@@ -8,7 +8,7 @@ describe("interpretYear", () => {
   it('returns "zero" tier for cycle number 0', () => {
     const result = interpretYear(0);
     expect(result.tier).toBe("zero");
-    expect(result.label).toBe("Reset / unstable");
+    expect(result.label).toBe("Reset year");
     expect(result.description).toBeTruthy();
     expect(result.guidance).toBeTruthy();
   });
@@ -27,7 +27,7 @@ describe("interpretYear", () => {
   it('returns "moderate" tier for cycle number 4 (lower boundary)', () => {
     const result = interpretYear(4);
     expect(result.tier).toBe("moderate");
-    expect(result.label).toBe("Moderate / neutral");
+    expect(result.label).toBe("Moderate luck");
   });
 
   it('returns "moderate" tier for cycle number 6 (upper boundary)', () => {
@@ -78,7 +78,7 @@ describe("interpretTotal", () => {
   it('returns "weak" tier for total score 0 (minimum)', () => {
     const result = interpretTotal(0);
     expect(result.tier).toBe("weak");
-    expect(result.label).toBe("Weak / difficult cycle");
+    expect(result.label).toBe("Difficult cycle");
     expect(result.description).toBeTruthy();
   });
 
@@ -90,7 +90,7 @@ describe("interpretTotal", () => {
   it('returns "moderate" tier for total score 60 (lower boundary)', () => {
     const result = interpretTotal(60);
     expect(result.tier).toBe("moderate");
-    expect(result.label).toBe("Balanced / moderate cycle");
+    expect(result.label).toBe("Balanced cycle");
   });
 
   it('returns "moderate" tier for total score 67 (upper boundary)', () => {
@@ -101,7 +101,7 @@ describe("interpretTotal", () => {
   it('returns "strong" tier for total score 68 (lower boundary)', () => {
     const result = interpretTotal(68);
     expect(result.tier).toBe("strong");
-    expect(result.label).toBe("Strong / favorable cycle");
+    expect(result.label).toBe("Favorable cycle");
   });
 
   it('returns "strong" tier for total score 132 (high value)', () => {

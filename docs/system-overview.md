@@ -118,9 +118,9 @@ Each number in the cycle corresponds to a year of life, starting at the birth ye
 |--------|---------|
 | 10–11 | Very strong luck |
 | 7–9 | Strong luck |
-| 4–6 | Moderate / neutral |
+| 4–6 | Moderate luck |
 | 1–3 | Weak luck |
-| 0 | Reset / unstable |
+| 0 | Reset year |
 
 **Primary rule:** Higher number = better luck. Lower number = worse luck.
 
@@ -138,9 +138,9 @@ Sum all 12 final values to produce the **total score** — a macro-level evaluat
 
 | Total | Meaning |
 |-------|---------|
-| ~56 | Overall weak / difficult cycle |
-| ~64 | Balanced / moderate cycle |
-| ~72 | Strong / favorable cycle |
+| ~56 | Difficult cycle |
+| ~64 | Balanced cycle |
+| ~72 | Favorable cycle |
 
 The total represents a baseline life trajectory. Individual year numbers show micro-level variation; the total shows the macro pattern.
 

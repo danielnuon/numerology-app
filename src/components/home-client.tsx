@@ -103,6 +103,9 @@ const MONTH_NAMES = [
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 // The quiet underlined text link used for the card's way back and forth
+/** The companion pages a reading links to under its share section. */
+const READING_COMPANIONS = ["/how-it-works", "/meaning"] as const;
+
 const QUIET_LINK =
   "pressable flex min-h-[44px] items-center px-1 text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70";
 
@@ -610,11 +613,13 @@ export function HomeClient({ searchParams }: Props) {
               {/* A soft light passes once as the reading blooms in */}
               {bloomed && <div aria-hidden="true" className="reading-bloom-glow" />}
 
-              {/* Whose reading this is, and the way back to the form */}
-              <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none items-start justify-between gap-x-3 px-1">
+              {/* Whose reading this is, and the way back to the form. The
+                  link sits on the summary's first line, and drops under the
+                  summary when the two can't share a line without squeezing */}
+              <div className="mx-auto mb-2 flex max-w-[440px] lg:max-w-none flex-wrap items-start justify-between gap-x-4 gap-y-1 px-1">
                 <div id="reading-summary" className="min-w-0">
                   {isShared && (
-                    <p className="text-sm uppercase tracking-[0.12em] text-gold-deep">
+                    <p className="text-sm uppercase tracking-[0.14em] text-gold-deep">
                       A reading shared with you
                     </p>
                   )}
@@ -626,12 +631,12 @@ export function HomeClient({ searchParams }: Props) {
                     {WEEKDAY_NAMES[result.birthData.weekday - 1]}
                   </p>
                 </div>
-                {/* One quiet text link on the date's line, styled like "Back to the reading" */}
+                {/* One quiet text link, styled like "Back to the reading" */}
                 <button
                   type="button"
                   onClick={handleReadAgain}
                   aria-label={isShared ? "Read your own" : "Read for someone else"}
-                  className={`-mt-2 shrink-0 ${QUIET_LINK} text-sm`}
+                  className={`-mx-1 -mt-2 shrink-0 ${QUIET_LINK} text-sm`}
                 >
                   {isShared ? "Read your own" : "Someone else?"}
                 </button>
@@ -645,7 +650,7 @@ export function HomeClient({ searchParams }: Props) {
                   id={READING_VIEW_PANEL_IDS.year}
                   role="tabpanel"
                   aria-labelledby="reading-view-tab-year"
-                  className={`${readingView === "year" ? "" : "max-lg:hidden "}mx-auto w-full max-w-[440px]`}
+                  className={`${readingView === "year" ? "" : "max-lg:hidden "}mx-auto w-full max-w-[440px] lg:contents`}
                 >
                   <ThisYearCard
                     cycle={result.cycle}
@@ -655,14 +660,20 @@ export function HomeClient({ searchParams }: Props) {
                     weekday={result.birthData.weekday}
                     isShared={isShared}
                   />
-                  <BirthReading weekday={result.birthData.weekday} animal={result.birthData.zodiacAnimal} />
+                  {/* Beside this year's reading below lg; from lg the pair spans
+                      both columns under it, so neither column runs on alone */}
+                  <BirthReading
+                    className="mt-4 space-y-4 lg:col-span-2 lg:row-start-2 lg:mt-0 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0"
+                    weekday={result.birthData.weekday}
+                    animal={result.birthData.zodiacAnimal}
+                  />
                 </div>
 
                 <div
                   id={READING_VIEW_PANEL_IDS.cycle}
                   role="tabpanel"
                   aria-labelledby="reading-view-tab-cycle"
-                  className={`${readingView === "cycle" ? "" : "max-lg:hidden "}min-w-0`}
+                  className={`${readingView === "cycle" ? "" : "max-lg:hidden "}min-w-0 lg:col-start-2 lg:row-start-1`}
                 >
                   <CycleChart
                     cycle={result.cycle}
@@ -777,7 +788,8 @@ export function HomeClient({ searchParams }: Props) {
         </p>
       </Follows>
       <Follows>
-        <MorePages current="/" />
+        {/* A reading already links its two companion pages just above */}
+        <MorePages current="/" linkedAbove={showReading && result ? READING_COMPANIONS : undefined} />
       </Follows>
     </main>
     </MotionConfig>
