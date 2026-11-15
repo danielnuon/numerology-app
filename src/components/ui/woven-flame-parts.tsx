@@ -11,19 +11,20 @@
  * flame again. A divider already on screen when the page opens unweaves
  * once on arrival instead, since the scroll can't carry it.
  *
- * FollowFlame: the flame beside "Solini" at the top of the page lifts off as
- * the page scrolls and settles in the bottom right corner, on a small disc
- * of glass. Its threads light one at a time from the base up as the visitor
- * reads down the page, so it also shows how far they've read.
+ * FollowFlame: once the flame beside "Solini" has scrolled off the top of
+ * the screen, the same flame rises into the bottom right corner on a small
+ * disc of glass, as a Back to top button. Its threads light one at a time
+ * from the base up as the visitor reads down the page, so it also shows how
+ * far they've read.
  *
- * Both are CSS scroll-driven animations (`.weave-*` and `.follow-*` in
- * globals.css): no scroll listener. Without scroll-timeline support, or with
- * Reduce Motion, the divider is the finished line and the follow flame is
- * not shown.
+ * The divider and the flame's lighting are CSS scroll-driven animations
+ * (`.weave-*` and `.follow-*` in globals.css): no scroll listener. Without
+ * scroll-timeline support, or with Reduce Motion, the divider is the
+ * finished line and the follow flame is fully lit.
  */
 
-import { useEffect, useRef } from "react";
-import { MARK_THREAD_HEIGHT, MARK_THREADS } from "@/components/ui/solini-mark";
+import { useEffect, useRef, useState } from "react";
+import { MARK_THREAD_HEIGHT, MARK_THREADS, threadBox } from "@/components/ui/solini-mark";
 
 /** The divider's drawing: 560 by 48 units, scaled to the width it's given. */
 const WEAVE = { width: 560, height: 48, flameScale: 1.1, lineScale: 1.8, gap: 3, lineHeight: 1.6 } as const;
@@ -143,50 +144,65 @@ export function followThreadRange(i: number) {
   return `${((year - 1) * step).toFixed(2)}% ${(year * step).toFixed(2)}%`;
 }
 
+/**
+ * The follow flame waits for the mark beside "Solini" to leave the top of the
+ * screen, then arrives in the corner, and leaves again as the mark comes
+ * back. It doesn't fly between the two: a flight tied to the scroll has to
+ * cross the whole screen in a short stretch of scroll, so it outran the page
+ * many times over and leapt on every flick. The handoff is a state, and the
+ * arrival and leaving are timed transitions (`.follow-flame` in globals.css)
+ * that ease the same way however fast the page moves, and turn back smoothly
+ * if the visitor changes direction midway. Watching the mark with an
+ * IntersectionObserver also judges a page restored by Back or Forward where
+ * it lands.
+ */
 export function FollowFlame() {
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    const root = rootRef.current;
     const mark = document.querySelector<HTMLElement>(`[${FOLLOW_FROM_ATTR}]`);
-    if (!root || !mark) return;
-    const svg = root.querySelector("svg");
-    if (!svg) return;
-
-    // The flame's starting place: where the mark beside "Solini" sits when
-    // the page is at the top, relative to the flame's place in the corner.
-    // Measured, not scroll-tracked: the glide itself is a scroll timeline.
-    const measure = () => {
-      const from = mark.getBoundingClientRect();
-      const to = root.getBoundingClientRect();
-      const inset = (to.width - svg.getBoundingClientRect().width) / 2;
-      root.style.setProperty("--from-x", `${(from.left - to.left - inset).toFixed(1)}px`);
-      root.style.setProperty("--from-y", `${(from.top + window.scrollY - to.top - inset).toFixed(1)}px`);
-      root.dataset.ready = "true";
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    document.fonts?.ready.then(measure);
-    return () => window.removeEventListener("resize", measure);
+    if (!mark || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      // Above the screen, not merely out of view, so it never shows while
+      // the page is still arriving below its header
+      setShown(!entry.isIntersecting && entry.boundingClientRect.bottom <= 0);
+    });
+    observer.observe(mark);
+    return () => observer.disconnect();
   }, []);
 
+  // Back to the top: focus moves to the Solini link there, so a keyboard
+  // visitor carries on from the top of the page as the button leaves.
+  const backToTop = () => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    document
+      .querySelector<HTMLElement>(`[${FOLLOW_FROM_ATTR}]`)
+      ?.closest("a")
+      ?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: reduce ? "instant" : "smooth" });
+  };
+
   return (
-    <div ref={rootRef} className="follow-flame" aria-hidden="true">
-      <span className="follow-disc" />
-      <svg viewBox="0 0 64 64" className="follow-mark">
-        {MARK_THREADS.map((thread, i) => (
-          <rect
-            key={i}
-            className={i === BASE ? "fill-gold-deep" : "follow-thread fill-gold-deep"}
-            x={thread.x}
-            y={thread.y}
-            width={thread.width}
-            height={MARK_THREAD_HEIGHT}
-            rx={MARK_THREAD_HEIGHT / 2}
-            style={i === BASE ? undefined : { animationRange: followThreadRange(i) }}
-          />
-        ))}
-      </svg>
-    </div>
+    <button
+      type="button"
+      aria-label="Back to top"
+      className="follow-flame group"
+      data-shown={shown ? "true" : undefined}
+      inert={!shown}
+      onClick={backToTop}
+    >
+      <span className="follow-press pressable group-active:scale-[0.97]">
+        <span className="follow-disc" />
+        <span className="follow-mark" aria-hidden="true">
+          {MARK_THREADS.map((thread, i) => (
+            <span
+              key={i}
+              className={i === BASE ? "follow-thread-base" : "follow-thread"}
+              style={{ ...threadBox(thread), ...(i === BASE ? undefined : { animationRange: followThreadRange(i) }) }}
+            />
+          ))}
+        </span>
+      </span>
+    </button>
   );
 }

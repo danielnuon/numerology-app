@@ -1,5 +1,7 @@
 /** @jest-environment jsdom */
-import { render } from "@testing-library/react";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MARK_THREADS } from "@/components/ui/solini-mark";
 import { FollowFlame, WEAVE_THREADS, WovenDivider, followThreadRange } from "@/components/ui/woven-flame-parts";
@@ -66,16 +68,58 @@ describe("FollowFlame", () => {
     expect(followThreadRange(0)).toBe("90.91% 100.00%");
   });
 
-  it("lifts off the mark beside Solini and is hidden from screen readers", () => {
+  // Captures the IntersectionObserver the follow flame watches the mark with
+  let report: (entry: Partial<IntersectionObserverEntry>) => void = () => {};
+  beforeEach(() => {
+    window.IntersectionObserver = jest.fn((callback: IntersectionObserverCallback) => {
+      report = (entry) => act(() => callback([entry as IntersectionObserverEntry], {} as IntersectionObserver));
+      return { observe: jest.fn(), disconnect: jest.fn() };
+    }) as unknown as typeof IntersectionObserver;
+  });
+
+  function renderPage() {
     const { container } = render(
       <>
-        <span data-follow-from="" />
+        <a href="#top">
+          <span data-follow-from="" />
+          Solini
+        </a>
         <FollowFlame />
       </>
     );
-    const flame = container.querySelector(".follow-flame") as HTMLElement;
-    expect(flame).toHaveAttribute("aria-hidden", "true");
-    expect(flame.dataset.ready).toBe("true");
-    expect(flame.style.getPropertyValue("--from-x")).toMatch(/px$/);
+    return container.querySelector(".follow-flame") as HTMLButtonElement;
+  }
+
+  it("waits, out of reach, while the mark beside Solini is on screen", () => {
+    const flame = renderPage();
+    report({ isIntersecting: true, boundingClientRect: { bottom: 60 } as DOMRect });
+    expect(flame).not.toHaveAttribute("data-shown");
+    expect(flame).toHaveAttribute("inert");
+  });
+
+  it("arrives as a Back to top button once the mark has scrolled off the top", () => {
+    const flame = renderPage();
+    report({ isIntersecting: false, boundingClientRect: { bottom: -20 } as DOMRect });
+    expect(flame).toHaveAttribute("data-shown", "true");
+    expect(flame).not.toHaveAttribute("inert");
+    expect(screen.getByRole("button", { name: "Back to top" })).toBe(flame);
+    report({ isIntersecting: true, boundingClientRect: { bottom: 10 } as DOMRect });
+    expect(flame).not.toHaveAttribute("data-shown");
+  });
+
+  it("scrolls to the top and hands focus to the Solini link", () => {
+    window.scrollTo = jest.fn();
+    const flame = renderPage();
+    report({ isIntersecting: false, boundingClientRect: { bottom: -20 } as DOMRect });
+    fireEvent.click(flame);
+    expect(window.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }));
+    expect(document.activeElement).toBe(screen.getByRole("link", { name: "Solini" }));
+  });
+
+  it("arrives and leaves on a timed transition, not on the scroll", () => {
+    const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    const rule = css.match(/\.follow-flame\[data-shown\] \{([^}]*)\}/)?.[1] ?? "";
+    expect(rule).toMatch(/transition:/);
+    expect(css).not.toMatch(/\.follow-mark\s*\{[^}]*animation-timeline/);
   });
 });
