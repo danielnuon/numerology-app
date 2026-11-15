@@ -5,12 +5,15 @@
  * is never persisted — always recomputed on load from the stored date.
  */
 
-import { isRealCalendarDate, isSupportedYear } from "./numerology/calendar";
+import { validateBirthDate } from "./numerology/derive";
 import { isNewYearRule, type NewYearRule } from "./numerology/zodiac";
 
-// Changing this key would silently drop every returning visitor's saved
-// birth date, so keep it as-is even if the app is renamed.
-const STORAGE_KEY = "khmer-numerology:birth";
+/**
+ * Where the visitor's birth date is saved. Changing this key would silently
+ * drop every returning visitor's saved birth date, so keep it as-is even if
+ * the app is renamed.
+ */
+export const BIRTH_DATE_STORAGE_KEY = "khmer-numerology:birth";
 
 /** The shape stored in localStorage. */
 export interface StoredBirthDate {
@@ -27,13 +30,13 @@ export interface StoredBirthDate {
  * - The key is missing
  * - The JSON is malformed or corrupted
  * - Any field is missing, non-numeric, or out of range
- * - The date is not a valid calendar date
+ * - The date is not a valid calendar date, or is in the future
  *
  * @returns Validated StoredBirthDate or null
  */
 export function readStoredBirthDate(): StoredBirthDate | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(BIRTH_DATE_STORAGE_KEY);
     if (raw === null) return null;
 
     const parsed: unknown = JSON.parse(raw);
@@ -56,11 +59,9 @@ export function readStoredBirthDate(): StoredBirthDate | null {
 
     const { day, month, year } = obj as unknown as StoredBirthDate;
 
-    if (!Number.isInteger(day) || !Number.isInteger(month)) return null;
-    if (!isSupportedYear(year)) return null;
-    if (month < 1 || month > 12) return null;
-    if (day < 1 || day > 31) return null;
-    if (!isRealCalendarDate(year, month, day)) return null;
+    // The form's own rules, so a date saved by an older version that would
+    // no longer be accepted is not restored.
+    if (validateBirthDate(year, month, day).length > 0) return null;
 
     return { day, month, year };
   } catch {
@@ -79,7 +80,7 @@ export function readStoredBirthDate(): StoredBirthDate | null {
 export function saveBirthDate(day: number, month: number, year: number): void {
   try {
     const data: StoredBirthDate = { day, month, year };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify(data));
   } catch {
     // Silently fail — quota exceeded, private browsing, etc.
   }
@@ -90,14 +91,11 @@ export function saveBirthDate(day: number, month: number, year: number): void {
  */
 export function clearStoredBirthDate(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(BIRTH_DATE_STORAGE_KEY);
   } catch {
     // Silently fail
   }
 }
-
-/** Exported for testing — the raw localStorage key. */
-export const BIRTH_DATE_STORAGE_KEY = STORAGE_KEY;
 
 /** Where the visitor's New Year choice (Khmer or Chinese) is remembered. */
 export const NEW_YEAR_RULE_STORAGE_KEY = "khmer-numerology:new-year";

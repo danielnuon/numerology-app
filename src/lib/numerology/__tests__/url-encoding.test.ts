@@ -8,6 +8,10 @@ import {
   buildComparisonSharePath,
   cleanPersonName,
   decodeComparisonNames,
+  readingQuery,
+  decodeReadingQuery,
+  firstQueryValue,
+  allQueryValues,
 } from "../url-encoding";
 
 describe("encodeBirthDate", () => {
@@ -300,5 +304,48 @@ describe("comparison names", () => {
   it("gives one name or null per person, ignoring extras", () => {
     expect(decodeComparisonNames(["", "Sam", "Mai", "Extra"], 3)).toEqual([null, "Sam", "Mai"]);
     expect(decodeComparisonNames(undefined, 2)).toEqual([null, null]);
+  });
+});
+
+describe("readingQuery and decodeReadingQuery", () => {
+  it("writes a reading as day, month, year and rule", () => {
+    expect(readingQuery({ year: 1997, month: 7, day: 24, rule: "khmer" })).toBe(
+      "day=24&month=7&year=1997&ny=khmer"
+    );
+  });
+
+  it("reads a valid date and its rule", () => {
+    expect(decodeReadingQuery({ day: "10", month: "2", year: "1997", ny: "chinese" })).toEqual({
+      year: 1997,
+      month: 2,
+      day: 10,
+      rule: "chinese",
+    });
+  });
+
+  it("falls back to the Khmer rule when the rule is missing or unknown", () => {
+    expect(decodeReadingQuery({ day: "24", month: "7", year: "1997" })?.rule).toBe("khmer");
+    expect(decodeReadingQuery({ day: "24", month: "7", year: "1997", ny: "lunar" })?.rule).toBe("khmer");
+  });
+
+  it("returns null for a missing part, a February 30 date or a future date", () => {
+    expect(decodeReadingQuery({ day: "24", month: "7" })).toBeNull();
+    expect(decodeReadingQuery({ day: "", month: "7", year: "1997" })).toBeNull();
+    expect(decodeReadingQuery({ day: "30", month: "2", year: "2001" })).toBeNull();
+    expect(decodeReadingQuery({ day: "1", month: "1", year: "2100" })).toBeNull();
+  });
+});
+
+describe("query values", () => {
+  it("takes the first of a repeated parameter", () => {
+    expect(firstQueryValue(["a", "b"])).toBe("a");
+    expect(firstQueryValue("a")).toBe("a");
+    expect(firstQueryValue(undefined)).toBeUndefined();
+  });
+
+  it("lists every value of a repeatable parameter", () => {
+    expect(allQueryValues(["a", "b"])).toEqual(["a", "b"]);
+    expect(allQueryValues("a")).toEqual(["a"]);
+    expect(allQueryValues(undefined)).toBeUndefined();
   });
 });

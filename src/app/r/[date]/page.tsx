@@ -7,8 +7,9 @@ import {
 } from "@/lib/numerology/url-encoding";
 import { assessStability, STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
-import { interpretAreaYear } from "@/lib/numerology/interpretation";
-import { getActiveYear, getCycleIndex, getYearNumber } from "@/lib/numerology/year-lookup";
+import { interpretCycleYear } from "@/lib/numerology/interpretation";
+import { getActiveYear } from "@/lib/numerology/year-lookup";
+import { homeUrlFor } from "@/lib/home-params";
 import {
   SHARED_READING_TITLE,
   SITE_DESCRIPTION,
@@ -58,17 +59,9 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
   );
   // This year's reading, the same one the preview image lights
   const activeYear = getActiveYear(new Date().getFullYear(), decoded.month, decoded.day);
-  const thisYear = interpretAreaYear(
-    getCycleIndex(decoded.year, activeYear) + 1,
-    getYearNumber(result.cycle, decoded.year, activeYear)
-  );
-  const description = sharedReadingDescription({
-    year: activeYear,
-    label: thisYear.label,
-    area: thisYear.area,
-  });
+  const thisYear = interpretCycleYear(result.cycle, decoded.year, activeYear);
 
-  return previewMetadata(SHARED_READING_TITLE, description);
+  return previewMetadata(SHARED_READING_TITLE, sharedReadingDescription(thisYear));
 }
 
 /** Page and link-preview metadata for a shared reading or comparison. */
@@ -103,16 +96,7 @@ export default async function SharePage({ params, searchParams }: Props) {
     const [first, ...others] = comparison.people;
     const n = (await searchParams).n;
     const names = decodeComparisonNames(typeof n === "string" ? [n] : n, comparison.people.length);
-    return (
-      <ShareRedirectClient
-        day={first.day}
-        month={first.month}
-        year={first.year}
-        rule={first.rule}
-        others={others}
-        names={names}
-      />
-    );
+    return <ShareRedirectClient url={homeUrlFor({ ...first, others, names })} />;
   }
 
   const decoded = decodeShareSegment(date);
@@ -125,12 +109,5 @@ export default async function SharePage({ params, searchParams }: Props) {
   // Render a client component that redirects via native browser API.
   // window.location.replace() is used instead of router.replace() for
   // reliable query param preservation across Next.js versions.
-  return (
-    <ShareRedirectClient
-      day={decoded.day}
-      month={decoded.month}
-      year={decoded.year}
-      rule={decoded.rule}
-    />
-  );
+  return <ShareRedirectClient url={homeUrlFor(decoded)} />;
 }

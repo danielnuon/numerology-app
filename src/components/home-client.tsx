@@ -34,7 +34,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useSyncExternalStore,
   startTransition,
   addTransitionType,
   ViewTransition,
@@ -59,19 +58,15 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { ShareReading } from "@/components/share-reading";
 import { UpdateNotice } from "@/components/update-notice";
 import { CycleComparison, type ComparedPerson } from "@/components/cycle-comparison";
-import {
-  decodeComparisonNames,
-  decodeShareSegment,
-  type DecodedShare,
-} from "@/lib/numerology/url-encoding";
-import { MAX_COMPARED_PEOPLE } from "@/lib/numerology/compatibility";
+import { decodeReadingQuery, readingQuery } from "@/lib/numerology/url-encoding";
+import { comparisonFromSearchParams, type HomeSearchParams } from "@/lib/home-params";
+import { useIsHydrated } from "@/lib/use-is-hydrated";
+import { formatDate } from "@/lib/numerology/calendar";
+import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
 import { SITE_TAGLINE } from "@/lib/site-copy";
 import { trackEvent } from "@/lib/track";
 import type { CycleResultWithYear } from "@/lib/numerology/derive";
-import {
-  computeCycleFromBirthDate,
-  validateBirthDate,
-} from "@/lib/numerology/derive";
+import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import {
   DEFAULT_NEW_YEAR_RULE,
   isNewYearRule,
@@ -86,8 +81,8 @@ import {
   markUpdateNoticeSeen,
   type StoredBirthDate,
 } from "@/lib/storage";
-import { getActiveYear, getCycleIndex, getYearNumber } from "@/lib/numerology/year-lookup";
-import { interpretAreaYear } from "@/lib/numerology/interpretation";
+import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
+import { interpretCycleYear } from "@/lib/numerology/interpretation";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 import { FlameAnchor, usePageArrival } from "@/components/ui/flame-anchor";
 import { SoliniMark } from "@/components/ui/solini-mark";
@@ -96,16 +91,10 @@ import type { PagePoint } from "@/lib/motion";
 /** ID for the reading card, the place the form blooms into. */
 const CHART_SECTION_ID = "cycle-chart-section";
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-// The quiet underlined text link used for the card's way back and forth
 /** The companion pages a reading links to under its share section. */
 const READING_COMPANIONS = ["/how-it-works", "/meaning"] as const;
 
+/** The quiet underlined text link used for the card's way back and forth. */
 const QUIET_LINK =
   "pressable flex min-h-[44px] items-center px-1 text-ink-light underline underline-offset-4 decoration-border hover:text-ink active:opacity-70";
 
@@ -126,145 +115,45 @@ function Follows({ children }: { children: React.ReactNode }) {
 /** A birth date as day, month and year numbers. */
 type BirthDateParts = StoredBirthDate;
 
-/** The date parts if they form a valid birth date, else null. */
-function validDateParts(year: number, month: number, day: number): BirthDateParts | null {
-  return validateBirthDate(year, month, day).length > 0 ? null : { year, month, day };
-}
-
-/**
- * A returning visitor's saved birth date, or null. The stored date is
- * re-validated because a date saved by an older version may no longer pass.
- */
-function dateFromStorage(): BirthDateParts | null {
-  const stored = readStoredBirthDate();
-  return stored ? validDateParts(stored.year, stored.month, stored.day) : null;
-}
-
-const subscribeToNothing = () => () => {};
-
-/**
- * False during server render and hydration, true afterwards. localStorage
- * must only be read once this is true: reading it during hydration would
- * render different markup from the server and trigger a hydration error.
- */
-function useIsHydrated(): boolean {
-  return useSyncExternalStore(
-    subscribeToNothing,
-    () => true,
-    () => false
-  );
-}
-
-/** The home page's query string values that HomeClient reads. */
-export interface HomeSearchParams {
-  day?: string;
-  month?: string;
-  year?: string;
-  /** New Year rule of a shared reading: "khmer" or "chinese". */
-  ny?: string;
-  /** Everyone else in a shared comparison, as share segments ("2000-03-15-cny"). */
-  p?: string[];
-  /** Each person's name in a shared comparison, the reading's first; "" where none. */
-  n?: string[];
-  /** A single partner's birth date and rule, from a comparison link made before households. */
-  pday?: string;
-  pmonth?: string;
-  pyear?: string;
-  pny?: string;
-}
-
-/** The single partner from a comparison link made before households, or null if absent or invalid. */
-function legacyPartnerFromSearchParams(params: HomeSearchParams): DecodedShare | null {
-  if (!params.pday || !params.pmonth || !params.pyear) return null;
-  const date = validDateParts(
-    parseInt(params.pyear, 10),
-    parseInt(params.pmonth, 10),
-    parseInt(params.pday, 10)
-  );
-  if (!date) return null;
-  return { ...date, rule: isNewYearRule(params.pny) ? params.pny : DEFAULT_NEW_YEAR_RULE };
-}
-
-/** A shared comparison from the link: the reading's owner's name and everyone else. */
-interface SharedComparison {
-  readingName: string | null;
-  others: ComparedPerson[];
-}
-
-/**
- * The comparison in a shared link. Readings that don't decode are left out
- * with their names, and at most MAX_COMPARED_PEOPLE people are kept.
- */
-function comparisonFromSearchParams(params: HomeSearchParams): SharedComparison {
-  const segments = params.p ?? [];
-  const names = decodeComparisonNames(params.n, segments.length + 1);
-  const others: ComparedPerson[] = segments.flatMap((segment, i) => {
-    const share = decodeShareSegment(segment);
-    // decodeShareSegment checks the calendar; validDateParts also rules out future dates
-    if (!share || !validDateParts(share.year, share.month, share.day)) return [];
-    return [{ share, name: names[i + 1], isVisitor: false }];
-  });
-  if (others.length === 0) {
-    const partner = legacyPartnerFromSearchParams(params);
-    if (partner) others.push({ share: partner, name: null, isVisitor: false });
-  }
-  return { readingName: names[0], others: others.slice(0, MAX_COMPARED_PEOPLE - 1) };
+/** A shared comparison's people as the comparison holds them: none of them is the visitor. */
+function sharedPeople(params: HomeSearchParams): { readingName: string | null; others: ComparedPerson[] } {
+  const { readingName, others } = comparisonFromSearchParams(params);
+  return { readingName, others: others.map((person) => ({ ...person, isVisitor: false })) };
 }
 
 interface Props {
   searchParams: HomeSearchParams;
 }
 
-/** The active year's reading in a line, which leads the share message. */
-function thisYearHeadline(result: CycleResultWithYear, activeYear: number) {
-  const interpretation = interpretAreaYear(
-    getCycleIndex(result.birthYear, activeYear) + 1,
-    getYearNumber(result.cycle, result.birthYear, activeYear)
-  );
-  return { year: activeYear, label: interpretation.label, area: interpretation.area };
-}
-
 export function HomeClient({ searchParams }: Props) {
   const isHydrated = useIsHydrated();
 
   // Pre-fill initial values from URL search params (set by /r/[date] redirect)
-  const prefillDay = searchParams.day;
-  const prefillMonth = searchParams.month;
-  const prefillYear = searchParams.year;
-
-  const hasShareParams = !!(prefillDay && prefillMonth && prefillYear);
+  const { day: prefillDay, month: prefillMonth, year: prefillYear, ny: prefillRule } = searchParams;
+  const initialValues =
+    prefillDay && prefillMonth && prefillYear
+      ? { day: prefillDay, month: prefillMonth, year: prefillYear }
+      : undefined;
+  const hasShareParams = initialValues !== undefined;
   // A shared reading keeps the sharer's New Year rule; links without one are Khmer.
-  const prefillRule = searchParams.ny;
   const shareRule: NewYearRule | null = hasShareParams
     ? isNewYearRule(prefillRule) ? prefillRule : DEFAULT_NEW_YEAR_RULE
     : null;
-
-  const initialValues = hasShareParams
-    ? {
-        day: prefillDay!,
-        month: prefillMonth!,
-        year: prefillYear!,
-      }
-    : undefined;
 
   // The birth date chosen in this visit: from a share link, a form
   // submission, or null after "Forget my date". undefined means nothing has been
   // chosen yet, so a returning visitor's saved date is shown instead.
   const [sessionDate, setSessionDate] = useState<
     BirthDateParts | null | undefined
-  >(() =>
-    hasShareParams
-      ? validDateParts(
-          parseInt(prefillYear!, 10),
-          parseInt(prefillMonth!, 10),
-          parseInt(prefillDay!, 10)
-        ) ?? undefined
-      : undefined
-  );
+  >(() => {
+    // A link whose date isn't valid pre-fills the form instead of opening a reading
+    const shared = hasShareParams ? decodeReadingQuery(searchParams) : null;
+    return shared ? { year: shared.year, month: shared.month, day: shared.day } : undefined;
+  });
 
   // A share link takes precedence over the visitor's own saved date.
   const storedDate = useMemo(
-    () => (isHydrated && !hasShareParams ? dateFromStorage() : null),
+    () => (isHydrated && !hasShareParams ? readStoredBirthDate() : null),
     [isHydrated, hasShareParams]
   );
 
@@ -297,8 +186,8 @@ export function HomeClient({ searchParams }: Props) {
   const [noticeDismissed, setNoticeDismissed] = useState(false);
 
   // Everyone compared with the reading, if anyone. Never saved to the browser.
-  const [sharedComparison] = useState<SharedComparison>(() =>
-    hasShareParams ? comparisonFromSearchParams(searchParams) : { readingName: null, others: [] }
+  const [sharedComparison] = useState(() =>
+    hasShareParams ? sharedPeople(searchParams) : { readingName: null, others: [] }
   );
   const [comparedPeople, setComparedPeople] = useState<ComparedPerson[]>(sharedComparison.others);
 
@@ -624,11 +513,11 @@ export function HomeClient({ searchParams }: Props) {
                     </p>
                   )}
                   <p className="font-display text-lg tracking-[0.03em] text-ink">
-                    {MONTH_NAMES[result.birthData.gregorianMonth - 1]} {result.birthDay}, {result.birthYear}
+                    {formatDate(result.birthYear, result.birthData.gregorianMonth, result.birthDay)}
                   </p>
                   <p className="text-sm text-ink-light">
                     Year of the {result.birthData.zodiacAnimal} · Born on a{" "}
-                    {WEEKDAY_NAMES[result.birthData.weekday - 1]}
+                    {DAY_PLANETS[result.birthData.weekday].day}
                   </p>
                 </div>
                 {/* One quiet text link, styled like "Back to the reading" */}
@@ -749,7 +638,7 @@ export function HomeClient({ searchParams }: Props) {
             <Follows>
             <ShareReading
               isShared={isShared}
-              headline={thisYearHeadline(result, activeYear)}
+              headline={interpretCycleYear(result.cycle, result.birthYear, activeYear)}
               year={result.birthYear}
               month={result.birthData.gregorianMonth}
               day={result.birthDay}
@@ -764,7 +653,12 @@ export function HomeClient({ searchParams }: Props) {
               className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-base"
             >
               <Link
-                href={`/how-it-works?day=${result.birthDay}&month=${result.birthData.gregorianMonth}&year=${result.birthYear}&ny=${newYearRule}`}
+                href={`/how-it-works?${readingQuery({
+                  year: result.birthYear,
+                  month: result.birthData.gregorianMonth,
+                  day: result.birthDay,
+                  rule: newYearRule,
+                })}`}
                 className="inline-flex min-h-[44px] items-center text-ink-light underline underline-offset-4 decoration-border hover:text-gold-deep"
               >
                 How this cycle is made

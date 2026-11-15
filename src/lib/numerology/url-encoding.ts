@@ -10,12 +10,16 @@
  * contain "+", so each "+" adds one person. Names, when given, travel in the
  * query string as one ?n= per person, in the same order (see
  * comparisonNamesQuery).
+ * A page that opens on one reading (the home page, How your cycle is made)
+ * takes it in the query string instead, as ?day=&month=&year=&ny= (see
+ * readingQuery).
  * The computed cycle is never stored — it is always recomputed server-side.
  */
 
 import { isRealCalendarDate, isSupportedYear } from "./calendar";
 import { MAX_COMPARED_PEOPLE } from "./compatibility";
-import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "./zodiac";
+import { validateBirthDate } from "./derive";
+import { DEFAULT_NEW_YEAR_RULE, isNewYearRule, type NewYearRule } from "./zodiac";
 
 /** Path suffix marking a reading counted from Chinese New Year. */
 const CHINESE_NEW_YEAR_SUFFIX = "-cny";
@@ -131,6 +135,46 @@ export function buildSharePath(
   rule: NewYearRule = DEFAULT_NEW_YEAR_RULE
 ): string {
   return `/r/${encodeShareSegment(year, month, day, rule)}`;
+}
+
+/** A query parameter as a Next.js page receives it: absent, given once, or repeated. */
+export type QueryValue = string | string[] | undefined;
+
+/** The first value of a query parameter, ignoring repeats. */
+export function firstQueryValue(value: QueryValue): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/** Every value of a repeatable query parameter, in order. */
+export function allQueryValues(value: QueryValue): string[] | undefined {
+  return value === undefined ? undefined : Array.isArray(value) ? value : [value];
+}
+
+/**
+ * The query string that hands one reading to a page, without the "?".
+ *
+ * @returns e.g. "day=24&month=7&year=1997&ny=khmer"
+ */
+export function readingQuery({ year, month, day, rule }: DecodedShare): string {
+  return `day=${day}&month=${month}&year=${year}&ny=${rule}`;
+}
+
+/**
+ * Reads the reading in a page's ?day=&month=&year=(&ny=) values. Returns
+ * null unless they name a valid birth date that is not in the future; a
+ * missing or unknown rule means the default.
+ */
+export function decodeReadingQuery(params: {
+  day?: string;
+  month?: string;
+  year?: string;
+  ny?: string;
+}): DecodedShare | null {
+  const year = parseInt(params.year ?? "", 10);
+  const month = parseInt(params.month ?? "", 10);
+  const day = parseInt(params.day ?? "", 10);
+  if (validateBirthDate(year, month, day).length > 0) return null;
+  return { year, month, day, rule: isNewYearRule(params.ny) ? params.ny : DEFAULT_NEW_YEAR_RULE };
 }
 
 /** Joins the readings in a comparison share segment. */

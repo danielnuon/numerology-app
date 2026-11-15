@@ -20,12 +20,12 @@ BirthDataForm (input)
           +- buildDayRow() [calculate.ts]    -- weekday value for columns 1-7 only
       -> CycleResultWithYear -> HomeClient state
           -> CycleChart (display)
-              |- getTierTextClass/getCurrentYearColumn() [chart-helpers.ts]
+              |- getTierTextClass() [chart-helpers.ts]
+              |- getActiveYear(), getCycleIndex() [year-lookup.ts] -- the current year's position
               |- interpretYear() [interpretation.ts]
               |- interpretTotal() [interpretation.ts]
               |- getLifeArea() [year-lookup.ts]
               +- DetailPanel (reading that blooms from the wheel center)
-                  |- getYearsForColumn() [chart-helpers.ts]
                   |- TierIcon [components/ui/tier-icon.tsx]
                   |- interpretAreaYear() [interpretation.ts] -- life area x tier reading
                   +- describeYearPlanet() [interpretation.ts] -- day planet over the year
@@ -35,7 +35,7 @@ BirthDataForm (input)
 HomeClient (useEffect on mount)
   |- hasShareParams? → skip localStorage, use share URL path
   +- readStoredBirthDate() [storage.ts]
-      |- validates JSON, field types, ranges, calendar validity
+      |- validates JSON and field types, then validateBirthDate() [derive.ts]
       +- returns StoredBirthDate | null
           |- null → show BirthDataForm (first-visit state)
           +- valid → computeCycleFromBirthDate() [derive.ts]
@@ -44,8 +44,8 @@ HomeClient (useEffect on mount)
                  |    +- "Got it" → markUpdateNoticeSeen(), focus the reading card
                  |- "Change date" → clearStoredBirthDate(), reset to first-visit
                  |- ThisYearCard (display)
-                 |    |- getYearNumber() [year-lookup.ts]
-                 |    |- interpretAreaYear() [interpretation.ts]
+                 |    |- getActiveYear(), getNextReadingStart() [year-lookup.ts]
+                 |    |- interpretCycleYear() [interpretation.ts] -- this year and the next
                  |    +- describeYearPlanet() [interpretation.ts]
                  |- BirthReading (display, under ThisYearCard)
                  |    |- BIRTH_DAYS [birth-day-data.ts], DAY_PLANETS [day-planet-data.ts]
@@ -61,17 +61,19 @@ BirthDataForm (on successful submit)
 --- Share URL entry (/r/[date]) ---
 
 /r/[date]/page.tsx (server component)
-  |- generateMetadata(): decodeBirthDate() [url-encoding.ts]
+  |- generateMetadata(): decodeShareSegment() [url-encoding.ts]
   |    -> computeCycleFromBirthDate() [derive.ts]
-  |    -> interpretTotal() [interpretation.ts]
+  |    -> interpretCycleYear() [interpretation.ts] -- this year's reading, for the description
   |    -> returns Metadata with OG title, description, opengraph-image
   |
-  |- opengraph-image.tsx (server): decodeBirthDate() -> computeCycleFromBirthDate()
+  |- opengraph-image.tsx (server): decodeShareSegment() -> computeCycleFromBirthDate()
   |    -> renders 1200x630 OG image with the cycle as threaded orbs and total score
   |
-  +- ShareRedirectClient (client): redirects to /?day=D&month=M&year=Y
-      -> HomeClient reads searchParams, passes initialValues to BirthDataForm
-      -> auto-computes cycle via useEffect
+  +- ShareRedirectClient (client): redirects to homeUrlFor() [home-params.ts]
+      -> /?day=D&month=M&year=Y&ny=RULE
+      -> app/page.tsx (server): readHomeSearchParams() [home-params.ts] -> HomeClient
+      -> decodeReadingQuery() [url-encoding.ts]: a valid date opens the reading,
+         an invalid one pre-fills BirthDataForm
 
 --- Cycle comparison (under any reading; two to six people) ---
 
@@ -91,11 +93,32 @@ CycleComparison (client), the other people held in HomeClient state, never saved
   |- generateMetadata(): every total -> "<assessment>: see how these three 12-year cycles meet"
   |- opengraph-image.tsx -> comparisonImage() [comparison-image.tsx]: the summary as a 1200x630 card (no names)
   +- ShareRedirectClient: /?day=&month=&year=&ny=&p=SEGMENT&p=SEGMENT&n=&n=Sam&n=Mai
-      -> HomeClient opens the first reading with the comparison already showing
+      -> comparisonFromSearchParams() [home-params.ts]: HomeClient opens the first
+         reading with the comparison already showing
          (an older /?pday=&pmonth=&pyear=&pny= single partner still opens)
 ```
 
+`src/lib/home-params.ts` holds both sides of the home page's query string: `homeUrlFor()` writes it for the share route and `readHomeSearchParams()` and `comparisonFromSearchParams()` read it back. A test sends links through both, so the two cannot drift apart. The reading itself (`?day=&month=&year=&ny=`) is written and read by `readingQuery()` and `decodeReadingQuery()` in `url-encoding.ts`, which How your cycle is made uses too.
+
 `deriveBirthData()` and `computeCycleFromBirthDate()` are separate entry points from the form. The form calls `deriveBirthData()` reactively via `useMemo` whenever field values change (for the zodiac/weekday preview), and calls `computeCycleFromBirthDate()` imperatively on submit. They are not a linear chain -- `computeCycleFromBirthDate` internally calls `deriveBirthData` then feeds the result into `computeCycle`.
+
+## Shared State
+
+There is no store, context or server state. Everything a reading shows is derived during render from a birth date and a New Year rule, and three places hold those.
+
+| State | Where it lives | Who reads it |
+|---|---|---|
+| The birth date in this visit (`sessionDate`) | `HomeClient` state, set from a share link or a form submission | `HomeClient` computes `result` from it with `useMemo` |
+| The saved birth date and New Year rule | localStorage, through `src/lib/storage.ts`; read only after hydration (`useIsHydrated`) | `HomeClient`, and `CycleWalkthrough` on How your cycle is made |
+| The New Year rule chosen in this visit (`chosenRule`) | `HomeClient` state; a share link sets it, the toggle changes and saves it | `BirthDataForm`, `computeCycleFromBirthDate` |
+| The selected year (`pickedYear`, null for the active year) | `HomeClient` state | `CycleChart` and `YearTimeline`, so the wheel and the timeline always agree |
+| Which view the card shows (`chosenView`, `readingView`), `formOpen`, `bloomed` | `HomeClient` state | The reading card and `ReadingViewTabs` |
+| The other people in a comparison (`comparedPeople`) | `HomeClient` state, never saved; a comparison link fills it | `CycleComparison`, which reports changes with `onOthersChange` |
+| A shared link's reading and comparison | The URL: `/r/...`, then the home page's query string (`home-params.ts`) | The share route's metadata and image, then `HomeClient` once on load |
+
+State that only one component cares about stays in it: the form's fields and errors (`BirthDataForm`), whether the wheel's reading is open (`CycleChart`), the comparison's form, chosen cycle and share status (`CycleComparison`), and each disclosure's open flag.
+
+The cycle is never stored or passed between pages. Each surface recomputes it from the date with `computeCycleFromBirthDate()`, which is why the share image, the link preview and the page always agree.
 
 ## Key Type Contracts
 
@@ -115,6 +138,7 @@ interface BirthData {
   weekday: Weekday;         // 1-7, Sunday=1 ... Saturday=7
   zodiacNumber: number;     // 1-12, Rat=1 ... Pig=12, New Year boundary adjusted
   zodiacAnimal: ZodiacAnimal; // "Rat" | "Ox" | ... | "Pig"
+  newYearRule: NewYearRule; // the New Year boundary the animal was counted from
 }
 ```
 
@@ -137,17 +161,18 @@ interface CycleResult {
 ```ts
 interface CycleResultWithYear extends CycleResult {
   birthYear: number;
+  birthDay: number;
   birthData: BirthData;
 }
 ```
 
-Extends `CycleResult` with the birth year and full derived birth data. This is the type that flows from the form to the page state and into `CycleChart`.
+Extends `CycleResult` with the birth year and day and the full derived birth data (the birth month is `birthData.gregorianMonth`). This is the type that flows from the form to the page state and into `CycleChart`.
 
 ### `YearInterpretation` (interpretation.ts)
 
 ```ts
 interface YearInterpretation {
-  tier: string;         // "very-strong" | "strong" | "moderate" | "weak" | "zero"
+  tier: YearTier;       // "very-strong" | "strong" | "moderate" | "weak" | "zero"
   label: string;        // e.g. "Very strong luck"
   description: string;  // longer tier description
   guidance: string;     // actionable guidance text
@@ -163,13 +188,13 @@ interface AreaYearInterpretation extends YearInterpretation {
 }
 ```
 
-Returned by `interpretAreaYear(column, cycleNumber)`, with `column` 1-indexed like `getLifeArea()`. The detail panel and this year's card show `reading`, so the same number reads differently in different life areas. `describeYearPlanet(weekday, column)` adds the day planet sentence: `getYearPlanet()` reads the day row's value for the column (null for columns 8–12) and looks it up in `DAY_PLANETS` (`day-planet-data.ts`). `CycleChart` and `ThisYearCard` take the birth `weekday` for this. Why the reading works this way, and its sources, are in [docs/reading-model.md](../reading-model.md).
+Returned by `interpretAreaYear(column, cycleNumber)`, with `column` 1-indexed like `getLifeArea()`. `interpretCycleYear(cycle, birthYear, year)` finds a calendar year's column and number itself and returns the same reading with `year`, `column` and `cycleNumber` added (`CycleYearInterpretation`); the year card, the share text and the link preview all read a year through it. The detail panel and this year's card show `reading`, so the same number reads differently in different life areas. `describeYearPlanet(weekday, column)` adds the day planet sentence: `getYearPlanet()` reads the day row's value for the column (null for columns 8–12) and looks it up in `DAY_PLANETS` (`day-planet-data.ts`). `CycleChart` and `ThisYearCard` take the birth `weekday` for this. Why the reading works this way, and its sources, are in [docs/reading-model.md](../reading-model.md).
 
 ### `TotalInterpretation` (interpretation.ts)
 
 ```ts
 interface TotalInterpretation {
-  tier: string;         // "strong" | "moderate" | "weak"
+  tier: TotalTier;      // "strong" | "moderate" | "weak"
   label: string;
   description: string;
 }
@@ -206,7 +231,7 @@ interface StoredBirthDate {
 }
 ```
 
-The shape persisted to localStorage under the `khmer-numerology:birth` key. `readStoredBirthDate()` validates all fields on read: type checks, integer checks, range checks, and calendar validity. Returns `null` for any failure — never throws.
+The shape persisted to localStorage under the `khmer-numerology:birth` key. `readStoredBirthDate()` validates all fields on read: type checks, then the form's own rules (`validateBirthDate()`: integers, ranges, calendar validity, not in the future). Returns `null` for any failure — never throws.
 
 ## Design Decisions
 
@@ -220,7 +245,7 @@ JavaScript `Date.getDay()` returns 0=Sunday through 6=Saturday. The codebase con
 
 ### Column indexing: mixed 0-indexed and 1-indexed
 
-Cycle arrays and component state use 0-indexed columns (0-11). However, `LIFE_AREA_MAP` in `year-lookup.ts` is keyed 1-12 (column 1 = "Self", column 12 = "Protection"). The `getLifeArea()` function accepts 1-indexed input. Components bridge this gap by calling `getLifeArea(index + 1)`.
+Cycle arrays and component state use 0-indexed columns (0-11). However, `LIFE_AREA_MAP` in `year-lookup.ts` is keyed 1-12 (column 1 = "Self", column 12 = "Protection"), as the tradition numbers them. `getLifeArea()`, `interpretAreaYear()` and `describeYearPlanet()` accept 1-indexed input. Components that hold an index bridge the gap with `index + 1`; reading a calendar year through `interpretCycleYear()` avoids the conversion.
 
 ### New Year boundary: which animal a birth before New Year gets
 
@@ -237,13 +262,13 @@ All modules in `src/lib/numerology/` are pure functions with zero React or frame
 
 ### Client-only rendering (with share route exception)
 
-The home page and all interactive components use `"use client"`. There are no API routes or server actions. The root layout (`layout.tsx`) serves as the server-rendered shell that loads fonts and CSS.
+Interactive components use `"use client"`. There are no API routes or server actions. Every page is a server component that reads its params and renders components, so the whole page, the home page's form included, is in the server's HTML.
 
 **Exception:** The share route (`/r/[date]/page.tsx`) is a server component. It uses `generateMetadata()` to produce personalized OG tags and a dynamic OG image on the server, then immediately redirects to the client-rendered home page via `ShareRedirectClient`. This hybrid approach provides social media preview cards without duplicating the interactive UI at the share URL.
 
 ### Share URL architecture: server metadata + client redirect
 
-Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the date, computes metadata (OG title, description, image), and renders a client component that redirects to `/?day=D&month=M&year=Y`. The home page reads these search params via `useSearchParams()` (wrapped in `<Suspense>`) and auto-computes the cycle. This avoids duplicating the form+chart rendering at the share route while still providing rich link previews.
+Share URLs follow the pattern `/r/YYYY-MM-DD`. The server component decodes the date, computes metadata (OG title, description, image), and renders a client component that redirects to `/?day=D&month=M&year=Y&ny=RULE`. The home page reads these search params on the server (`app/page.tsx`) and passes them to `HomeClient`, which opens the reading in its first render. This avoids duplicating the form+chart rendering at the share route while still providing rich link previews.
 
 ### URL encoding: plain ISO dates, no obfuscation
 
@@ -268,10 +293,10 @@ Share URLs use `YYYY-MM-DD` format (e.g., `/r/1997-07-24`) rather than base64 or
 ```
 RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |
-  |- Home (page.tsx) ................. server component, Suspense wrapper
-  |   +- <Suspense>
-  |       +- HomeClient .............. "use client", manages CycleResultWithYear state
-  |           |- reads searchParams for pre-fill (?day=&month=&year=)
+  |- Home (page.tsx) ................. server component, reads the query string
+  |   +- (HomeClient sits directly under Home)
+  |       +- HomeClient .............. "use client", owns the reading's state (see Shared State)
+  |           |- takes searchParams as a prop (?day=&month=&year=&ny=, ?p=, ?n=)
   |           |- SoliniMark beside <h1> "Solini" and "Khmer Numerology" (the signature)
   |           |- brand line (SITE_TAGLINE) between hairlines
   |           +- ErrorBoundary ....... "use client", class component
@@ -289,25 +314,25 @@ RootLayout (layout.tsx) .............. server shell, loads fonts/CSS
   |                   |- ReadingViewTabs  "Year / Cycle" switch, below lg
   |                   +- CycleChart .. "use client", cycle wheel of 12 orbs
   |                       |- 12x motion.button (orbs, respects reduced motion)
-  |                       |- DetailPanel "use client", AnimatePresence slide-down
+  |                       |- DetailPanel "use client", one year's full reading in the wheel's dialog
   |                       +- TotalScoreCard  total score, opens onto the 52/64/76 scale
   |
   +- /r/[date]/page.tsx .............. server component, share route
       |- generateMetadata() .......... dynamic OG tags from decoded date
       |- opengraph-image.tsx ......... dynamic 1200x630 OG image
-      +- ShareRedirectClient ......... "use client", redirects to /?day=&month=&year=
+      +- ShareRedirectClient ......... "use client", redirects to the home page URL it is given
 ```
 
 ### Component responsibilities
 
 - **RootLayout**: Loads Cormorant Garamond and Noto Serif Khmer fonts via `next/font/google`. Sets CSS variables `--font-cormorant` and `--font-noto-serif-khmer`. Applies `paper-texture` class to `<body>`. Exports Metadata with OG tags, Twitter card, and `metadataBase`.
 - **ErrorBoundary**: Class component wrapping interactive content. Catches render errors from BirthDataForm and CycleChart without affecting the root layout. Shows a satra-styled error message with a "Try again" reset action. Logs errors to console for debugging.
-- **Home**: Server component wrapping `HomeClient` in `<Suspense>` (required for `useSearchParams()`).
+- **Home**: Server component that reads the query string with `readHomeSearchParams()` and renders `HomeClient` with it, so the page renders in full on the server.
 - **HomeClient**: Client component holding the birth date, New Year rule, selected year and the `formOpen` and `bloomed` flags and `readingView`. Share URL params take precedence over the date saved in localStorage. The first visit asks one question, "When were you born?", with one line under it saying what the reading gives. A share link sets `isShared` until the visitor reads their own date: `ThisYearCard`, `ShareReading` and `CycleComparison` then say "their" or "this" instead of "your", and a primary "See your own cycle" button sits under the reading card. The form card and the reading card share one place on the page: on submit, `startTransition` swaps the form for the reading inside a `<ViewTransition name="reading-card">`, so the card blooms in place instead of scrolling down to a separate result. "Read for someone else" swaps back to an empty form (`formOpen` state), "Back to the reading" returns without re-entering the date, and "Forget my date", beside it, forgets a restored saved date. The reading card opens on `ThisYearCard`. Below `lg`, `ReadingViewTabs` switches the card between it and the wheel plus timeline in the same place (`swapInPlace` fades the old view, lays out the new one with `flushSync` and glides the card's edge and the blocks below on live elements; the switch's own choice, `chosenView`, moves first in a transition so its outline glides); from `lg` the wheel sits beside it.
 - **BirthReading**: Two lit panels under `ThisYearCard` that read the person rather than a year: the birth weekday (Khmer day name, planet and strength, character, traditional color) from `BIRTH_DAYS` and `DAY_PLANETS`, and the zodiac animal (Khmer name, popular traits labeled as such) from `ZODIAC_READINGS`. Each links to its section of the meaning page. Neither changes a cycle number. Sources are in [docs/reading-model.md](../reading-model.md).
-- **ThisYearCard**: The active year's cycle number, luck tier, life area, tier description and guidance, as a lit panel inside the reading card. Used for every reading: a fresh submission, a saved date and a shared link. Uses `getYearNumber()`, `interpretYear()`, and `getLifeArea()` from the numerology library.
+- **ThisYearCard**: The active year's cycle number, luck tier, life area, tier description and guidance, as a lit panel inside the reading card. Used for every reading: a fresh submission, a saved date and a shared link. Reads this year and the next with `interpretCycleYear()`.
 - **ReadingViewTabs**: A two-way tabs switch ("Year" for this year's reading, "Cycle" for the 12-year wheel and timeline) at the top of the reading card below `lg`. Switching swaps the view in place instead of opening a section below it; the ink outline glides between the tabs, and arrow keys move the choice and focus together.
-- **ShareRedirectClient**: Client component at `/r/[date]`. Receives decoded day/month/year as props, redirects to `/?day=D&month=M&year=Y` via `router.replace()`. Shows "Loading your reading..." during the redirect.
+- **ShareRedirectClient**: Client component at `/r/[date]`. Receives the home page URL the route built with `homeUrlFor()` and redirects to it with `window.location.replace()`. Shows "Opening this reading…" if the redirect takes more than a beat.
 - **BirthDataForm**: Three number inputs (day, month, year). Accepts optional `initialValues` for pre-fill. Auto-derives zodiac/weekday via `useMemo`. Re-validates on change after first submission attempt. Respects `prefers-reduced-motion` for fade-in animation. Emits `CycleResultWithYear` via `onResult` prop.
 - **CycleChart**: Renders the cycle as a wheel of 12 orbs, clockwise from the birth year, each a `<motion.button>` with role="tab" and its zodiac animal outside it. Arrow keys move around the wheel. The center is the tab panel: a preview of the selected year (the current year on load). Tapping the center or the selected orb again blooms `DetailPanel` over the wheel via a shared `<ViewTransition name="wheel-bloom">`; Escape or Close folds it back. A gold arc traces the cycle to this year. Ends with `TotalScoreCard`, which shows the total with `interpretTotal()` and opens in place onto the three possible totals from `TOTAL_SCALE`.
 - **DetailPanel**: The full reading for one year: year, life area, number, tier symbol and label, zodiac animal, description, italic guidance and the other years that share the number. Rendered inside the wheel's reading dialog.
@@ -343,7 +368,7 @@ Jest with `ts-jest` preset, running in a Node environment by default, which work
 
 ### Test file locations
 
-Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live in `src/components/__tests__/` (currently `year-timeline.test.tsx`).
+Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live in `src/components/__tests__/` and `src/components/ui/__tests__/`, page tests in `__tests__/` beside each page, and tests for the other shared modules in `src/lib/__tests__/`.
 
 | Test file | Module under test |
 |---|---|
@@ -351,11 +376,12 @@ Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live 
 | `zodiac.test.ts` | `zodiac.ts` -- Khmer and Chinese New Year lookups and zodiac resolution |
 | `calculate.test.ts` | `calculate.ts` -- `buildDayRow`, `computeCycle`, `computeTotalScore` |
 | `derive.test.ts` | `derive.ts` -- `deriveBirthData`, `validateBirthDate`, `computeCycleFromBirthDate` |
-| `interpretation.test.ts` | `interpretation.ts` -- `interpretYear`, `interpretAreaYear`, `getYearPlanet`, `describeYearPlanet`, `interpretTotal` |
+| `interpretation.test.ts` | `interpretation.ts` -- `interpretYear`, `interpretAreaYear`, `interpretCycleYear`, `getYearPlanet`, `describeYearPlanet`, `interpretTotal` |
 | `year-lookup.test.ts` | `year-lookup.ts` -- `getCycleIndex`, `getYearNumber`, `getLifeArea` |
-| `chart-helpers.test.ts` | `chart-helpers.ts` -- `getTierSymbol`, `getTierColorClass`, `getYearsForColumn`, `getCurrentYearColumn` |
-| `url-encoding.test.ts` | `url-encoding.ts` -- `encodeBirthDate`, `decodeBirthDate`, `buildSharePath`, roundtrip validation |
-| `storage.test.ts` | `storage.ts` -- `saveBirthDate`, `readStoredBirthDate`, `clearStoredBirthDate`, roundtrip, malformed-data rejection (29 tests) |
+| `chart-helpers.test.ts` | `chart-helpers.ts` -- `getTierColorClass`, `getTierTextClass` |
+| `url-encoding.test.ts` | `url-encoding.ts` -- `encodeBirthDate`, `decodeBirthDate`, `buildSharePath`, comparison segments and names, `readingQuery`, `decodeReadingQuery`, roundtrip validation |
+| `home-params.test.ts` | `home-params.ts` -- `homeUrlFor`, `readHomeSearchParams`, `comparisonFromSearchParams`, and the share link round trip through both |
+| `storage.test.ts` | `storage.ts` -- `saveBirthDate`, `readStoredBirthDate`, `clearStoredBirthDate`, roundtrip, malformed-data rejection |
 | `reduced-motion.test.ts` | `globals.css` -- verifies `prefers-reduced-motion` media query disables `.animate-breathe` |
 
 ### Testing patterns
@@ -364,3 +390,13 @@ Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live 
 - **Boundary coverage**: Tests exercise CNY boundary dates, leap years, min/max year range, and edge-case weekdays (Sunday=1, Saturday=7).
 - **Worked examples**: The derive test suite includes a full acceptance test for July 24, 1997, verifying the expected 12-number cycle `[3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8]`.
 - **Component tests**: Use React Testing Library under jsdom, opted into per file. Mock `useReducedMotion` from `motion/react` for deterministic rendering (see `year-timeline.test.tsx`).
+
+## Open Simplifications
+
+Larger restructurings that a review in November 2026 found worth doing but left out, because each touches many files or tests and deserves a PR of its own. None changes what a visitor sees.
+
+1. **Let a reading carry its own birth date.** `CycleResultWithYear` holds the date in three places (`birthYear`, `birthDay`, `birthData.gregorianMonth`) and the rule in a fourth (`birthData.newYearRule`). So `ThisYearCard` and `CycleChart` take five props that all come from one object, `CycleComparison` takes a `readingRule` the reading already has, and the same four fields are copied into a `DecodedShare` in four places. Giving the result one `birth: { year, month, day, rule }` field and passing the reading whole would remove the copies.
+2. **Read "today" once.** `getActiveYear(currentYear, birthMonth, birthDay, todayOverride?)` takes the current year and today separately, and all seven callers pass `new Date().getFullYear()`. `HomeClient`, `ThisYearCard` and `CycleChart` each read the clock on their own. Taking a single `today` and computing the active year once in `HomeClient` would leave one source for "now". It would also make it possible to fix the one place the server and the browser can disagree: a shared reading is rendered on the server with the server's date, so near a birthday or New Year's Eve a visitor in another time zone may hydrate onto a different active year (inferred from the code, not yet reproduced).
+3. **Split `HomeClient`.** At about 690 lines it holds the page header, the form card, the reading card, the view switch and nine pieces of state. The reading card and its view switch (`readingView`, `chosenView`, `swapInPlace`, `pickedYear`) could move to a `ReadingCard` component, leaving `HomeClient` with the date, the rule and which card shows.
+4. **Split `CycleComparison`.** Its file holds seven components. The year-by-year table and the share actions are the natural pieces to move to their own files, as the code standard's "one component per file" asks.
+5. **One column convention.** Columns are 0-indexed in arrays and component state and 1-indexed in `getLifeArea()`, `interpretAreaYear()` and `describeYearPlanet()`. `interpretCycleYear()` hides the conversion when reading a calendar year; the wheel and the timeline still convert by hand.

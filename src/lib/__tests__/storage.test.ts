@@ -198,11 +198,12 @@ describe("readStoredBirthDate", () => {
     expect(readStoredBirthDate()).toEqual({ day: 1, month: 1, year: 1900 });
   });
 
-  it("accepts boundary year 2100", () => {
+  it("returns null for a birth date in the future", () => {
+    // The last supported year, which the form would not accept until then
     localStorageMock.getItem.mockReturnValueOnce(
       JSON.stringify({ day: 1, month: 1, year: 2100 })
     );
-    expect(readStoredBirthDate()).toEqual({ day: 1, month: 1, year: 2100 });
+    expect(readStoredBirthDate()).toBeNull();
   });
 
   it("accepts Dec 31 boundary date", () => {

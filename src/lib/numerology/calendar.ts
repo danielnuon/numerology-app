@@ -2,8 +2,20 @@
  * Calendar Helpers
  *
  * Supported date range and calendar-validity checks shared by form
- * validation, share-URL decoding and localStorage restore.
+ * validation, share-URL decoding and localStorage restore, and the month
+ * names every date on the page is written with.
  */
+
+/** English month names, indexed by Gregorian month minus one. */
+export const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+] as const;
+
+/** A date in the American order used across the site, e.g. "July 24, 1997". */
+export function formatDate(year: number, month: number, day: number): string {
+  return `${MONTH_NAMES[month - 1]} ${day}, ${year}`;
+}
 
 /**
  * Earliest and latest supported years (inclusive).

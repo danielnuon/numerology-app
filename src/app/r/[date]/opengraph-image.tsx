@@ -6,8 +6,7 @@ import {
 } from "@/lib/numerology/url-encoding";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretTotal, interpretYear } from "@/lib/numerology/interpretation";
-import { getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
-import { getActiveYear, getLifeArea } from "@/lib/numerology/year-lookup";
+import { getActiveYear, getCycleIndex, getLifeArea } from "@/lib/numerology/year-lookup";
 import { OG_COLORS, OG_SITE_LABEL, threadFill, threadOffset, threadedOrb } from "@/lib/og-theme";
 import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
 import GenericOgImage from "../../opengraph-image";
@@ -37,9 +36,8 @@ export default async function OgImage({ params }: Props) {
   const totalInterp = interpretTotal(result.totalScore);
 
   // The ringed orb: the cycle year this person is in today.
-  const currentYear = new Date().getFullYear();
-  const activeYear = getActiveYear(currentYear, decoded.month, decoded.day);
-  const litColumn = getCurrentYearColumn(decoded.year, currentYear, decoded.month, decoded.day);
+  const activeYear = getActiveYear(new Date().getFullYear(), decoded.month, decoded.day);
+  const litColumn = getCycleIndex(decoded.year, activeYear);
   const litInterp = interpretYear(result.cycle[litColumn]);
   const litArea = getLifeArea(litColumn + 1);
   const animal = result.birthData.zodiacAnimal;

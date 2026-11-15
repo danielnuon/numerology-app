@@ -22,6 +22,7 @@ import {
   computeCycleFromBirthDate,
   type CycleResultWithYear,
 } from "@/lib/numerology/derive";
+import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
 import { isRealCalendarDate, isSupportedYear } from "@/lib/numerology/calendar";
 import { markUpdateNoticeSeen, saveBirthDate } from "@/lib/storage";
 import { cleanPersonName, MAX_PERSON_NAME_LENGTH } from "@/lib/numerology/url-encoding";
@@ -29,17 +30,6 @@ import type { NewYearRule } from "@/lib/numerology/zodiac";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { NewYearToggle } from "@/components/new-year-toggle";
 import { Reveal, useLastPresent } from "@/components/ui/reveal";
-
-const WEEKDAY_NAMES = [
-  "", // 1-indexed padding
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 
 /** Whose date the form takes: the visitor's own, or a partner's for a comparison. */
 export type BirthDataFormMode = "primary" | "partner";
@@ -416,7 +406,7 @@ export function BirthDataForm({
                 <span>
                   Born on a{" "}
                   <span className="font-display text-base text-gold-deep">
-                    {WEEKDAY_NAMES[shownDerived.weekday]}
+                    {DAY_PLANETS[shownDerived.weekday].day}
                   </span>
                 </span>
               </span>

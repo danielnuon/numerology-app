@@ -16,7 +16,7 @@ import {
 import { buildDayRow, type Weekday } from "./calculate";
 import { DAY_PLANETS, NO_DAY_PLANET_NOTE, type DayPlanet } from "./day-planet-data";
 import { AREA_READINGS } from "./life-area-data";
-import { getLifeArea } from "./year-lookup";
+import { getCycleIndex, getLifeArea, getYearNumber } from "./year-lookup";
 
 /** Interpretation result for a single year's cycle number. */
 export interface YearInterpretation {
@@ -92,6 +92,37 @@ export function interpretAreaYear(
   const area = getLifeArea(column);
   const year = interpretYear(cycleNumber);
   return { ...year, area, reading: AREA_READINGS[column][year.tier] };
+}
+
+/** One calendar year of a person's cycle, read in full. */
+export interface CycleYearInterpretation extends AreaYearInterpretation {
+  /** The calendar year that was read. */
+  year: number;
+  /** 1-indexed position of the year in the cycle (1-12), which sets its life area. */
+  column: number;
+  /** The cycle number for the year (0-11). */
+  cycleNumber: number;
+}
+
+/**
+ * Reads one calendar year of a person's cycle: finds the year's position
+ * and number, then reads them together like interpretAreaYear. Every
+ * surface that reads a year (the year card, the share text, the link
+ * preview) goes through this, so they cannot disagree.
+ *
+ * @param cycle - The person's 12-number cycle
+ * @param birthYear - The birth year, which anchors the cycle
+ * @param year - The calendar year to read (see getActiveYear for "this year")
+ * @throws If the cycle is not 12 long or a year is outside the supported range
+ */
+export function interpretCycleYear(
+  cycle: number[],
+  birthYear: number,
+  year: number
+): CycleYearInterpretation {
+  const column = getCycleIndex(birthYear, year) + 1;
+  const cycleNumber = getYearNumber(cycle, birthYear, year);
+  return { ...interpretAreaYear(column, cycleNumber), year, column, cycleNumber };
 }
 
 /**
