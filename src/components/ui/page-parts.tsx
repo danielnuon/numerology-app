@@ -3,7 +3,7 @@
  * heritage, How your cycle is made, What the numbers mean): the page shell,
  * a titled section, a pull quote, a row of twelve number cells, and the links
  * between the pages. The woven flame is the pages' ornament: it follows the
- * reader (FollowFlame), draws each section's heading thread, and unweaves
+ * reader as a Back to top button (FollowFlame), draws each section's heading thread, and unweaves
  * into the dividers (WovenDivider in SectionDivider).
  */
 
@@ -26,8 +26,8 @@ export const HOUSEHOLD_SECTION_ID = "household";
  * Page shell: the Solini wordmark linking home, then a lit title. The page
  * arrives in order (`.page-arrive` in globals.css): the flame travels in from
  * the last page, the title gathers in, then each block rises after the one
- * above it. The flame beside the wordmark then follows the reader down the
- * page (FollowFlame).
+ * above it. Once the flame beside the wordmark scrolls away, it waits in the
+ * corner as a Back to top button (FollowFlame).
  */
 export function InfoPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (

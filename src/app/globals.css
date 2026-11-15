@@ -1105,12 +1105,40 @@ button:not(:disabled),
   background: var(--color-gold);
 }
 
-/* Follow flame: lifts off the mark beside "Solini" (--from-x and --from-y,
- * measured once) and settles in the bottom right corner over the first
- * 160px of scroll, while a disc of glass gathers behind it. Each thread then
- * lights in turn, base to tip, across the page's scroll. */
+/* Follow flame: a Back to top button in the bottom right corner, the woven
+ * flame on a disc of glass (FollowFlame). It arrives once the mark beside
+ * "Solini" has scrolled off the top, rising 8px as it fades in, the shape of
+ * every entrance, and leaves quickly the same way when the mark comes back.
+ * These are transitions on a state, not a scroll timeline, so they ease the
+ * same however fast the page moves and turn back smoothly midway. Each
+ * thread lights in turn, base to tip, across the page's scroll. */
 .follow-flame {
-  display: none;
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  opacity: 0;
+  translate: 0 8px;
+  pointer-events: none;
+  transition:
+    opacity var(--duration-quick) var(--ease-exit),
+    translate var(--duration-quick) var(--ease-exit);
+}
+.follow-flame[data-shown] {
+  opacity: 1;
+  translate: none;
+  pointer-events: auto;
+  transition:
+    opacity var(--duration-gentle) var(--ease-enter),
+    translate var(--duration-gentle) var(--ease-enter);
+}
+.follow-press {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 .follow-disc {
   position: absolute;
@@ -1121,23 +1149,43 @@ button:not(:disabled),
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: var(--shadow-raised);
+  transition: border-color var(--duration-quick) var(--ease-standard);
 }
+@media (hover: hover) {
+  .follow-flame:hover .follow-disc {
+    border-color: var(--color-gold);
+  }
+}
+/* The same 24px as the mark beside "Solini", so the two trade places on a
+ * page change without changing size. */
 .follow-mark {
   position: absolute;
-  inset: 8px;
-  overflow: visible;
+  inset: 10px;
 }
-@keyframes follow-lift {
-  from { transform: translate(var(--from-x), var(--from-y)); }
-  to { transform: none; }
-}
-@keyframes follow-disc {
-  from { opacity: 0; transform: scale(0.6); }
-  to { opacity: 1; transform: none; }
+.follow-thread,
+.follow-thread-base {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--color-gold-deep);
 }
 @keyframes follow-light {
   from { opacity: 0.6; }
   to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .follow-flame,
+  .follow-flame[data-shown] {
+    translate: none;
+    transition: none;
+  }
+}
+/* On a page change the flame travels from whichever one is showing: while
+ * the follow flame is out, it takes the shared name from the header mark. */
+html:has(.follow-flame[data-shown]) .flame-anchor {
+  view-transition-name: none;
+}
+.follow-flame[data-shown] .follow-mark {
+  view-transition-name: solini-flame;
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
@@ -1160,42 +1208,9 @@ button:not(:disabled),
       animation-timeline: --heading;
       animation-range: entry 0% cover 14%;
     }
-    .follow-flame[data-ready] {
-      display: block;
-      position: fixed;
-      right: max(1rem, env(safe-area-inset-right));
-      bottom: max(1rem, env(safe-area-inset-bottom));
-      z-index: 10;
-      width: 40px;
-      height: 40px;
-      pointer-events: none;
-    }
-    .follow-mark {
-      animation: follow-lift var(--ease-standard) both;
-      animation-timeline: scroll(root block);
-      animation-range: 0px 160px;
-    }
-    .follow-disc {
-      animation: follow-disc linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 60px 160px;
-    }
     .follow-thread {
       animation: follow-light linear both;
       animation-timeline: scroll(root block);
-    }
-    /* The follow flame starts exactly over the mark beside "Solini", so that
-     * mark steps aside while it's there. */
-    html:has(.follow-flame[data-ready]) .info-mark {
-      opacity: 0;
-    }
-    /* On a page change the flame travels from whichever one is showing: the
-     * follow flame takes the shared name from the page's header mark. */
-    html:has(.follow-flame[data-ready]) .flame-anchor {
-      view-transition-name: none;
-    }
-    .follow-flame[data-ready] .follow-mark {
-      view-transition-name: solini-flame;
     }
   }
 }

@@ -114,7 +114,7 @@ export function threadSway(i: number) {
 }
 
 /** Where a thread sits in the mark, as fractions of the 64-unit square. */
-function threadBox({ x, y, width }: MarkThread): React.CSSProperties {
+export function threadBox({ x, y, width }: MarkThread): React.CSSProperties {
   const percent = (units: number) => `${((units / 64) * 100).toFixed(3)}%`;
   return { left: percent(x), top: percent(y), width: percent(width), height: percent(MARK_THREAD_HEIGHT) };
 }
