@@ -11,7 +11,7 @@
  * worked example from the system spec.
  */
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import {
   HOUSEHOLD_SECTION_ID,
@@ -22,7 +22,11 @@ import {
   TOTAL_SCORE_SECTION_ID,
 } from "@/components/ui/page-parts";
 import { SectionDivider } from "@/components/ui/section-divider";
-import { computeCycleFromBirthDate, validateBirthDate } from "@/lib/numerology/derive";
+import { formatDate, MONTH_NAMES } from "@/lib/numerology/calendar";
+import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
+import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
+import { readingQuery, type DecodedShare } from "@/lib/numerology/url-encoding";
+import { useIsHydrated } from "@/lib/use-is-hydrated";
 import { INTERACTION_TEXT, MAX_COMPARED_PEOPLE, STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { peopleCountWord } from "@/lib/site-copy";
 import { interpretTotal } from "@/lib/numerology/interpretation";
@@ -30,22 +34,13 @@ import { getLifeArea } from "@/lib/numerology/year-lookup";
 import { DEFAULT_NEW_YEAR_RULE, type NewYearRule } from "@/lib/numerology/zodiac";
 import { readStoredBirthDate, readStoredNewYearRule } from "@/lib/storage";
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const RULE_NAMES: Record<NewYearRule, string> = { khmer: "Khmer New Year", chinese: "Chinese New Year" };
 
 /** The worked example from the system spec: Thursday, July 24, 1997. */
 export const EXAMPLE_DATE: WalkthroughDate = { year: 1997, month: 7, day: 24, rule: DEFAULT_NEW_YEAR_RULE };
 
-export interface WalkthroughDate {
-  year: number;
-  month: number;
-  day: number;
-  rule: NewYearRule;
-}
+/** The birth date and New Year rule the walkthrough works out. */
+export type WalkthroughDate = DecodedShare;
 
 /**
  * Every total a cycle can have. The rows always sum to 184 and 9, 10 or 11
@@ -53,18 +48,10 @@ export interface WalkthroughDate {
  */
 const POSSIBLE_TOTALS = [52, 64, 76] as const;
 
-const subscribeToNothing = () => () => {};
-
 /** The visitor's saved birth date and New Year choice, or null. Client only. */
 function storedDate(): WalkthroughDate | null {
   const stored = readStoredBirthDate();
-  if (!stored || validateBirthDate(stored.year, stored.month, stored.day).length > 0) return null;
-  return { ...stored, rule: readStoredNewYearRule() ?? DEFAULT_NEW_YEAR_RULE };
-}
-
-/** "July 24, 1997", the American order used everywhere else */
-function formatDate({ year, month, day }: WalkthroughDate): string {
-  return `${MONTH_NAMES[month - 1]} ${day}, ${year}`;
+  return stored && { ...stored, rule: readStoredNewYearRule() ?? DEFAULT_NEW_YEAR_RULE };
 }
 
 interface Props {
@@ -74,7 +61,7 @@ interface Props {
 
 export function CycleWalkthrough({ date }: Props) {
   // After hydration, a visitor with no date in the link sees their saved one.
-  const isHydrated = useSyncExternalStore(subscribeToNothing, () => true, () => false);
+  const isHydrated = useIsHydrated();
   const saved = useMemo(() => (isHydrated && !date ? storedDate() : null), [isHydrated, date]);
   const shown = date ?? saved ?? EXAMPLE_DATE;
   const isExample = !date && !saved;
@@ -85,14 +72,14 @@ export function CycleWalkthrough({ date }: Props) {
   const dayRow = Array.from({ length: 12 }, (_, i) => rows.day[i] ?? null);
   const readingHref = isExample
     ? "/"
-    : `/?day=${shown.day}&month=${shown.month}&year=${shown.year}&ny=${shown.rule}`;
+    : `/?${readingQuery(shown)}`;
 
   return (
     <>
       <p className="mt-4 max-w-[520px] text-center text-ink-light leading-relaxed">
         {isExample ? (
           <>
-            This walks through an example birth date, {formatDate(shown)}.{" "}
+            This walks through an example birth date, {formatDate(shown.year, shown.month, shown.day)}.{" "}
             <Link href="/" className={MORE_LINK}>
               Enter yours
             </Link>{" "}
@@ -100,7 +87,7 @@ export function CycleWalkthrough({ date }: Props) {
           </>
         ) : (
           <>
-            Here is how the reading for {formatDate(shown)} is worked out.
+            Here is how the reading for {formatDate(shown.year, shown.month, shown.day)} is worked out.
             Every step can be checked by hand.
           </>
         )}
@@ -126,7 +113,7 @@ export function CycleWalkthrough({ date }: Props) {
           <li>
             <span className="font-sans text-xl font-medium text-gold-deep tabular-nums">{birthData.weekday}</span>
             <span className="text-ink"> · Weekday.</span> Born on a{" "}
-            {WEEKDAY_NAMES[birthData.weekday - 1]}, number {birthData.weekday}{" "}
+            {DAY_PLANETS[birthData.weekday].day}, number {birthData.weekday}{" "}
             counting from Sunday as 1.
           </li>
         </ul>
@@ -143,7 +130,7 @@ export function CycleWalkthrough({ date }: Props) {
         <div className="glass rounded-2xl p-3 min-[360px]:p-4 sm:p-6">
           <NumberRow label="Month" values={rows.month} />
           <NumberRow label={`Animal (${birthData.zodiacAnimal})`} values={rows.zodiac} />
-          <NumberRow label={`Weekday (${WEEKDAY_NAMES[birthData.weekday - 1]})`} values={dayRow} />
+          <NumberRow label={`Weekday (${DAY_PLANETS[birthData.weekday].day})`} values={dayRow} />
         </div>
       </Section>
 

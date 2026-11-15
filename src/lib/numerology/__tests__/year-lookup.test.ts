@@ -1,7 +1,5 @@
 import {
   LIFE_AREA_MAP,
-  MIN_YEAR,
-  MAX_YEAR,
   getCycleIndex,
   getYearNumber,
   getLifeArea,
@@ -9,6 +7,7 @@ import {
   getMonthOfActiveYear,
   getNextReadingStart,
 } from "../year-lookup";
+import { isSupportedYear } from "../calendar";
 
 /** A simple ascending cycle for deterministic testing. */
 const CYCLE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -59,7 +58,7 @@ describe("getCycleIndex", () => {
   it("always returns a value between 0 and 11", () => {
     for (let offset = -50; offset <= 50; offset++) {
       const target = 2000 + offset;
-      if (target < MIN_YEAR || target > MAX_YEAR) continue;
+      if (!isSupportedYear(target)) continue;
       const index = getCycleIndex(2000, target);
       expect(index).toBeGreaterThanOrEqual(0);
       expect(index).toBeLessThanOrEqual(11);

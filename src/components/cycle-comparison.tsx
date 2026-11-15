@@ -154,14 +154,14 @@ function CompareCard({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * What each interaction word means and how the totals are read, closed until
- * asked for, at the end of the comparison where readers look for it.
+ * A closed-by-default section at the foot of the comparison: a full-width
+ * button with a chevron that opens the content under it.
  */
-function HowToRead({ isGroup }: { isGroup: boolean }) {
+function Disclosure({ label, className, children }: { label: string; className: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   return (
-    <div className="mt-2 border-t border-border-light pt-1">
+    <div className={`${className} border-t border-border-light pt-1`}>
       <button
         type="button"
         aria-expanded={open}
@@ -169,7 +169,7 @@ function HowToRead({ isGroup }: { isGroup: boolean }) {
         onClick={() => setOpen((o) => !o)}
         className="pressable flex min-h-[44px] w-full items-center justify-between gap-2 text-left text-sm text-ink-light hover:text-ink active:scale-[0.97]"
       >
-        How to read this
+        {label}
         <svg
           aria-hidden="true"
           viewBox="0 0 16 16"
@@ -184,28 +184,40 @@ function HowToRead({ isGroup }: { isGroup: boolean }) {
         </svg>
       </button>
       <Reveal open={open} id={panelId} className="pb-2">
-        <dl className="grid gap-1.5 text-sm">
-          {INTERACTION_ORDER.map((interaction) => (
-            <div key={interaction} className="flex gap-2">
-              <dt className="shrink-0">
-                <InteractionLabel interaction={interaction} />
-              </dt>
-              <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-3 flex flex-col items-start gap-2 text-sm">
-          <Link href={`/how-it-works#${TOTAL_SCORE_SECTION_ID}`} className={MORE_LINK}>
-            How the totals are read
-          </Link>
-          {isGroup && (
-            <Link href={`/how-it-works#${HOUSEHOLD_SECTION_ID}`} className={MORE_LINK}>
-              How three or more people are read
-            </Link>
-          )}
-        </p>
+        {children}
       </Reveal>
     </div>
+  );
+}
+
+/**
+ * What each interaction word means and how the totals are read, closed until
+ * asked for, at the end of the comparison where readers look for it.
+ */
+function HowToRead({ isGroup }: { isGroup: boolean }) {
+  return (
+    <Disclosure label="How to read this" className="mt-2">
+      <dl className="grid gap-1.5 text-sm">
+        {INTERACTION_ORDER.map((interaction) => (
+          <div key={interaction} className="flex gap-2">
+            <dt className="shrink-0">
+              <InteractionLabel interaction={interaction} />
+            </dt>
+            <dd className="text-ink-light">{INTERACTION_TEXT[interaction].meaning}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-3 flex flex-col items-start gap-2 text-sm">
+        <Link href={`/how-it-works#${TOTAL_SCORE_SECTION_ID}`} className={MORE_LINK}>
+          How the totals are read
+        </Link>
+        {isGroup && (
+          <Link href={`/how-it-works#${HOUSEHOLD_SECTION_ID}`} className={MORE_LINK}>
+            How three or more people are read
+          </Link>
+        )}
+      </p>
+    </Disclosure>
   );
 }
 
@@ -215,47 +227,22 @@ function HowToRead({ isGroup }: { isGroup: boolean }) {
  * since for two the pair is the whole comparison.
  */
 function PairByPair({ year, numbers, terms }: { year: number; numbers: (number | null)[]; terms: string[] }) {
-  const [open, setOpen] = useState(false);
-  const panelId = useId();
   const pairs = pairInteractions(numbers);
   if (pairs.length === 0) return null;
   return (
-    <div className="mt-4 border-t border-border-light pt-1">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((o) => !o)}
-        className="pressable flex min-h-[44px] w-full items-center justify-between gap-2 text-left text-sm text-ink-light hover:text-ink active:scale-[0.97]"
-      >
-        Pair by pair, {year}
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`size-4 transition-transform duration-[var(--duration-standard)] ease-standard ${open ? "rotate-180" : ""}`}
-        >
-          <path d="M3 6l5 5 5-5" />
-        </svg>
-      </button>
-      <Reveal open={open} id={panelId} className="pb-2">
-        <p className="text-sm text-ink-light">Khmer numerology&apos;s own rule, two people at a time.</p>
-        <ul className="mt-2 grid gap-1.5 text-sm">
-          {pairs.map(({ first, second, interaction }) => (
-            <li key={`${first}-${second}`} className="flex flex-wrap justify-between gap-x-3">
-              <span className="text-ink">
-                {terms[first]} &amp; {terms[second]}
-              </span>
-              <InteractionLabel interaction={interaction} />
-            </li>
-          ))}
-        </ul>
-      </Reveal>
-    </div>
+    <Disclosure label={`Pair by pair, ${year}`} className="mt-4">
+      <p className="text-sm text-ink-light">Khmer numerology&apos;s own rule, two people at a time.</p>
+      <ul className="mt-2 grid gap-1.5 text-sm">
+        {pairs.map(({ first, second, interaction }) => (
+          <li key={`${first}-${second}`} className="flex flex-wrap justify-between gap-x-3">
+            <span className="text-ink">
+              {terms[first]} &amp; {terms[second]}
+            </span>
+            <InteractionLabel interaction={interaction} />
+          </li>
+        ))}
+      </ul>
+    </Disclosure>
   );
 }
 

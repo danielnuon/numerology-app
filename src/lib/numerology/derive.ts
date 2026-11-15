@@ -21,10 +21,6 @@ import {
   type ZodiacAnimal,
 } from "./zodiac";
 
-/** The year range supported by the New Year lookup tables. */
-export const BIRTH_YEAR_MIN = SUPPORTED_YEAR_MIN;
-export const BIRTH_YEAR_MAX = SUPPORTED_YEAR_MAX;
-
 /** All data derived from a birth date. */
 export interface BirthData {
   /** Gregorian birth month (1-12), passed through unchanged. */
@@ -65,7 +61,7 @@ export function validateBirthDate(
   if (!isSupportedYear(year)) {
     errors.push({
       field: "year",
-      message: `Enter a year from ${BIRTH_YEAR_MIN} to ${BIRTH_YEAR_MAX}.`,
+      message: `Enter a year from ${SUPPORTED_YEAR_MIN} to ${SUPPORTED_YEAR_MAX}.`,
     });
   }
 

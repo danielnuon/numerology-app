@@ -12,19 +12,10 @@
  */
 
 import type { Weekday } from "@/lib/numerology/calculate";
-import { describeYearPlanet, interpretAreaYear } from "@/lib/numerology/interpretation";
+import { MONTH_NAMES } from "@/lib/numerology/calendar";
+import { describeYearPlanet, interpretCycleYear } from "@/lib/numerology/interpretation";
 import { TierIcon } from "@/components/ui/tier-icon";
-import {
-  getActiveYear,
-  getCycleIndex,
-  getNextReadingStart,
-  getYearNumber,
-} from "@/lib/numerology/year-lookup";
-
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { getActiveYear, getNextReadingStart } from "@/lib/numerology/year-lookup";
 
 interface Props {
   /** The computed 12-number cycle array. */
@@ -44,16 +35,13 @@ interface Props {
 export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, isShared = false }: Props) {
   const currentYear = new Date().getFullYear();
   const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
-  const cycleNumber = getYearNumber(cycle, birthYear, activeYear);
-  const cycleIndex = getCycleIndex(birthYear, activeYear);
-  const interpretation = interpretAreaYear(cycleIndex + 1, cycleNumber); // columns are 1-indexed
-  const lifeArea = interpretation.area;
+  const interpretation = interpretCycleYear(cycle, birthYear, activeYear);
+  const { cycleNumber, area: lifeArea } = interpretation;
   const possessive = isShared ? "Their" : "Your";
 
   // The next reading, so the visitor knows when to come back
   const next = getNextReadingStart(activeYear, birthMonth, birthDay);
-  const nextNumber = getYearNumber(cycle, birthYear, next.year);
-  const nextInterpretation = interpretAreaYear(getCycleIndex(birthYear, next.year) + 1, nextNumber);
+  const nextInterpretation = interpretCycleYear(cycle, birthYear, next.year);
 
   return (
     // A lit panel inside the reading card, not a card of its own
@@ -80,7 +68,7 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, 
 
       <div className="mx-auto mt-5 max-w-[42ch] space-y-3 text-left text-base leading-relaxed text-ink-light">
         <p>{interpretation.reading}</p>
-        <p>{describeYearPlanet(weekday, cycleIndex + 1)}</p>
+        <p>{describeYearPlanet(weekday, interpretation.column)}</p>
         <p className="thread-above italic">{interpretation.guidance}</p>
       </div>
 
@@ -89,7 +77,7 @@ export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, 
           {possessive} {next.year} reading begins on {MONTH_NAMES[next.month - 1]} {next.day}.
         </p>
         <p className="mt-1 inline-flex flex-wrap items-center justify-center gap-x-1.5 text-ink">
-          <span className="tabular-nums">{nextNumber}</span>
+          <span className="tabular-nums">{nextInterpretation.cycleNumber}</span>
           <TierIcon tier={nextInterpretation.tier} className="size-3.5" />
           <span>
             {nextInterpretation.label} · {nextInterpretation.area}

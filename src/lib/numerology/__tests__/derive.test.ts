@@ -3,9 +3,8 @@ import {
   deriveBirthData,
   validateBirthDate,
   computeCycleFromBirthDate,
-  BIRTH_YEAR_MIN,
-  BIRTH_YEAR_MAX,
 } from "../derive";
+import { SUPPORTED_YEAR_MAX, SUPPORTED_YEAR_MIN } from "../calendar";
 import { computeCycle } from "../calculate";
 
 // ---------------------------------------------------------------------------
@@ -142,7 +141,7 @@ describe("validateBirthDate", () => {
     expect(validateBirthDate(1900, 1, 1, today)).toHaveLength(0);
     // 2100 is in the past relative to our fixed today? No — fix: 2100 > 2026 so future
     // Only test 1900 for non-future boundary
-    expect(validateBirthDate(BIRTH_YEAR_MIN, 6, 15, today)).toHaveLength(0);
+    expect(validateBirthDate(SUPPORTED_YEAR_MIN, 6, 15, today)).toHaveLength(0);
   });
 
   it("rejects invalid month 0", () => {
@@ -202,9 +201,9 @@ describe("validateBirthDate", () => {
     expect(dayError[0].field).toBe("day");
   });
 
-  it("BIRTH_YEAR_MIN is 1900 and BIRTH_YEAR_MAX is 2100", () => {
-    expect(BIRTH_YEAR_MIN).toBe(1900);
-    expect(BIRTH_YEAR_MAX).toBe(2100);
+  it("supports birth years from 1900 to 2100", () => {
+    expect(SUPPORTED_YEAR_MIN).toBe(1900);
+    expect(SUPPORTED_YEAR_MAX).toBe(2100);
   });
 });
 

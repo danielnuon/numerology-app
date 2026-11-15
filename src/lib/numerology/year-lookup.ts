@@ -32,12 +32,6 @@ export const LIFE_AREA_MAP: Record<number, string> = {
   12: "Protection",
 };
 
-/** Minimum supported year (inclusive). */
-export const MIN_YEAR = SUPPORTED_YEAR_MIN;
-
-/** Maximum supported year (inclusive). */
-export const MAX_YEAR = SUPPORTED_YEAR_MAX;
-
 /**
  * Returns the 0-based cycle index for a target year relative to a birth year.
  * The result is always in the range [0, 11].
@@ -167,7 +161,7 @@ export function getMonthOfActiveYear(birthMonth: number, birthDay: number, today
 function validateYear(year: number, label: string): void {
   if (!isSupportedYear(year)) {
     throw new Error(
-      `Invalid ${label}: ${year}. Must be an integer between ${MIN_YEAR} and ${MAX_YEAR}.`
+      `Invalid ${label}: ${year}. Must be an integer between ${SUPPORTED_YEAR_MIN} and ${SUPPORTED_YEAR_MAX}.`
     );
   }
 }

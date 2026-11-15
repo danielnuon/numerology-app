@@ -32,7 +32,7 @@ import type { Weekday } from "@/lib/numerology/calculate";
 import { interpretYear } from "@/lib/numerology/interpretation";
 import { getActiveYear, getCycleIndex, getLifeArea, getMonthOfActiveYear } from "@/lib/numerology/year-lookup";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
-import { getTierTextClass, getCurrentYearColumn } from "@/lib/numerology/chart-helpers";
+import { getTierTextClass } from "@/lib/numerology/chart-helpers";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
 import { DetailPanel } from "./detail-panel";
 import { TotalScoreCard } from "./total-score-card";
@@ -153,7 +153,7 @@ export function CycleChart({
 }: CycleChartProps) {
   const currentYear = new Date().getFullYear();
   const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
-  const currentColumn = getCurrentYearColumn(birthYear, currentYear, birthMonth, birthDay);
+  const currentColumn = getCycleIndex(birthYear, activeYear);
   const monthOfYear = getMonthOfActiveYear(birthMonth, birthDay);
   const selectedIndex = getCycleIndex(birthYear, selectedYear);
   // The twelve calendar years of the cycle that holds the selected year

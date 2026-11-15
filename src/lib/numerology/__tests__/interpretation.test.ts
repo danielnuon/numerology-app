@@ -1,4 +1,11 @@
-import { describeYearPlanet, getYearPlanet, interpretAreaYear, interpretYear, interpretTotal } from "../interpretation";
+import {
+  describeYearPlanet,
+  getYearPlanet,
+  interpretAreaYear,
+  interpretCycleYear,
+  interpretYear,
+  interpretTotal,
+} from "../interpretation";
 import { DAY_PLANETS, NO_DAY_PLANET_NOTE } from "../day-planet-data";
 import { YEAR_TIERS, TOTAL_TIERS } from "../interpretation-data";
 import { AREA_READINGS } from "../life-area-data";
@@ -233,5 +240,29 @@ describe("describeYearPlanet", () => {
 
   it("says no planet stands over columns 8-12", () => {
     expect(describeYearPlanet(5, 8)).toBe(NO_DAY_PLANET_NOTE);
+  });
+});
+
+describe("interpretCycleYear", () => {
+  // The worked example: born 1997-07-24
+  const CYCLE = [3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8];
+
+  it("reads the birth year as the first position, Self", () => {
+    const reading = interpretCycleYear(CYCLE, 1997, 1997);
+    expect(reading).toMatchObject({ year: 1997, column: 1, cycleNumber: 3, area: "Self", tier: "weak" });
+  });
+
+  it("matches interpretAreaYear for the year's position and number", () => {
+    // 2026 is 29 years on: position 6 (Allies), number 11
+    const reading = interpretCycleYear(CYCLE, 1997, 2026);
+    expect(reading).toEqual({ ...interpretAreaYear(6, 11), year: 2026, column: 6, cycleNumber: 11 });
+  });
+
+  it("keeps zero as its own reading", () => {
+    expect(interpretCycleYear(CYCLE, 1997, 2004)).toMatchObject({ column: 8, cycleNumber: 0, tier: "zero" });
+  });
+
+  it("throws for a cycle that is not 12 long", () => {
+    expect(() => interpretCycleYear([1, 2, 3], 1997, 2026)).toThrow();
   });
 });
