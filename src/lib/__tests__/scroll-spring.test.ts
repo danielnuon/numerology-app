@@ -1,4 +1,4 @@
-import { SCROLL_WEIGHT, stepScrollSpring, type ScrollSpring } from "@/lib/motion";
+import { SCROLL_WEIGHT, cardDepths, stepScrollSpring, type ScrollSpring } from "@/lib/motion";
 
 function run(spring: ScrollSpring, target: number, seconds: number) {
   let trail = 0;
@@ -38,5 +38,22 @@ describe("stepScrollSpring", () => {
     const trail = stepScrollSpring(spring, 100, 3);
     expect(Number.isFinite(trail)).toBe(true);
     expect(Math.abs(trail)).toBeLessThan(100);
+  });
+});
+
+describe("cardDepths", () => {
+  it("gives every third card a little more depth", () => {
+    const depthOf = cardDepths();
+    const cards = [{}, {}, {}, {}];
+    expect(cards.map(depthOf)).toEqual([1, 1.25, 1.5, 1]);
+  });
+
+  it("keeps a card's depth as other cards come and go, so it never jumps mid-scroll", () => {
+    const depthOf = cardDepths();
+    const [first, second, third] = [{}, {}, {}];
+    const before = [first, second, third].map(depthOf);
+    // The first card scrolls off screen and a new one scrolls on
+    const after = [second, third, {}].map(depthOf);
+    expect(after.slice(0, 2)).toEqual(before.slice(1));
   });
 });

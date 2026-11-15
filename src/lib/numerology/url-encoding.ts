@@ -16,7 +16,7 @@
  * The computed cycle is never stored — it is always recomputed server-side.
  */
 
-import { isRealCalendarDate, isSupportedYear } from "./calendar";
+import { latestDayAnywhere } from "./calendar";
 import { MAX_COMPARED_PEOPLE } from "./compatibility";
 import { validateBirthDate } from "./derive";
 import { DEFAULT_NEW_YEAR_RULE, isNewYearRule, type NewYearRule } from "./zodiac";
@@ -53,11 +53,12 @@ export function encodeBirthDate(
 /**
  * Decodes a birth date from a URL path segment.
  * Returns null if the date is invalid, malformed, out of range, or in the
- * future. "Future" allows a day's grace, since the server's date can run a
- * day behind the sharer's (UTC against UTC+14).
+ * future. "Future" means later than the latest date anywhere on Earth,
+ * since the server's date can run a day behind the sharer's (UTC against
+ * UTC+14).
  *
  * @param dateStr - Date string from URL path, e.g. "1997-07-24"
- * @param today - The current date, for tests
+ * @param today - The current time, for tests
  * @returns Decoded birth date or null if invalid
  */
 export function decodeBirthDate(dateStr: string, today: Date = new Date()): DecodedBirthDate | null {
@@ -71,14 +72,7 @@ export function decodeBirthDate(dateStr: string, today: Date = new Date()): Deco
   const month = parseInt(monthStr, 10);
   const day = parseInt(dayStr, 10);
 
-  if (!isSupportedYear(year) || month < 1 || month > 12 || day < 1 || day > 31) {
-    return null;
-  }
-  if (!isRealCalendarDate(year, month, day)) {
-    return null;
-  }
-  const latest = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1);
-  if (Date.UTC(year, month - 1, day) > latest) {
+  if (validateBirthDate(year, month, day, latestDayAnywhere(today)).length > 0) {
     return null;
   }
 
@@ -108,13 +102,15 @@ export function encodeShareSegment(
 /**
  * Decodes a share path segment into a birth date and New Year rule.
  * Returns null if the date part is invalid or the suffix is unknown.
+ *
+ * @param today - The current time (see decodeBirthDate)
  */
-export function decodeShareSegment(segment: string): DecodedShare | null {
+export function decodeShareSegment(segment: string, today: Date = new Date()): DecodedShare | null {
   const isChinese = segment.endsWith(CHINESE_NEW_YEAR_SUFFIX);
   const dateStr = isChinese
     ? segment.slice(0, -CHINESE_NEW_YEAR_SUFFIX.length)
     : segment;
-  const decoded = decodeBirthDate(dateStr);
+  const decoded = decodeBirthDate(dateStr, today);
   if (!decoded) return null;
   return { ...decoded, rule: isChinese ? "chinese" : "khmer" };
 }
@@ -162,18 +158,26 @@ export function readingQuery({ year, month, day, rule }: DecodedShare): string {
 /**
  * Reads the reading in a page's ?day=&month=&year=(&ny=) values. Returns
  * null unless they name a valid birth date that is not in the future; a
- * missing or unknown rule means the default.
+ * missing or unknown rule means the default. Like decodeBirthDate, "future"
+ * means later than the latest date anywhere on Earth, so a link to a child
+ * born today opens whichever side of midnight the server is on.
+ *
+ * @param now - The current time. A page rendered on the server passes the
+ *   same moment to the browser, so both decode the link alike.
  */
-export function decodeReadingQuery(params: {
-  day?: string;
-  month?: string;
-  year?: string;
-  ny?: string;
-}): DecodedShare | null {
+export function decodeReadingQuery(
+  params: {
+    day?: string;
+    month?: string;
+    year?: string;
+    ny?: string;
+  },
+  now: Date = new Date()
+): DecodedShare | null {
   const year = parseInt(params.year ?? "", 10);
   const month = parseInt(params.month ?? "", 10);
   const day = parseInt(params.day ?? "", 10);
-  if (validateBirthDate(year, month, day).length > 0) return null;
+  if (validateBirthDate(year, month, day, latestDayAnywhere(now)).length > 0) return null;
   return { year, month, day, rule: isNewYearRule(params.ny) ? params.ny : DEFAULT_NEW_YEAR_RULE };
 }
 
@@ -196,7 +200,7 @@ export interface DecodedComparison {
 export function decodeComparisonSegment(segment: string): DecodedComparison | null {
   const parts = segment.replace(/%2B/gi, COMPARISON_SEPARATOR).split(COMPARISON_SEPARATOR);
   if (parts.length < 2 || parts.length > MAX_COMPARED_PEOPLE) return null;
-  const people = parts.map(decodeShareSegment);
+  const people = parts.map((part) => decodeShareSegment(part));
   return people.every((person) => person !== null) ? { people: people as DecodedShare[] } : null;
 }
 

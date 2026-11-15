@@ -61,6 +61,7 @@ import { CycleComparison, type ComparedPerson } from "@/components/cycle-compari
 import { decodeReadingQuery, readingQuery } from "@/lib/numerology/url-encoding";
 import { comparisonFromSearchParams, type HomeSearchParams } from "@/lib/home-params";
 import { useIsHydrated } from "@/lib/use-is-hydrated";
+import { useToday } from "@/lib/use-today";
 import { formatDate } from "@/lib/numerology/calendar";
 import { DAY_PLANETS } from "@/lib/numerology/day-planet-data";
 import { SITE_TAGLINE } from "@/lib/site-copy";
@@ -81,7 +82,7 @@ import {
   markUpdateNoticeSeen,
   type StoredBirthDate,
 } from "@/lib/storage";
-import { getActiveYear, getCycleIndex } from "@/lib/numerology/year-lookup";
+import { activeYearOn, getCycleIndex } from "@/lib/numerology/year-lookup";
 import { interpretCycleYear } from "@/lib/numerology/interpretation";
 import { TIMELINE_YEARS_AHEAD } from "@/components/year-timeline";
 import { FlameAnchor, usePageArrival } from "@/components/ui/flame-anchor";
@@ -116,17 +117,24 @@ function Follows({ children }: { children: React.ReactNode }) {
 type BirthDateParts = StoredBirthDate;
 
 /** A shared comparison's people as the comparison holds them: none of them is the visitor. */
-function sharedPeople(params: HomeSearchParams): { readingName: string | null; others: ComparedPerson[] } {
-  const { readingName, others } = comparisonFromSearchParams(params);
+function sharedPeople(params: HomeSearchParams, now: Date): { readingName: string | null; others: ComparedPerson[] } {
+  const { readingName, others } = comparisonFromSearchParams(params, now);
   return { readingName, others: others.map((person) => ({ ...person, isVisitor: false })) };
 }
 
 interface Props {
   searchParams: HomeSearchParams;
+  /**
+   * When the server rendered the page (`Date.now()`). The first browser
+   * render reads the date from the same moment, so it matches the server's
+   * whatever the visitor's time zone.
+   */
+  renderedAt: number;
 }
 
-export function HomeClient({ searchParams }: Props) {
+export function HomeClient({ searchParams, renderedAt }: Props) {
   const isHydrated = useIsHydrated();
+  const today = useToday(renderedAt);
 
   // Pre-fill initial values from URL search params (set by /r/[date] redirect)
   const { day: prefillDay, month: prefillMonth, year: prefillYear, ny: prefillRule } = searchParams;
@@ -147,7 +155,7 @@ export function HomeClient({ searchParams }: Props) {
     BirthDateParts | null | undefined
   >(() => {
     // A link whose date isn't valid pre-fills the form instead of opening a reading
-    const shared = hasShareParams ? decodeReadingQuery(searchParams) : null;
+    const shared = hasShareParams ? decodeReadingQuery(searchParams, new Date(renderedAt)) : null;
     return shared ? { year: shared.year, month: shared.month, day: shared.day } : undefined;
   });
 
@@ -187,7 +195,7 @@ export function HomeClient({ searchParams }: Props) {
 
   // Everyone compared with the reading, if anyone. Never saved to the browser.
   const [sharedComparison] = useState(() =>
-    hasShareParams ? sharedPeople(searchParams) : { readingName: null, others: [] }
+    hasShareParams ? sharedPeople(searchParams, new Date(renderedAt)) : { readingName: null, others: [] }
   );
   const [comparedPeople, setComparedPeople] = useState<ComparedPerson[]>(sharedComparison.others);
 
@@ -204,10 +212,9 @@ export function HomeClient({ searchParams }: Props) {
   // agree. null means "the active year" until the user picks something.
   const [pickedYear, setPickedYear] = useState<number | null>(null);
 
-
-  const currentYear = new Date().getFullYear();
+  const currentYear = today.getFullYear();
   const activeYear = result
-    ? getActiveYear(currentYear, result.birthData.gregorianMonth, result.birthDay)
+    ? activeYearOn(today, { year: result.birthYear, month: result.birthData.gregorianMonth, day: result.birthDay })
     : currentYear;
   const selectedYear = pickedYear ?? activeYear;
 
@@ -238,6 +245,9 @@ export function HomeClient({ searchParams }: Props) {
     trackEvent("Reading revealed", hasShareParams);
     startTransition(() => {
       addTransitionType("bloom-open");
+      // A shared link's comparison belongs to the reading it came with: its
+      // names and people describe the sharer, not the visitor reading their own.
+      if (hasShareParams && !bloomed) setComparedPeople([]);
       setSessionDate({ year: r.birthYear, month: r.birthData.gregorianMonth, day: r.birthDay });
       setManifestFrom(submitterRef.current);
       setPickedYear(null);
@@ -246,7 +256,7 @@ export function HomeClient({ searchParams }: Props) {
       setReadingView("year");
       setBloomed(true);
     });
-  }, [hasShareParams]);
+  }, [hasShareParams, bloomed]);
 
   // Switching views swaps them in place: the outline glides to the new
   // choice, the old view fades, the card grows or shrinks to the new one and
@@ -546,6 +556,7 @@ export function HomeClient({ searchParams }: Props) {
                     birthYear={result.birthYear}
                     birthMonth={result.birthData.gregorianMonth}
                     birthDay={result.birthDay}
+                    today={today}
                     weekday={result.birthData.weekday}
                     isShared={isShared}
                   />
@@ -570,6 +581,7 @@ export function HomeClient({ searchParams }: Props) {
                     birthYear={result.birthYear}
                     birthMonth={result.birthData.gregorianMonth}
                     birthDay={result.birthDay}
+                    today={today}
                     weekday={result.birthData.weekday}
                     selectedYear={selectedYear}
                     onSelectPillar={handleChartSelectPillar}
@@ -629,7 +641,7 @@ export function HomeClient({ searchParams }: Props) {
               isShared={isShared}
               reading={result}
               readingRule={newYearRule}
-              readingName={sharedComparison.readingName}
+              readingName={isShared ? sharedComparison.readingName : null}
               activeYear={activeYear}
               others={comparedPeople}
               onOthersChange={setComparedPeople}

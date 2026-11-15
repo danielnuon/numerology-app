@@ -15,7 +15,7 @@ import type { Weekday } from "@/lib/numerology/calculate";
 import { MONTH_NAMES } from "@/lib/numerology/calendar";
 import { describeYearPlanet, interpretCycleYear } from "@/lib/numerology/interpretation";
 import { TierIcon } from "@/components/ui/tier-icon";
-import { getActiveYear, getNextReadingStart } from "@/lib/numerology/year-lookup";
+import { activeYearOn, getNextReadingStart } from "@/lib/numerology/year-lookup";
 
 interface Props {
   /** The computed 12-number cycle array. */
@@ -26,15 +26,16 @@ interface Props {
   birthMonth: number;
   /** Birth day (1–31) — used for timing-corrected year. */
   birthDay: number;
+  /** Today, read once for the whole page (see useToday), so every part shows the same year. */
+  today: Date;
   /** Birth weekday (1–7, Sunday=1) — sets which day planet stands over the year. */
   weekday: Weekday;
   /** True for a reading opened from someone else's share link, which reads "Their", not "Your". */
   isShared?: boolean;
 }
 
-export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, weekday, isShared = false }: Props) {
-  const currentYear = new Date().getFullYear();
-  const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
+export function ThisYearCard({ cycle, birthYear, birthMonth, birthDay, today, weekday, isShared = false }: Props) {
+  const activeYear = activeYearOn(today, { year: birthYear, month: birthMonth, day: birthDay });
   const interpretation = interpretCycleYear(cycle, birthYear, activeYear);
   const { cycleNumber, area: lifeArea } = interpretation;
   const possessive = isShared ? "Their" : "Your";

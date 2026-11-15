@@ -7,6 +7,15 @@ type Props = {
 };
 
 /**
+ * The moment of this request. The page is rendered once per request, on the
+ * server, and the browser's first render reads the date from the same moment
+ * so the two agree whatever the visitor's time zone (see useToday).
+ */
+function requestTime(): number {
+  return Date.now();
+}
+
+/**
  * Home page — Server component wrapper.
  * Reads the share URL pre-fill params (?day=24&month=7&year=1997&ny=khmer,
  * plus a shared comparison's ?p= and ?n=, or an older link's
@@ -16,5 +25,6 @@ type Props = {
  * so search engines and link previews see its content, not an empty shell.
  */
 export default async function Home({ searchParams }: Props) {
-  return <HomeClient searchParams={readHomeSearchParams(await searchParams)} />;
+  const params = readHomeSearchParams(await searchParams);
+  return <HomeClient searchParams={params} renderedAt={requestTime()} />;
 }

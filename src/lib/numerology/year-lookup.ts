@@ -127,6 +127,19 @@ export function getActiveYear(
 }
 
 /**
+ * The active year for a birth date on a given day: `getActiveYear`, but
+ * never earlier than the birth year. A shared link may hold a birth date
+ * that is still tomorrow where it is opened (the sharer is a day ahead), and
+ * that reading belongs to the year of birth, not the year before it.
+ *
+ * @param today - The day to read the cycle on
+ * @param birth - The birth date
+ */
+export function activeYearOn(today: Date, birth: { year: number; month: number; day: number }): number {
+  return Math.max(birth.year, getActiveYear(today.getFullYear(), birth.month, birth.day, today));
+}
+
+/**
  * Returns which month of the active year today falls in, from 1 to 12.
  *
  * The year counts from the birthday, like `getActiveYear`, so month 1 runs

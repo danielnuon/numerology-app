@@ -41,19 +41,45 @@ export function isSupportedYear(year: number): boolean {
  * True when year/month/day name a real calendar date (e.g. rejects Feb 30).
  *
  * The Date constructor silently rolls overflowing days into the next month
- * (`new Date(2001, 1, 29)` is March 1), so we build the date and check that
- * every part survived unchanged. Uses the local-time constructor to avoid the
- * UTC shift that ISO-string parsing introduces.
+ * (February 29, 2001 becomes March 1), so we build the date and check that
+ * every part survived unchanged. The check runs in UTC, where every calendar
+ * day exists. A local date would depend on the visitor's time zone: Samoa
+ * skipped December 30, 2011 when it crossed the date line, so a browser
+ * there rolls that day forward too and the date looked invalid.
  */
 export function isRealCalendarDate(
   year: number,
   month: number,
   day: number
 ): boolean {
-  const date = new Date(year, month - 1, day);
+  const date = new Date(Date.UTC(year, month - 1, day));
   return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
   );
+}
+
+/**
+ * Whether one calendar date falls after another. Compares the parts as
+ * numbers, so the answer never depends on a time zone.
+ */
+export function isAfterDay(
+  date: { year: number; month: number; day: number },
+  other: { year: number; month: number; day: number }
+): boolean {
+  const ordinal = (d: { year: number; month: number; day: number }) => d.year * 10000 + d.month * 100 + d.day;
+  return ordinal(date) > ordinal(other);
+}
+
+/**
+ * The latest calendar date it is anywhere on Earth at `now`: the date in
+ * UTC+14, which is at most a day ahead of the server's. A link is checked
+ * against it, because the person who made the link may be a day ahead of
+ * the server that opens it. Returned as a Date whose local parts
+ * (getFullYear, getMonth, getDate) hold that day.
+ */
+export function latestDayAnywhere(now: Date): Date {
+  const ahead = new Date(now.getTime() + 14 * 60 * 60 * 1000);
+  return new Date(ahead.getUTCFullYear(), ahead.getUTCMonth(), ahead.getUTCDate(), 12);
 }
