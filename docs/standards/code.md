@@ -66,6 +66,7 @@ The goal is context, not narration. A reader should learn why the code is the wa
 
 ## Errors and logging
 
+- Dates are calendar days, not moments. Check and compare them by their parts or in UTC (`isRealCalendarDate`, `isAfterDay`), never through a local `Date`, which a visitor's time zone can move to another day. A client component never reads the clock while it renders: the server and the browser can be on different dates, so it takes `today` from `useToday()` (`src/lib/use-today.ts`).
 - Validate input at the edges (form fields, URL params, local storage) and return `null` or a typed result for invalid input instead of throwing. The rest of the app can then trust its data.
 - `console.error` and `console.warn` are allowed for real failures. `console.log` is not committed; ESLint rejects it.
 - The `ErrorBoundary` wraps interactive content so a render error never blanks the page.

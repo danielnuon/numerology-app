@@ -30,7 +30,7 @@ import {
 import { motion } from "motion/react";
 import type { Weekday } from "@/lib/numerology/calculate";
 import { interpretYear } from "@/lib/numerology/interpretation";
-import { getActiveYear, getCycleIndex, getLifeArea, getMonthOfActiveYear } from "@/lib/numerology/year-lookup";
+import { activeYearOn, getCycleIndex, getLifeArea, getMonthOfActiveYear } from "@/lib/numerology/year-lookup";
 import { getZodiacAnimalForYear } from "@/lib/numerology/zodiac";
 import { getTierTextClass } from "@/lib/numerology/chart-helpers";
 import { ZodiacIcon } from "@/components/ui/zodiac-icon";
@@ -49,6 +49,8 @@ export interface CycleChartProps {
   birthMonth: number;
   /** Birth day (1–31) — used for timing-corrected "current year" highlight. */
   birthDay: number;
+  /** Today, read once for the whole page (see useToday). */
+  today: Date;
   /** Birth weekday (1–7, Sunday=1) — passed to the reading for its day planet. */
   weekday: Weekday;
   /** The selected calendar year; its orb is the selected tab. */
@@ -146,15 +148,15 @@ export function CycleChart({
   birthYear,
   birthMonth,
   birthDay,
+  today,
   weekday,
   selectedYear,
   onSelectPillar,
   onReturnToCurrent,
 }: CycleChartProps) {
-  const currentYear = new Date().getFullYear();
-  const activeYear = getActiveYear(currentYear, birthMonth, birthDay);
+  const activeYear = activeYearOn(today, { year: birthYear, month: birthMonth, day: birthDay });
   const currentColumn = getCycleIndex(birthYear, activeYear);
-  const monthOfYear = getMonthOfActiveYear(birthMonth, birthDay);
+  const monthOfYear = getMonthOfActiveYear(birthMonth, birthDay, today);
   const selectedIndex = getCycleIndex(birthYear, selectedYear);
   // The twelve calendar years of the cycle that holds the selected year
   const cycleStart = selectedYear - selectedIndex;

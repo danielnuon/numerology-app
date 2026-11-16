@@ -8,7 +8,7 @@ import {
 import { assessStability, STABILITY_TEXT } from "@/lib/numerology/compatibility";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { interpretCycleYear } from "@/lib/numerology/interpretation";
-import { getActiveYear } from "@/lib/numerology/year-lookup";
+import { activeYearOn } from "@/lib/numerology/year-lookup";
 import { homeUrlFor } from "@/lib/home-params";
 import {
   SHARED_READING_TITLE,
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
     decoded.rule
   );
   // This year's reading, the same one the preview image lights
-  const activeYear = getActiveYear(new Date().getFullYear(), decoded.month, decoded.day);
+  const activeYear = activeYearOn(new Date(), decoded);
   const thisYear = interpretCycleYear(result.cycle, decoded.year, activeYear);
 
   return previewMetadata(SHARED_READING_TITLE, sharedReadingDescription(thisYear));

@@ -16,7 +16,6 @@
  */
 
 import { MAX_COMPARED_PEOPLE } from "./numerology/compatibility";
-import { validateBirthDate } from "./numerology/derive";
 import {
   allQueryValues,
   decodeComparisonNames,
@@ -98,24 +97,25 @@ export interface SharedComparison {
  * The comparison in a shared link. Readings that don't decode are left out
  * with their names, and at most MAX_COMPARED_PEOPLE people are kept, the
  * reading's owner included.
+ *
+ * @param now - The current time, which decides whether a date is in the
+ *   future (see decodeReadingQuery)
  */
-export function comparisonFromSearchParams(params: HomeSearchParams): SharedComparison {
+export function comparisonFromSearchParams(params: HomeSearchParams, now: Date = new Date()): SharedComparison {
   const segments = params.p ?? [];
   const names = decodeComparisonNames(params.n, segments.length + 1);
   const others: SharedPerson[] = segments.flatMap((segment, i) => {
-    const share = decodeShareSegment(segment);
-    // decodeShareSegment checks the calendar; validateBirthDate also rules out future dates
-    if (!share || validateBirthDate(share.year, share.month, share.day).length > 0) return [];
-    return [{ share, name: names[i + 1] }];
+    const share = decodeShareSegment(segment, now);
+    return share ? [{ share, name: names[i + 1] }] : [];
   });
   if (others.length === 0) {
-    const partner = legacyPartner(params);
+    const partner = legacyPartner(params, now);
     if (partner) others.push({ share: partner, name: null });
   }
   return { readingName: names[0], others: others.slice(0, MAX_COMPARED_PEOPLE - 1) };
 }
 
 /** The single partner from a comparison link made before households, or null if absent or invalid. */
-function legacyPartner(params: HomeSearchParams): DecodedShare | null {
-  return decodeReadingQuery({ day: params.pday, month: params.pmonth, year: params.pyear, ny: params.pny });
+function legacyPartner(params: HomeSearchParams, now: Date): DecodedShare | null {
+  return decodeReadingQuery({ day: params.pday, month: params.pmonth, year: params.pyear, ny: params.pny }, now);
 }

@@ -26,7 +26,7 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "motion/react";
-import { SCROLL_WEIGHT, stepScrollSpring } from "@/lib/motion";
+import { SCROLL_WEIGHT, cardDepths, stepScrollSpring } from "@/lib/motion";
 import { type DustMessage, drawMotes, driftMotes, seedMotes, slideMotes } from "@/lib/dust";
 
 /**
@@ -148,6 +148,10 @@ export function LanternSky() {
     const glows = Array.from(sky.querySelectorAll<HTMLElement>(".sky-glow"));
     let cards: HTMLElement[] = [];
     let cardsFoundAt = -Infinity;
+    // Each card keeps the depth it is first given. Taking it from a card's
+    // place among the cards on screen would change it whenever another card
+    // scrolled in or out, and the card would jump by the difference.
+    const depthOf = cardDepths();
 
     function write(el: HTMLElement, px: number) {
       const rounded = Math.abs(px) > REST ? Math.round(px * 10) / 10 : 0;
@@ -191,11 +195,10 @@ export function LanternSky() {
 
       glows.forEach((glow, i) => write(glow, trail * GLOW_LAG_SHARE[i]));
       if (Math.abs(cardTrail) > REST || cards.length > 0) {
-        visibleCards(now).forEach((card, i) => {
-          const depth = 1 + (i % 3) * 0.25;
+        visibleCards(now).forEach((card) => {
           const offset = Math.max(
             -SCROLL_WEIGHT.cardDrift,
-            Math.min(SCROLL_WEIGHT.cardDrift, cardTrail * SCROLL_WEIGHT.cardDriftPerPx * depth)
+            Math.min(SCROLL_WEIGHT.cardDrift, cardTrail * SCROLL_WEIGHT.cardDriftPerPx * depthOf(card))
           );
           write(card, offset);
         });

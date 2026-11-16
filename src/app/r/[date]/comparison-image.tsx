@@ -29,7 +29,7 @@ import {
 } from "@/lib/numerology/compatibility";
 import { computeCycleFromBirthDate } from "@/lib/numerology/derive";
 import { encodeBirthDate, type DecodedComparison } from "@/lib/numerology/url-encoding";
-import { getActiveYear } from "@/lib/numerology/year-lookup";
+import { activeYearOn } from "@/lib/numerology/year-lookup";
 import { OG_COLORS, OG_INTERACTION_COLORS, OG_SITE_LABEL } from "@/lib/og-theme";
 import { peopleCountWord } from "@/lib/site-copy";
 import { ZODIAC_ICON_PATHS } from "@/components/ui/zodiac-icon";
@@ -63,7 +63,7 @@ export function comparisonImage({ people: shares }: DecodedComparison, size: { w
   const readings = shares.map((share) => computeCycleFromBirthDate(share.year, share.month, share.day, share.rule));
   const [first] = shares;
   // The first person's current cycle, as the page opens on.
-  const activeYear = getActiveYear(new Date().getFullYear(), first.month, first.day);
+  const activeYear = activeYearOn(new Date(), first);
   const cycleStart = cycleStartYear(readings[0].birthYear, activeYear);
   const years = compareCycles(readings, cycleStart);
   const summary = summarizeComparison(years, activeYear);

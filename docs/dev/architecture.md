@@ -21,7 +21,7 @@ BirthDataForm (input)
       -> CycleResultWithYear -> HomeClient state
           -> CycleChart (display)
               |- getTierTextClass() [chart-helpers.ts]
-              |- getActiveYear(), getCycleIndex() [year-lookup.ts] -- the current year's position
+              |- activeYearOn(), getCycleIndex() [year-lookup.ts] -- the current year's position
               |- interpretYear() [interpretation.ts]
               |- interpretTotal() [interpretation.ts]
               |- getLifeArea() [year-lookup.ts]
@@ -44,7 +44,7 @@ HomeClient (useEffect on mount)
                  |    +- "Got it" → markUpdateNoticeSeen(), focus the reading card
                  |- "Change date" → clearStoredBirthDate(), reset to first-visit
                  |- ThisYearCard (display)
-                 |    |- getActiveYear(), getNextReadingStart() [year-lookup.ts]
+                 |    |- activeYearOn(), getNextReadingStart() [year-lookup.ts]
                  |    |- interpretCycleYear() [interpretation.ts] -- this year and the next
                  |    +- describeYearPlanet() [interpretation.ts]
                  |- BirthReading (display, under ThisYearCard)
@@ -110,6 +110,7 @@ There is no store, context or server state. Everything a reading shows is derive
 |---|---|---|
 | The birth date in this visit (`sessionDate`) | `HomeClient` state, set from a share link or a form submission | `HomeClient` computes `result` from it with `useMemo` |
 | The saved birth date and New Year rule | localStorage, through `src/lib/storage.ts`; read only after hydration (`useIsHydrated`) | `HomeClient`, and `CycleWalkthrough` on How your cycle is made |
+| Today (`today`) | `useToday(renderedAt)` in `HomeClient`: the moment the server rendered while the page hydrates, then the visitor's own date, read once | `HomeClient` computes the active year from it and passes it to `ThisYearCard` and `CycleChart` |
 | The New Year rule chosen in this visit (`chosenRule`) | `HomeClient` state; a share link sets it, the toggle changes and saves it | `BirthDataForm`, `computeCycleFromBirthDate` |
 | The selected year (`pickedYear`, null for the active year) | `HomeClient` state | `CycleChart` and `YearTimeline`, so the wheel and the timeline always agree |
 | Which view the card shows (`chosenView`, `readingView`), `formOpen`, `bloomed` | `HomeClient` state | The reading card and `ReadingViewTabs` |
@@ -386,7 +387,8 @@ Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live 
 
 ### Testing patterns
 
-- **Deterministic dates**: `validateBirthDate` accepts an optional `todayOverride` parameter so tests pin "today" to a fixed date rather than depending on the system clock.
+- **Deterministic dates**: `validateBirthDate` accepts an optional `todayOverride` parameter so tests pin "today" to a fixed date rather than depending on the system clock. Link decoding (`decodeReadingQuery`, `decodeShareSegment`) takes the current time the same way.
+- **Time zones**: Jest runs in one time zone, and changing `process.env.TZ` inside a test has no effect. `time-zones.test.ts` runs `calendar.ts` in a child process set to Samoa's zone for the one check that needs a real zone; the rest pass a fixed moment.
 - **Boundary coverage**: Tests exercise CNY boundary dates, leap years, min/max year range, and edge-case weekdays (Sunday=1, Saturday=7).
 - **Worked examples**: The derive test suite includes a full acceptance test for July 24, 1997, verifying the expected 12-number cycle `[3, 6, 9, 5, 8, 11, 2, 0, 2, 4, 6, 8]`.
 - **Component tests**: Use React Testing Library under jsdom, opted into per file. Mock `useReducedMotion` from `motion/react` for deterministic rendering (see `year-timeline.test.tsx`).
@@ -396,7 +398,7 @@ Calculation tests live in `src/lib/numerology/__tests__/`. Component tests live 
 Larger restructurings that a review in November 2026 found worth doing but left out, because each touches many files or tests and deserves a PR of its own. None changes what a visitor sees.
 
 1. **Let a reading carry its own birth date.** `CycleResultWithYear` holds the date in three places (`birthYear`, `birthDay`, `birthData.gregorianMonth`) and the rule in a fourth (`birthData.newYearRule`). So `ThisYearCard` and `CycleChart` take five props that all come from one object, `CycleComparison` takes a `readingRule` the reading already has, and the same four fields are copied into a `DecodedShare` in four places. Giving the result one `birth: { year, month, day, rule }` field and passing the reading whole would remove the copies.
-2. **Read "today" once.** `getActiveYear(currentYear, birthMonth, birthDay, todayOverride?)` takes the current year and today separately, and all seven callers pass `new Date().getFullYear()`. `HomeClient`, `ThisYearCard` and `CycleChart` each read the clock on their own. Taking a single `today` and computing the active year once in `HomeClient` would leave one source for "now". It would also make it possible to fix the one place the server and the browser can disagree: a shared reading is rendered on the server with the server's date, so near a birthday or New Year's Eve a visitor in another time zone may hydrate onto a different active year (inferred from the code, not yet reproduced).
+2. **Finish reading "today" once.** The home page now reads the date in one place (`useToday()` in `src/lib/use-today.ts`) and hands it down, and `activeYearOn(today, birth)` computes the active year from it. That closed the gap where a shared reading rendered one year on the server and another in a browser a day ahead of it. What remains: `getActiveYear(currentYear, birthMonth, birthDay, todayOverride?)` still takes the current year and today separately, and the share route's metadata and preview images read the server's clock, since no visitor's date exists there.
 3. **Split `HomeClient`.** At about 690 lines it holds the page header, the form card, the reading card, the view switch and nine pieces of state. The reading card and its view switch (`readingView`, `chosenView`, `swapInPlace`, `pickedYear`) could move to a `ReadingCard` component, leaving `HomeClient` with the date, the rule and which card shows.
 4. **Split `CycleComparison`.** Its file holds seven components. The year-by-year table and the share actions are the natural pieces to move to their own files, as the code standard's "one component per file" asks.
 5. **One column convention.** Columns are 0-indexed in arrays and component state and 1-indexed in `getLifeArea()`, `interpretAreaYear()` and `describeYearPlanet()`. `interpretCycleYear()` hides the conversion when reading a calendar year; the wheel and the timeline still convert by hand.

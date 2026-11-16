@@ -131,6 +131,24 @@ export function stepScrollSpring(spring: ScrollSpring, target: number, dt: numbe
 }
 
 /**
+ * Hands each glass card its depth for scroll weight: how far it drifts for a
+ * given lag, every third card a touch more (1, 1.25 or 1.5 times). A card
+ * keeps the depth it is first given for as long as it exists.
+ */
+export function cardDepths(): (card: object) => number {
+  const depths = new WeakMap<object, number>();
+  let given = 0;
+  return (card) => {
+    let depth = depths.get(card);
+    if (depth === undefined) {
+      depth = 1 + (given++ % 3) * 0.25;
+      depths.set(card, depth);
+    }
+    return depth;
+  };
+}
+
+/**
  * The woven flame's response to movement (see "Living surfaces" in the
  * design language). The flame leans toward the pointer, by at most
  * `maxLean` degrees when the pointer is half a screen away, and stretches up

@@ -8,6 +8,7 @@
 
 import { computeCycle, type CycleResult, type Weekday } from "./calculate";
 import {
+  isAfterDay,
   isRealCalendarDate,
   isSupportedYear,
   SUPPORTED_YEAR_MAX,
@@ -79,14 +80,10 @@ export function validateBirthDate(
       errors.push({ field: "date", message: "That date doesn't exist. Check the day and month." });
     } else {
       const today = todayOverride ?? new Date();
-      const startOfToday = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate()
-      );
-      // Compare against midnight so a birth date of today is accepted
-      // regardless of the current time of day.
-      if (new Date(year, month - 1, day) > startOfToday) {
+      // Compared by calendar day, so a birth date of today is accepted
+      // whatever the time of day.
+      const todayParts = { year: today.getFullYear(), month: today.getMonth() + 1, day: today.getDate() };
+      if (isAfterDay({ year, month, day }, todayParts)) {
         errors.push({ field: "date", message: "A birth date can't be in the future." });
       }
     }
@@ -99,8 +96,9 @@ export function validateBirthDate(
  * Derives all birth data (weekday, zodiac, month position) from raw date parts.
  * Does not validate — call validateBirthDate first.
  *
- * Uses the local-date constructor `new Date(year, month - 1, day)` to avoid
- * UTC-offset issues that arise from ISO string parsing.
+ * The weekday is read in UTC so it never depends on the visitor's time zone.
+ * The animal is looked up from a local date, which a time zone can only move
+ * on a day its calendar skipped; none of those is near a New Year.
  *
  * @param year - Four-digit Gregorian year
  * @param month - Gregorian month (1-12)
@@ -116,8 +114,9 @@ export function deriveBirthData(
 ): BirthData {
   const date = new Date(year, month - 1, day);
 
-  // JS getDay() is 0-based (0=Sun); the Khmer weekday numbering is 1-based (1=Sun).
-  const weekday = (date.getDay() + 1) as Weekday;
+  // JS getUTCDay() is 0-based (0=Sun); the Khmer weekday numbering is 1-based
+  // (1=Sun). Read in UTC, where every calendar day exists (see isRealCalendarDate).
+  const weekday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 1) as Weekday;
 
   const zodiacNumber = getZodiacNumber(date, rule);
   const zodiacAnimal = getZodiacAnimal(date, rule);

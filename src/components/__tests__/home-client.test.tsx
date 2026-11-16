@@ -67,7 +67,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   });
 
   it("replaces the form with the reading in the same place", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
 
     expect(screen.queryByRole("form", { name: "Birth date form" })).not.toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   });
 
   it("folds back to an empty form for someone else, and can return to the reading", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
 
     act(() => {
@@ -93,7 +93,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   });
 
   it("opens a shared link on the reading, with a way to read your own", () => {
-    render(<HomeClient searchParams={{ day: "24", month: "7", year: "1997" }} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{ day: "24", month: "7", year: "1997" }} />);
 
     expect(screen.getByText("A reading shared with you")).toBeInTheDocument();
     expect(screen.queryByRole("form", { name: "Birth date form" })).not.toBeInTheDocument();
@@ -105,7 +105,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   });
 
   it("calls a shared reading theirs and leads to the visitor's own", () => {
-    render(<HomeClient searchParams={{ day: "24", month: "7", year: "1997" }} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{ day: "24", month: "7", year: "1997" }} />);
 
     expect(screen.getByText("Their 2026 reading")).toBeInTheDocument();
     expect(screen.getByText("Their 2027 reading begins on July 24.")).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   });
 
   it("calls the visitor's own reading theirs, with no button to read their own", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     expect(screen.getByText("Your 2026 reading")).toBeInTheDocument();
     expect(screen.getByText("Your 2027 reading begins on July 24.")).toBeInTheDocument();
@@ -130,6 +130,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   it("opens a shared comparison on both cycles, without saving the partner", () => {
     render(
       <HomeClient
+        renderedAt={Date.now()}
         searchParams={{ day: "24", month: "7", year: "1997", pday: "15", pmonth: "3", pyear: "2000" }}
       />
     );
@@ -142,6 +143,7 @@ describe("HomeClient: the form blooms into the reading", () => {
   it("opens a shared household comparison with its names", () => {
     render(
       <HomeClient
+        renderedAt={Date.now()}
         searchParams={{
           day: "24",
           month: "7",
@@ -157,8 +159,51 @@ describe("HomeClient: the form blooms into the reading", () => {
     expect(headers).toEqual(["Year", "Dany", "Sam", "Mai", "Together"]);
   });
 
+  it("drops a shared comparison's people and names when the visitor reads their own", () => {
+    render(
+      <HomeClient
+        renderedAt={Date.now()}
+        searchParams={{ day: "2", month: "5", year: "1960", p: ["1990-03-15", "2015-08-09"], n: ["Mom", "Sam", "Mai"] }}
+      />
+    );
+    expect(screen.getByRole("heading", { name: "Three cycles together" })).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "See your own cycle" }));
+    });
+    submitBirthDate("24", "7", "1997");
+
+    // The visitor's reading is not "Mom", and is not compared with Mom's family
+    expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
+    expect(screen.queryByText("Mom")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /cycles together/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compare with someone close" })).toBeInTheDocument();
+  });
+
+  it("does not compare the visitor with themselves after they read their own", () => {
+    render(<HomeClient renderedAt={Date.now()} searchParams={{ day: "2", month: "5", year: "1960" }} />);
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Compare it with yours" }));
+    });
+    const compareForm = screen.getByRole("form", { name: "Comparison birth date form" });
+    fireEvent.change(within(compareForm).getByLabelText("Day"), { target: { value: "24" } });
+    fireEvent.change(within(compareForm).getByLabelText("Month"), { target: { value: "7" } });
+    fireEvent.change(within(compareForm).getByLabelText("Year"), { target: { value: "1997" } });
+    act(() => {
+      fireEvent.submit(compareForm);
+    });
+    expect(screen.getByRole("heading", { name: "Your cycles together" })).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByRole("button", { name: "See your own cycle" }));
+    });
+    submitBirthDate("24", "7", "1997");
+
+    expect(screen.queryByRole("heading", { name: "Your cycles together" })).not.toBeInTheDocument();
+  });
+
   it("ignores partner params without a shared reading", () => {
-    render(<HomeClient searchParams={{ pday: "15", pmonth: "3", pyear: "2000" }} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{ pday: "15", pmonth: "3", pyear: "2000" }} />);
     expect(screen.queryByRole("heading", { name: /cycles together/ })).not.toBeInTheDocument();
   });
 });
@@ -181,21 +226,21 @@ describe("HomeClient: a calm first visit, this year first", () => {
   });
 
   it("asks one question, after one line saying what the reading gives", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.getByRole("heading", { name: "When were you born?" })).toBeInTheDocument();
     expect(screen.getByText(paragraphText("a luck number for every year of your 12-year cycle"))).toBeInTheDocument();
     expect(screen.getByText("A lantern for every year in your cycle")).toBeInTheDocument();
   });
 
   it("opens the reading on this year", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     expect(screen.getByText("Your 2026 reading")).toBeInTheDocument();
     expect(screen.getByText(/Life area:/)).toBeInTheDocument();
   });
 
   it("switches between this year and all 12 years in the same place", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     const yearTab = screen.getByRole("tab", { name: "Year" });
     const cycleTab = screen.getByRole("tab", { name: "Cycle" });
@@ -219,7 +264,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
   });
 
   it("brings the card's top back on a switch only if it was scrolled past", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     const card = document.getElementById("reading-view-year")!.closest<HTMLElement>("[tabindex='-1']")!;
     const scrollIntoView = jest.fn();
@@ -238,7 +283,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
   });
 
   it("opens each new reading on this year", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     act(() => {
       fireEvent.click(screen.getByRole("tab", { name: "Cycle" }));
@@ -252,7 +297,7 @@ describe("HomeClient: a calm first visit, this year first", () => {
 
   it("offers one link on the reading, and lets a returning visitor forget their saved date from the form", () => {
     localStorage.setItem(BIRTH_DATE_STORAGE_KEY, JSON.stringify({ day: 24, month: 7, year: 1997 }));
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.queryByRole("button", { name: "Forget my date" })).not.toBeInTheDocument();
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: "Read for someone else" }));
@@ -288,7 +333,7 @@ describe("HomeClient: the one-time note about the 2026 changes", () => {
 
   it("shows above a returning visitor's restored reading, in a live region", () => {
     saveDate(24, 7, 1997);
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     const heading = screen.getByRole("heading", NOTICE);
     expect(heading.closest("[aria-live=polite]")).toBeInTheDocument();
     expect(screen.getByText(/Each year of your cycle now begins on your birthday/)).toBeInTheDocument();
@@ -297,27 +342,27 @@ describe("HomeClient: the one-time note about the 2026 changes", () => {
   it("names both animals when Khmer New Year changes this birth date's animal", () => {
     // February 10, 1997 is after Chinese New Year (Ox) but before Khmer New Year (Rat).
     saveDate(10, 2, 1997);
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.getByText(/your animal is the Rat rather than the Ox/)).toBeInTheDocument();
   });
 
   it("leaves out the animal line when the visitor had already chosen a New Year rule", () => {
     saveDate(10, 2, 1997);
     localStorage.setItem(NEW_YEAR_RULE_STORAGE_KEY, "chinese");
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.getByRole("heading", NOTICE)).toBeInTheDocument();
     expect(screen.queryByText(/your animal is the/)).not.toBeInTheDocument();
   });
 
   it("leaves out the animal line when both New Years give the same animal", () => {
     saveDate(24, 7, 1997);
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.queryByText(/your animal is the/)).not.toBeInTheDocument();
   });
 
   it("goes away for good with \"Got it\", and focus moves to the reading", () => {
     saveDate(24, 7, 1997);
-    const { unmount } = render(<HomeClient searchParams={{}} />);
+    const { unmount } = render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: "Got it" }));
     });
@@ -326,28 +371,28 @@ describe("HomeClient: the one-time note about the 2026 changes", () => {
     expect(localStorage.getItem(UPDATE_NOTICE_STORAGE_KEY)).not.toBeNull();
 
     unmount();
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
   });
 
   it("never shows on a first visit", () => {
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
   });
 
   it("never shows on a shared link, even with a saved date", () => {
     saveDate(24, 7, 1997);
-    render(<HomeClient searchParams={{ day: "10", month: "2", year: "1997" }} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{ day: "10", month: "2", year: "1997" }} />);
     expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
   });
 
   it("never shows after a fresh submission, now or on a later visit", () => {
-    const { unmount } = render(<HomeClient searchParams={{}} />);
+    const { unmount } = render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     submitBirthDate("24", "7", "1997");
     expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
 
     unmount();
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
     expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
   });
@@ -358,7 +403,7 @@ describe("HomeClient: the one-time note about the 2026 changes", () => {
       if (key === UPDATE_NOTICE_STORAGE_KEY) throw new Error("blocked");
       return key === BIRTH_DATE_STORAGE_KEY ? JSON.stringify({ day: 24, month: 7, year: 1997 }) : null;
     });
-    render(<HomeClient searchParams={{}} />);
+    render(<HomeClient renderedAt={Date.now()} searchParams={{}} />);
     expect(screen.getByText("July 24, 1997")).toBeInTheDocument();
     expect(screen.queryByRole("heading", NOTICE)).not.toBeInTheDocument();
     getItem.mockRestore();

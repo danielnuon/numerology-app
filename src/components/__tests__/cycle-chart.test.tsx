@@ -33,6 +33,7 @@ const defaultProps = {
   birthYear: 1997,
   birthMonth: 7,
   birthDay: 24,
+  today: new Date(2026, 9, 28),
   weekday: 5 as const, // Thursday
   // 2026 is position 5 of the cycle (1997 + 5 + 24)
   selectedYear: 2026,
