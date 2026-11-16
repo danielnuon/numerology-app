@@ -111,6 +111,24 @@ The second row shows what the flame cost on its own. What remains at rest is mos
 
 The main thread is now nearly free at rest, so taps and scrolls never wait behind the dust. Total CPU fell less, about 650ms to 560ms: the drawing mostly moved rather than shrank, so the battery saving is modest. Browsers without OffscreenCanvas in workers draw on the main thread as before.
 
+**Follow-up: the motion audit.** A later profile (headless Chromium, 390×844) found the main thread still not asleep at rest, and busy for half of every scroll, from three causes that all sit outside the animations themselves:
+
+- *Every turn of a loop woke the page.* React listens for `animationiteration` at the root, so the browser wakes the main thread at each iteration boundary of each CSS animation and restyles for about five frames, although the animation is composited. With `infinite alternate`, every swing is a boundary. A blank page with one such loop does no main-thread work until a listener for that event is added. The loops now swing out and back four times per turn (`--loop-swings`), which removes seven boundaries in eight; the motion sampled over 16s is unchanged.
+- *Finished entrances never let go.* `rise`, `kindle` and `arrive-title` blur as they fade in and were filled `both`. Chromium can't composite a filter animation that may move pixels, and a finished one that still fills keeps its element under an animated filter, so every composited glow inside it (a title's halo, a card's lights) forced the page's layers to be rebuilt on each frame. They now fill `backwards`.
+- *Glows off screen cost as much as glows in view.* Each main frame restyles every running animation, and a scroll produces a main frame per frame. `RestOffscreen` pauses the loops of living surfaces that are off screen.
+
+| Main thread | Before | After |
+|-------------|--------|-------|
+| Busy time at rest per 3s, home, shared reading, About (unthrottled) | 138–215ms | 6–7ms |
+| Busy time at rest per 3s, cycle wheel view of a reading (unthrottled) | about 830ms | 6ms |
+| Busy share of a touch scroll, About (4× throttle) | 59–66% | 25% |
+| Busy share of a touch scroll, What the numbers mean (4× throttle) | 64% | 34% |
+| Busy share of a touch scroll, shared reading, Year view (4× throttle) | 47–49% | 22% |
+| Busy share of a touch scroll, shared reading, Cycle view (4× throttle) | 91%, 82 tasks over 16ms | 62%, 13 tasks over 16ms |
+| Busy share of a touch scroll, shared reading at 1280px, wheel and reading side by side (4× throttle) | 60–64%, 70–78 tasks over 16ms | 31%, 11 tasks over 16ms |
+
+Scroll weight itself (the paused animations `LanternSky` seeks) made no measurable difference to a scroll when stubbed out, and neither did the glass light or the backdrop blur, on the main thread. The Cycle view still rebuilds its layers on most scroll frames with every CSS animation off; the cost grows with the wheel and the timeline, and its cause is not yet found. The same limit applies as above: this is Chromium on a desktop CPU, slowed. None of it has been measured in Safari or on a phone.
+
 ## Consequences
 
 ### Positive
