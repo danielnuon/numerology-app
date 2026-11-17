@@ -25,7 +25,7 @@
  */
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { EASE, MOTION } from "@/lib/motion";
+import { EASE, MOTION, SPRING, springTiming } from "@/lib/motion";
 
 interface Props {
   open: boolean;
@@ -38,8 +38,6 @@ interface Props {
 
 /** Room left around the content's clip so glows and focus rings show. */
 const CLIP_MARGIN = 24;
-
-const SPATIAL_EASE = `cubic-bezier(${EASE.standard.join(", ")})`;
 
 interface Glide {
   animations: Animation[];
@@ -158,10 +156,12 @@ export function Reveal({ open, id, className = "", children }: Props) {
     setShown(true);
 
     // Each keyframe pair runs from the closed look to the open look; closing
-    // plays it backward
+    // plays it backward. Opening glides on the glide spring and closing on
+    // the swifter one, eased so that played backward it still moves as a
+    // spring does (see "Physics" in the design language)
     const timing: KeyframeAnimationOptions = open
-      ? { duration: MOTION.gentle * 1000, easing: SPATIAL_EASE, fill: "both" }
-      : { duration: MOTION.standard * 1000, easing: SPATIAL_EASE, fill: "both", direction: "reverse" };
+      ? { ...springTiming(SPRING.glide, MOTION.gentle * 1000), fill: "both" }
+      : { ...springTiming(SPRING.swift, MOTION.standard * 1000, true), fill: "both", direction: "reverse" };
 
     const animations: Animation[] = [];
     following.forEach((el, i) => {

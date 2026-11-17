@@ -21,7 +21,7 @@
  * Animations are missing the swap is instant.
  */
 
-import { EASE, MOTION } from "@/lib/motion";
+import { EASE, MOTION, SPRING, springTiming } from "@/lib/motion";
 import { fadeInPlace, prefersReducedMotion, surroundings } from "@/components/ui/reveal";
 
 const ease = (curve: readonly number[]) => `cubic-bezier(${curve.join(", ")})`;
@@ -95,11 +95,13 @@ export function swapInPlace({ slot, outgoing, swap, incoming }: Options): Swap {
       // A card that shrinks holds its height for the glide, so the blocks
       // below stay put in the layout and slide up by transform instead
       const shrinking = surfaces.map((el, i) => after.heights[i] < before.heights[i] - 0.5);
-      // Growing takes 400ms like an opening Reveal; shrinking takes 250ms,
-      // like a closing one, so the emptied part of the card goes quickly
+      // Growing glides on the glide spring like an opening Reveal; shrinking
+      // on the swift spring, like a closing one, so the emptied part of the
+      // card goes quickly
       const timing: KeyframeAnimationOptions = {
-        duration: (shrinking.some(Boolean) ? MOTION.standard : MOTION.gentle) * 1000,
-        easing: ease(EASE.standard),
+        ...(shrinking.some(Boolean)
+          ? springTiming(SPRING.swift, MOTION.standard * 1000)
+          : springTiming(SPRING.glide, MOTION.gentle * 1000)),
         fill: "both",
       };
       surfaces.forEach((el, i) => {
