@@ -20,13 +20,20 @@
  * only while the spring is moving: a scroll wakes it, and it stops once
  * everything has settled.
  *
+ * A page change is not a scroll: the new page opens where it opens, and
+ * nothing swings into place after it. The spring is set to rest on each
+ * route change and held there for a moment (ROUTE_SETTLE_MS), since the
+ * page's new scroll position can arrive a frame or two later.
+ *
  * With Reduce Motion the dust is drawn once, nothing trails and nothing
  * loops. Drawing pauses while the tab is hidden.
  */
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useReducedMotion } from "motion/react";
 import { SCROLL_WEIGHT, cardDepths, stepScrollSpring } from "@/lib/motion";
+import { createDustWorker } from "@/components/create-dust-worker";
 import { type DustMessage, drawMotes, driftMotes, seedMotes, slideMotes } from "@/lib/dust";
 
 /**
@@ -43,6 +50,13 @@ const REST = 0.05;
 
 /** How much of the scroll lag each glow takes (dusk, lantern, ember): nearer lights trail more. */
 const GLOW_LAG_SHARE = [0.4, 0.55, 0.15];
+
+/**
+ * How long after a route change the scroll weight stays at rest, so the jump
+ * to the new page's scroll position isn't trailed. About as long as the
+ * page change's own fade.
+ */
+export const ROUTE_SETTLE_MS = 300;
 
 /** Whether this browser can draw the dust off the main thread. */
 function canDrawInWorker(canvas: HTMLCanvasElement): boolean {
@@ -63,7 +77,7 @@ function startDust(canvas: HTMLCanvasElement, still: boolean): { send: (message:
     try {
       // The worker is made before the canvas is handed over, so if it can't
       // start (a strict content policy, say), the dust is drawn here instead.
-      worker = new Worker(new URL("./dust.worker.ts", import.meta.url), { type: "module" });
+      worker = createDustWorker();
       const offscreen = canvas.transferControlToOffscreen();
       const start: DustMessage = { type: "start", canvas: offscreen, width, height, dpr, still };
       worker.postMessage(start, [offscreen]);
@@ -123,6 +137,13 @@ function startDust(canvas: HTMLCanvasElement, still: boolean): { send: (message:
 export function LanternSky() {
   const skyRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  const pathname = usePathname();
+  /** Sets the scroll weight to rest where the page is now; set by the effect below. */
+  const settleRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    settleRef.current?.();
+  }, [pathname]);
 
   useEffect(() => {
     const sky = skyRef.current;
@@ -139,6 +160,7 @@ export function LanternSky() {
     const spring = { position: window.scrollY, velocity: 0 };
     let lastScroll = window.scrollY;
     let cardTrail = 0;
+    let restUntil = 0;
     // Each moving element gets one paused animation across the whole range
     // of offsets; a frame only seeks it. Seeking an animation is cheaper for
     // the browser than rewriting an inline style, which would also throw
@@ -190,6 +212,10 @@ export function LanternSky() {
     // Returns whether anything is still moving.
     function applyWeight(dt: number, now: number): boolean {
       const scroll = window.scrollY;
+      if (now < restUntil) {
+        rest();
+        return false;
+      }
       const trail = stepScrollSpring(spring, scroll, dt);
       cardTrail += (trail - cardTrail) * Math.min(1, dt * 10);
 
@@ -224,6 +250,22 @@ export function LanternSky() {
       );
     }
 
+    // Everything back in its place, with the spring at the page's position
+    function rest() {
+      spring.position = lastScroll = window.scrollY;
+      spring.velocity = 0;
+      cardTrail = 0;
+      glows.forEach((glow) => write(glow, 0));
+      cards.forEach((card) => write(card, 0));
+      cards = [];
+      cardsFoundAt = -Infinity;
+    }
+
+    settleRef.current = () => {
+      restUntil = performance.now() + ROUTE_SETTLE_MS;
+      rest();
+    };
+
     function tick(now: number) {
       const dt = last ? Math.min(now - last, 100) / 1000 : 1 / 60;
       last = now;
@@ -245,8 +287,7 @@ export function LanternSky() {
 
     function handleVisibility() {
       // Coming back to the tab, the page is where it is: nothing to catch up on
-      spring.position = lastScroll = window.scrollY;
-      spring.velocity = 0;
+      rest();
       dust.send({ type: "visible", visible: !document.hidden });
     }
 
@@ -254,6 +295,7 @@ export function LanternSky() {
     window.addEventListener("resize", handleResize);
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
+      settleRef.current = null;
       cancelAnimationFrame(frame);
       dust.stop();
       canvas.remove();

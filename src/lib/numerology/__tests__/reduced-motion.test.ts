@@ -32,6 +32,8 @@ describe("prefers-reduced-motion CSS rules", () => {
     const blockContent = blocks.join("\n");
     expect(blockContent).toMatch(/animation-duration\s*:\s*0\.01ms/);
     expect(blockContent).toMatch(/transition-duration\s*:\s*0\.01ms/);
+    // A staggered entrance doesn't keep its element hidden for its delay
+    expect(blockContent).toMatch(/animation-delay\s*:\s*0s\s*!important/);
     expect(blockContent).toMatch(/scroll-behavior\s*:\s*auto/);
     expect(blockContent).toMatch(/::view-transition-group\(\*\)/);
   });

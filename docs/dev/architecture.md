@@ -354,6 +354,10 @@ The app respects `prefers-reduced-motion` at two levels:
 - **CSS**: a global `@media (prefers-reduced-motion: reduce)` rule in `globals.css` collapses animations, transitions, smooth scrolling and view transitions. Ambient and scroll-driven animations are declared only inside `@media (prefers-reduced-motion: no-preference)`.
 - **JavaScript**: `HomeClient` wraps the app in Motion's `<MotionConfig reducedMotion="user">`, which disables transform animations (stagger rise, press scale) app-wide. `YearTimeline` uses `useReducedMotion()` to center the selected year without smooth scrolling, and `LanternSky` draws its dust once, still. The dust's drawing logic is `src/lib/dust.ts`; `LanternSky` hands its canvas to `dust.worker.ts` with `transferControlToOffscreen()` and falls back to drawing on the main thread where that isn't supported.
 
+### Keeping living surfaces cheap
+
+`RestOffscreen` (`src/components/rest-offscreen.tsx`, rendered once in the root layout) watches every living surface (`LIVING_SURFACES`) with an `IntersectionObserver` and sets `data-resting` on it while it is off screen; `[data-resting]` in `globals.css` pauses the loops inside it. A `MutationObserver` finds surfaces that arrive later. `LanternSky` sets its scroll spring to rest on each route change (`usePathname`), so the sky's glows and the cards don't swing into place on a new page. Its worker is started by `create-dust-worker.ts`, kept apart so tests can replace it. The reasons and the measurements are in ADR-003 under the motion audit.
+
 ## Testing Conventions
 
 ### Framework

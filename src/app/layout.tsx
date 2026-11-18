@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import { HistoryScroll } from "@/components/history-scroll";
 import { LanternSky } from "@/components/lantern-sky";
+import { RestOffscreen } from "@/components/rest-offscreen";
 import { SiteAnalytics } from "@/components/site-analytics";
 import { SiteMenu } from "@/components/site-menu";
 import {
@@ -106,6 +107,7 @@ export default function RootLayout({
           {children}
         </div>
         <HistoryScroll />
+        <RestOffscreen />
         <SiteAnalytics />
       </body>
     </html>

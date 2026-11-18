@@ -12,6 +12,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { EASE, MOTION, SPRING, springCurve } from "@/lib/motion";
 import { OG_COLORS, threadedOrb } from "@/lib/og-theme";
+import { LIVING_SURFACES, RESTING_ATTR } from "@/components/rest-offscreen";
 import manifest from "@/app/manifest";
 
 const ROOT = path.resolve(__dirname, "../../..");
@@ -115,6 +116,49 @@ describe("compositor-only motion", () => {
       return /(box-shadow|text-shadow|filter|background)\s*:/.test(block);
     });
     expect(offending).toEqual([]);
+  });
+
+  it("a living loop holds several swings in one turn, so an idle page isn't woken for each", () => {
+    // React listens for animationiteration on the whole page, so the browser
+    // wakes the page at the end of every turn of every loop. `alternate`
+    // ends a turn on each swing; the loops' keyframes swing out and back
+    // four times a turn instead (--loop-swings).
+    const loops = css.split("\n").filter((line) => /\binfinite\b/.test(line));
+    expect(loops.filter((line) => /\balternate\b/.test(line))).toEqual([]);
+    const swung = loops.filter((line) => !/ring-turn/.test(line));
+    expect(swung.length).toBeGreaterThan(0);
+    for (const line of swung) expect(line).toMatch(/calc\([^;]*\* var\(--loop-swings\)\)/);
+    const swings = Number(cssVar("loop-swings"));
+    const names = [...new Set(swung.map((line) => line.match(/animation:\s*([\w-]+)/)?.[1] ?? line.trim().split(" ")[0]))];
+    for (const name of names) {
+      const block = css.match(new RegExp(`@keyframes ${name}\\s*\\{([^{}]*\\{[^}]*\\})*\\s*\\}`))?.[0] ?? "";
+      const stops = [...block.matchAll(/([\d.]+)%/g)].map((m) => Number(m[1]));
+      // One stop at each end of every swing
+      expect([name, stops.length]).toEqual([name, swings + 1]);
+    }
+  });
+
+  it("an entrance with a blur lets go of its element when it ends", () => {
+    // Filled forwards, the finished animation keeps the element under an
+    // animated filter, and every glow inside redraws its layers each frame.
+    const blurred = [...css.matchAll(/@keyframes ([\w-]+)\s*\{([^{}]*\{[^}]*\})*\s*\}/g)]
+      .filter((m) => /filter\s*:\s*blur/.test(m[0]))
+      .map((m) => m[1]);
+    expect(blurred.length).toBeGreaterThan(0);
+    for (const name of blurred) {
+      const uses = css.match(new RegExp(`animation:\\s*${name}\\b[^;]*;`, "g")) ?? [];
+      expect(uses.length).toBeGreaterThan(0);
+      for (const use of uses) expect(use).not.toMatch(/\b(both|forwards)\b/);
+    }
+  });
+
+  it("every living surface that rests off screen has a rule that pauses it", () => {
+    expect(css).toMatch(/\[data-resting\] \*::after\s*\{\s*animation-play-state:\s*paused\s*!important/);
+    expect(RESTING_ATTR).toBe("data-resting");
+    const sources = filesUnder("src", /\.(tsx|css)$/).filter((file) => !file.includes("__tests__") && !file.includes("rest-offscreen")).map(read).join("\n");
+    for (const selector of LIVING_SURFACES.split(", ")) {
+      expect([selector, sources.includes(selector.slice(1))]).toEqual([selector, true]);
+    }
   });
 
   it("luckier tiers light the wheel's center brighter and further out", () => {
